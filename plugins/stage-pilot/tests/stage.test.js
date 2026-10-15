@@ -62,6 +62,25 @@ test('미설치 플러그인을 설치 명령과 함께 알려 준다', () => {
   assert.match(S.card(map, 'default', '7', new Set()), /marketplace add pydantic\/skills 후 \/plugin install pydantic@pydantic-skills/);
 });
 
+test('auto·log·plan: 자동 모드 표시, 결정 기록 유지, 호출 항목 분리', () => {
+  const cwd = tmp();
+  execFileSync('node', [SCRIPT, 'set', 'default', '10', '--auto', '--cwd', cwd]);
+  execFileSync('node', [SCRIPT, 'log', '남은', '이슈는', '범위', '밖이라', '기록', '--cwd', cwd]);
+  execFileSync('node', [SCRIPT, 'next', '--cwd', cwd]);
+  const st = JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'stage-pilot', 'state.json'), 'utf8'));
+  assert.strictEqual(st.auto, true, 'next 뒤에도 자동 모드 유지');
+  assert.strictEqual(st.decisions[0].text, '남은 이슈는 범위 밖이라 기록');
+  const sess = JSON.parse(execFileSync('node', [SCRIPT, 'session'], { input: JSON.stringify({ cwd }) }).toString());
+  assert.match(sess.hookSpecificOutput.additionalContext, /모드: 자동 승인/);
+  assert.match(sess.hookSpecificOutput.additionalContext, /자동 승인 모드: 단계 작업 요청이나 run/);
+  execFileSync('node', [SCRIPT, 'auto', 'off', '--cwd', cwd]);
+  const off = JSON.parse(execFileSync('node', [SCRIPT, 'session'], { input: JSON.stringify({ cwd }) }).toString());
+  assert.match(off.hookSpecificOutput.additionalContext, /제안 모드/);
+  assert.match(S.card(map, 'default', '4', new Set()), /dispatching-parallel-agents \(조건: /, '조건부 항목은 조건을 함께 보여 줌');
+  const p = S.plan(map, 'default', '10');
+  assert.ok(p.invoke.every((r) => ['skill', 'agent', 'command'].includes(r.type)) && p.invoke.length >= 5);
+});
+
 test('잘못된 단계는 사용 가능한 목록과 함께 거부한다', () => {
   assert.throws(() => S.findStage(map, 'g6', '99'), /가능: pre, 0/);
 });

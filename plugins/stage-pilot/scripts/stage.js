@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // stage-pilot: 워크플로 단계별 플러그인 안내기. 표준 라이브러리만 사용.
 // 사용: node stage.js session|prompt   (훅, stdin JSON)
-//       node stage.js status|profiles|next|set <profile> <stage> [--cwd DIR]
+//       node stage.js status|profiles|next|set <profile> [stage] [--auto]|auto on|off|log <결정>|plan [stage] [--cwd DIR]
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -10,6 +10,8 @@ const path = require('path');
 const MAP_PATH = path.join(__dirname, '..', 'skills', 'stage-pilot', 'references', 'stage-map.json');
 const loadMap = () => JSON.parse(fs.readFileSync(MAP_PATH, 'utf8'));
 const statePath = (cwd) => path.join(cwd, '.claude', 'stage-pilot', 'state.json');
+const SUGGEST_NOTE = '(stage-pilot 제안 모드: 이 단계의 플러그인을 우선 제안하고, 실행은 /stage-pilot:stage run 또는 사용자의 명시적 요청이 있을 때만. 승인 지점에서는 멈춘다.)';
+const AUTO_NOTE = '(stage-pilot 자동 승인 모드: 단계 작업 요청이나 run 에서는 stage-pilot 스킬을 불러 run 항목을 Skill·Agent 도구로 실제 호출해 수행한다. 승인 지점에서 멈추지 않고 스킬의 「자동 결정 원칙」으로 정한 뒤 stage.js log 로 기록하고 계속한다. 원격 저장소 작업·데이터 삭제·사용자 전용 명령은 자동 승인 대상이 아니다.)';
 
 function readState(cwd) {
   try { return JSON.parse(fs.readFileSync(statePath(cwd), 'utf8')); } catch { return null; }
@@ -44,10 +46,10 @@ function missingFor(map, stage, installed) {
 
 function fmtRun(r) {
   const how = { skill: 'Skill', agent: 'Agent', command: 'Skill(명령)', shell: 'Bash', user: '사용자 입력' }[r.type] || r.type;
-  return `[${how}] ${r.ref}${r.args ? ' ' + r.args : ''}${r.note ? ` — ${r.note}` : ''}`;
+  return `[${how}] ${r.ref}${r.args ? ' ' + r.args : ''}${r.note ? ` — ${r.note}` : ''}${r.when ? ` (조건: ${r.when})` : ''}`;
 }
 
-function card(map, profile, id, installed) {
+function card(map, profile, id, installed, st = {}) {
   const { p, s, i } = findStage(map, profile, id);
   const next = p.stages[i + 1];
   const miss = missingFor(map, s, installed);
@@ -60,9 +62,10 @@ function card(map, profile, id, installed) {
     '실행 순서:', ...s.run.map((r, n) => `  ${n + 1}. ${fmtRun(r)}`),
     `승인 지점(STOP): ${s.approval}`,
     `완료 기준: ${s.done}`,
+    `모드: ${st.auto ? '자동 승인 — 승인 지점에서 멈추지 않고 기본 원칙으로 결정한 뒤 log 로 기록' : '제안 (승인 지점에서 멈춤)'}`,
   ];
   if (p.workspace_note) lines.push(`주의: ${p.workspace_note}`);
-  for (const m of miss) lines.push(`미설치: ${m.name} → ${m.marketplace ? m.marketplace + ' 후 ' : ''}/plugin install ${m.install}`);
+  for (const m of miss) lines.push(`미설치(설치 목록 기준, --plugin-dir 로 불러온 것은 반영 안 됨): ${m.name} → ${m.marketplace ? m.marketplace + ' 후 ' : ''}/plugin install ${m.install}`);
   if (next) lines.push(`다음: ${next.id}단계 — ${next.title}`);
   return lines.join('\n');
 }
@@ -88,8 +91,7 @@ function runHook(kind, input, home) {
   if (!st) return ''; // 상태 파일이 있는 프로젝트에서만 동작 — 다른 프로젝트에는 아무것도 넣지 않음
   const map = loadMap();
   if (kind === 'session') {
-    return card(map, st.profile, st.stage, installedPlugins(home)) +
-      '\n(stage-pilot: 이 단계의 플러그인을 우선 제안하고, 실행은 /stage-pilot:stage run 또는 사용자의 명시적 요청이 있을 때만. 승인 지점에서는 멈춘다.)';
+    return card(map, st.profile, st.stage, installedPlugins(home), st) + '\n' + (st.auto ? AUTO_NOTE : SUGGEST_NOTE);
   }
   const prompt = (input.prompt || '').trim();
   if (!prompt || prompt.startsWith('/')) return '';
@@ -98,8 +100,19 @@ function runHook(kind, input, home) {
   const { s: cur } = findStage(map, st.profile, st.stage);
   const head = hit.id === cur.id
     ? `[stage-pilot] 현재 ${cur.id}단계 작업으로 보임`
-    : `[stage-pilot] 이 요청은 ${hit.id}단계(${hit.title}) 성격 — 현재 단계는 ${cur.id}(${cur.title}). 단계를 건너뛰는지 사용자에게 한 줄로 알릴 것`;
-  return `${head}. 추천: 주 ${hit.primary.join(', ')} / 보조 ${hit.assist.join(', ') || '-'} / 승인 지점: ${hit.approval}`;
+    : `[stage-pilot] 이 요청은 ${hit.id}단계(${hit.title}) 성격 — 현재 단계는 ${cur.id}단계(${cur.title}). 응답 첫 줄에 "이 요청은 ${hit.id}단계(${hit.title}), 현재는 ${cur.id}단계"처럼 두 단계 번호를 모두 밝히고, 그 사이 단계를 건너뛰는지 알린 뒤 사용자가 고르게 할 것`;
+  return `${head}. 추천: 주 ${hit.primary.join(', ')} / 보조 ${hit.assist.join(', ') || '-'} / 승인 지점: ${hit.approval}` +
+    (st.auto ? ` / 자동 승인 모드: stage-pilot 스킬의 수행 모드로 ${hit.id}단계 run 항목을 플러그인으로 실행할 것` : '');
+}
+
+// run 목록 중 Claude 가 도구로 직접 호출할 항목(skill·agent·command)과 안내만 할 항목을 나눈다.
+function plan(map, profile, id) {
+  const { s } = findStage(map, profile, id);
+  return {
+    stage: s.id, title: s.title, approval: s.approval, done: s.done,
+    invoke: s.run.filter((r) => ['skill', 'agent', 'command'].includes(r.type)),
+    other: s.run.filter((r) => !['skill', 'agent', 'command'].includes(r.type)),
+  };
 }
 
 function main(argv) {
@@ -124,9 +137,11 @@ function main(argv) {
   if (cmd === 'set') {
     const [profile, stage] = [argv[1], argv[2] ?? 'pre'];
     findStage(map, profile, stage);
-    const st = readState(cwd) || { history: [] };
-    writeState(cwd, { profile, stage, history: [...(st.history || []), { stage, at: new Date().toISOString() }] });
-    console.log(card(map, profile, stage, installedPlugins()));
+    const st = readState(cwd) || {};
+    const next = { ...st, profile, stage, history: [...(st.history || []), { stage, at: new Date().toISOString() }] };
+    if (argv.includes('--auto')) next.auto = true;
+    writeState(cwd, next);
+    console.log(card(map, profile, stage, installedPlugins(), next));
     return 0;
   }
   const st = readState(cwd);
@@ -137,12 +152,26 @@ function main(argv) {
     if (!n) { console.log('마지막 단계입니다.'); return 0; }
     return main(['set', st.profile, n.id, '--cwd', cwd]);
   }
-  if (cmd === 'status' || !cmd) { console.log(card(map, st.profile, st.stage, installedPlugins())); return 0; }
-  console.log('사용: stage.js status|profiles|next|set <profile> [stage] [--cwd DIR]');
+  if (cmd === 'auto') {
+    if (!['on', 'off'].includes(argv[1])) { console.log('사용: stage.js auto on|off'); return 1; }
+    writeState(cwd, { ...st, auto: argv[1] === 'on' });
+    console.log(`자동 승인 모드: ${argv[1]}`);
+    return 0;
+  }
+  if (cmd === 'log') {
+    const text = argv.slice(1).filter((a, i, all) => a !== '--cwd' && all[i - 1] !== '--cwd').join(' ').trim();
+    if (!text) { console.log('사용: stage.js log <결정 내용>'); return 1; }
+    writeState(cwd, { ...st, decisions: [...(st.decisions || []), { stage: st.stage, text, auto: !!st.auto, at: new Date().toISOString() }] });
+    console.log(`기록: [${st.stage}] ${text}`);
+    return 0;
+  }
+  if (cmd === 'plan') { console.log(JSON.stringify(plan(map, st.profile, argv[1] && argv[1] !== '--cwd' ? argv[1] : st.stage), null, 2)); return 0; }
+  if (cmd === 'status' || !cmd) { console.log(card(map, st.profile, st.stage, installedPlugins(), st)); return 0; }
+  console.log('사용: stage.js status|profiles|next|set <profile> [stage] [--auto]|auto on|off|log <결정>|plan [stage] [--cwd DIR]');
   return 1;
 }
 
-module.exports = { loadMap, card, matchStage, runHook, missingFor, findStage };
+module.exports = { loadMap, card, matchStage, runHook, missingFor, findStage, plan };
 if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); } catch (e) { console.error(e.message); process.exitCode = 1; }
 }

@@ -1,5 +1,7 @@
 # stage-pilot
 
+> 상세 사용법: [사용 매뉴얼 v0.2.0](../../docs/manual/stage-pilot-manual-v0.2.0.html)
+
 FastAPI 레거시 고도화 워크플로의 **단계마다 필요한 플러그인을 제안**하고, 요청하면 **그 플러그인으로 단계를 수행**하는 플러그인입니다(승인 지점에서 멈춤). 근거 문서:
 
 - `docs/default/fastapi-claude-plugins-guide.html` — `#selection`, `#stage-map` (프로필 `default`)
@@ -24,6 +26,8 @@ FastAPI 레거시 고도화 워크플로의 **단계마다 필요한 플러그�
 | `/stage-pilot:stage` | 현재 단계 카드: 주·보조·조건부 플러그인, 실행 순서, 승인 지점, 완료 기준, 미설치 플러그인 설치 명령 |
 | `/stage-pilot:stage run` | 현재 단계를 플러그인으로 수행 (Skill·Agent 호출, 사용자 전용 명령은 안내만), 승인 지점에서 멈춤 |
 | `/stage-pilot:stage next` · `goto 9` | 완료 기준 확인 후 다음 단계로 / 지정 단계로 |
+| `/stage-pilot:stage auto on` · `auto off` | 자동 승인 모드 — 승인 지점에서 가이드 기본안으로 결정하고 `decisions`에 기록하며 계속 진행 |
+| `/stage-pilot:stage run --through 6` | 현재 단계부터 6단계까지 이어서 수행 (자동 승인 모드에서) |
 
 상태 파일이 있는 프로젝트에서만 훅이 동작합니다.
 

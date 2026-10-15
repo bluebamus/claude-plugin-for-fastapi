@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>stage-pilot 사용 매뉴얼</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f6f7f9; --bg-code:#f3f4f6; --ink:#1a1d23; --ink-2:#4b5361; --ink-3:#7a8291;
+  --line:#e3e6eb; --accent:#2f6fde; --accent-soft:#e8f0fd; --warn:#b4650a; --warn-soft:#fdf3e4;
+  --ok:#1f8a5b; --ok-soft:#e6f5ee; --bad:#c23b3b; --bad-soft:#fbeaea; --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --bg-soft:#1b1e23; --bg-code:#20242a; --ink:#e7e9ee; --ink-2:#b4bac5; --ink-3:#868d99;
+    --line:#2c3138; --accent:#6ea1ff; --accent-soft:#1d2a42; --warn:#f0b35a; --warn-soft:#33281a;
+    --ok:#5fcf9a; --ok-soft:#18302a; --bad:#ff8a8a; --bad-soft:#3a1f22;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --bg-soft:#1b1e23; --bg-code:#20242a; --ink:#e7e9ee; --ink-2:#b4bac5; --ink-3:#868d99;
+  --line:#2c3138; --accent:#6ea1ff; --accent-soft:#1d2a42; --warn:#f0b35a; --warn-soft:#33281a;
+  --ok:#5fcf9a; --ok-soft:#18302a; --bad:#ff8a8a; --bad-soft:#3a1f22;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);max-width:1240px;margin:0 auto;gap:48px;padding:0 24px}
+nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:32px 0;font-size:14px}
+nav.toc .toc-title{font-weight:700;color:var(--ink-3);font-size:12px;letter-spacing:.06em;margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0}
+nav.toc li{margin:2px 0}
+nav.toc a{display:block;padding:4px 10px;border-radius:6px;color:var(--ink-2)}
+nav.toc a:hover{background:var(--bg-soft);text-decoration:none}
+nav.toc ol ol a{padding-left:22px;font-size:13px;color:var(--ink-3)}
+main{padding:40px 0 96px;min-width:0}
+header.hero{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
+.eyebrow{font-size:13px;color:var(--ink-3);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.eyebrow .chip{background:var(--bg-soft);border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+h1{font-size:32px;line-height:1.3;margin:10px 0 12px;letter-spacing:-.02em}
+h2{font-size:24px;line-height:1.35;margin:60px 0 14px;padding-top:8px;letter-spacing:-.01em;border-top:1px solid var(--line);padding-top:28px}
+h3{font-size:19px;line-height:1.4;margin:34px 0 10px}
+h4{font-size:15px;margin:20px 0 6px;color:var(--ink-2)}
+p{margin:10px 0}
+.lead{font-size:17px;color:var(--ink-2)}
+ul,ol{padding-left:22px;margin:8px 0}
+li{margin:4px 0}
+code{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:var(--bg-code);padding:1px 6px;border-radius:5px}
+pre{background:var(--bg-code);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;overflow:auto;font-size:13.5px;line-height:1.6;margin:10px 0 16px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:12px 0 18px;border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--bg-soft);font-weight:650;color:var(--ink-2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td.stage{white-space:nowrap;font-weight:650}
+td.stage small{font-weight:500;color:var(--ink-3);white-space:normal}
+ol.runs{margin:0;padding-left:18px;font-size:13.5px}
+.rt{display:inline-block;font-size:11px;font-weight:700;color:var(--ink-3);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.callout{border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:15px;border:1px solid var(--line);background:var(--bg-soft)}
+.callout.warn{background:var(--warn-soft);border-color:transparent}
+.callout.note{background:var(--accent-soft);border-color:transparent}
+.callout.ok{background:var(--ok-soft);border-color:transparent}
+.tag{display:inline-block;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 10px;margin-left:4px;vertical-align:middle}
+.tag.opt{color:var(--warn);background:var(--warn-soft)}
+.tag.ok{color:var(--ok);background:var(--ok-soft)}
+.tag.bad{color:var(--bad);background:var(--bad-soft)}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps>li{counter-increment:s;position:relative;padding:4px 0 10px 44px;margin:6px 0}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:4px;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{border:1px solid var(--line);border-radius:12px;padding:6px 18px 12px}
+.card h4{margin-top:12px;color:var(--ink)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.flow .box{border:1px solid var(--line);background:var(--bg-soft);border-radius:8px;padding:8px 12px;font-size:14px}
+.flow .box.hl{border-color:var(--accent);background:var(--accent-soft)}
+.flow .arr{color:var(--ink-3)}
+dl.terms dt{font-weight:700;margin-top:12px}
+dl.terms dd{margin:2px 0 0 0;color:var(--ink-2)}
+.theme-toggle{position:fixed;right:16px;bottom:16px;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+@media (max-width:960px){
+  .layout{grid-template-columns:1fr;gap:0;padding:0 16px}
+  nav.toc{position:static;max-height:none;padding:20px 0 0;border-bottom:1px solid var(--line)}
+  nav.toc ol ol{display:none}
+  h1{font-size:26px} h2{font-size:21px}
+  .grid2{grid-template-columns:1fr}
+}
+@media print{nav.toc,.theme-toggle{display:none}.layout{display:block}a{color:inherit}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="목차">
+  <div class="toc-title">목차</div>
+  <ol>
+    <li><a href="#about">1. stage-pilot이란</a></li>
+    <li><a href="#concepts">2. 먼저 알아 둘 개념</a></li>
+    <li><a href="#install">3. 설치</a></li>
+    <li><a href="#quickstart">4. 10분 시작하기</a></li>
+    <li><a href="#commands">5. 명령 레퍼런스</a></li>
+    <li><a href="#suggest">6. 제안 모드</a></li>
+    <li><a href="#run">7. 수행 모드</a></li>
+    <li><a href="#auto">8. 자동 승인 모드</a>
+      <ol>
+        <li><a href="#auto-rules">자동 결정 원칙</a></li>
+        <li><a href="#auto-never">자동 승인 대상이 아닌 일</a></li>
+        <li><a href="#auto-log">결정 기록 읽기</a></li>
+      </ol>
+    </li>
+    <li><a href="#hooks">9. 훅이 하는 일</a></li>
+    <li><a href="#profiles">10. 프로필과 단계 전체 표</a>
+      <ol>
+        <li><a href="#profile-default">default</a></li>
+        <li><a href="#profile-fastapi-default">fastapi-default</a></li>
+        <li><a href="#profile-g6">g6</a></li>
+      </ol>
+    </li>
+    <li><a href="#state">11. 상태 파일</a></li>
+    <li><a href="#customize">12. 고치고 늘리기</a></li>
+    <li><a href="#verification">13. 검증 결과</a></li>
+    <li><a href="#troubleshoot">14. 문제 해결</a></li>
+    <li><a href="#limits">15. 한계와 주의</a></li>
+    <li><a href="#changelog">16. 변경 이력</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow"><span class="chip">버전 0.2.0</span><span class="chip">2026-10-15</span><span>Claude Code 플러그인 · FastAPI 레거시 고도화</span></div>
+  <h1>stage-pilot 사용 매뉴얼</h1>
+  <p class="lead">stage-pilot은 FastAPI 레거시 고도화 워크플로를 따라가는 동안 <strong>"지금 단계에서 어떤 플러그인을 어떤 순서로 쓰고, 어디서 멈춰 확인받아야 하는가"</strong>를 알려 주고, 원하면 <strong>그 플러그인을 직접 호출해 단계를 수행</strong>하는 Claude Code 플러그인입니다.</p>
+  <p class="lead">이 문서는 처음 쓰는 사람이 설치부터 자동 수행까지 혼자 따라 할 수 있도록, 개념 → 설치 → 빠른 시작 → 기능별 설명 → 전체 단계 표 → 문제 해결 순서로 구성했습니다.</p>
+</header>
+
+<!-- ============ 1 ============ -->
+<section id="about">
+<h2>1. stage-pilot이란</h2>
+<h3>풀려는 문제</h3>
+<p><a href="../default/fastapi-claude-plugins-guide.html">통합 가이드</a>는 레거시 FastAPI 프로젝트를 0~11단계로 나누고, 단계마다 써야 할 플러그인 20여 개와 승인 지점을 정해 두었습니다. 문서는 자세하지만, 실제로 작업할 때는 세 가지가 어렵습니다.</p>
+<ul>
+  <li><strong>지금 몇 단계인지, 이 단계에서 무엇을 써야 하는지</strong>를 매번 문서에서 다시 찾아야 합니다.</li>
+  <li>플러그인 이름을 알아도 <strong>스킬인지, 에이전트인지, 명령인지</strong>에 따라 부르는 방법이 다릅니다.</li>
+  <li>작업에 몰입하다 보면 <strong>단계를 건너뛰거나, 확인받아야 할 지점을 지나치기</strong> 쉽습니다.</li>
+</ul>
+<h3>stage-pilot이 하는 일</h3>
+<div class="grid2">
+  <div class="card"><h4>제안</h4><p>현재 단계의 주 플러그인·보조 플러그인·조건부 플러그인, 실행 순서, 멈출 곳, 완료 기준을 한 장의 "단계 카드"로 보여 줍니다. 설치되지 않은 플러그인은 설치 명령까지 알려 줍니다.</p></div>
+  <div class="card"><h4>수행</h4><p>단계 카드의 실행 순서대로 스킬·에이전트·명령을 실제로 호출해 작업합니다. 기본은 승인 지점에서 멈추고, 자동 승인 모드에서는 가이드의 기본 원칙으로 결정하며 끝까지 진행합니다.</p></div>
+  <div class="card"><h4>감시</h4><p>대화 중 요청이 다른 단계의 일이면 "지금은 4단계인데 이 요청은 9단계 일"이라고 짚어 줍니다. 건너뛰기를 막지는 않고, 알고 고르게 합니다.</p></div>
+  <div class="card"><h4>기록</h4><p>현재 단계, 거쳐 온 단계, 자동으로 내린 결정과 근거를 프로젝트 안 상태 파일에 남겨, 세션을 다시 열어도 이어서 작업할 수 있습니다.</p></div>
+</div>
+<h3>한눈에 보는 흐름</h3>
+<div class="flow">
+  <span class="box">/stage-pilot:stage init default</span><span class="arr">→</span>
+  <span class="box">/stage-pilot:stage<br><small>단계 카드 확인</small></span><span class="arr">→</span>
+  <span class="box hl">/stage-pilot:stage run<br><small>플러그인 호출·작업</small></span><span class="arr">→</span>
+  <span class="box">승인 지점<br><small>확인 또는 자동 결정</small></span><span class="arr">→</span>
+  <span class="box">/stage-pilot:stage next</span>
+</div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="concepts">
+<h2>2. 먼저 알아 둘 개념</h2>
+<dl class="terms">
+  <dt>단계 (stage)</dt>
+  <dd>워크플로의 한 구간입니다. 통합 가이드 기준으로 <code>pre</code>(진입 전 매뉴얼)와 <code>0</code>~<code>11</code>이 있습니다. 시나리오 가이드에는 <code>4-7</code>처럼 여러 단계를 묶은 id도 있습니다.</dd>
+  <dt>프로필 (profile)</dt>
+  <dd>어느 가이드의 단계를 따를지 정합니다. <code>default</code>(통합 가이드), <code>fastapi-default</code>(계층 구조가 이미 있는 저장소), <code>g6</code>(테스트 없는 레거시, 슬라이스 반복) 세 가지입니다.</dd>
+  <dt>단계 카드</dt>
+  <dd>한 단계의 정보를 모은 요약입니다. 주 플러그인, 보조 플러그인, 조건부 플러그인, 실행 순서(run), 승인 지점, 완료 기준, 현재 모드, 미설치 플러그인, 다음 단계가 들어 있습니다.</dd>
+  <dt>실행 항목 (run)</dt>
+  <dd>단계에서 순서대로 할 일입니다. 종류는 다섯 가지입니다.
+    <div class="table-wrap"><table><thead><tr><th>종류</th><th>뜻</th><th>stage-pilot이 처리하는 방법</th></tr></thead><tbody>
+      <tr><td><code>skill</code></td><td>Claude가 불러와 따르는 작업 지침</td><td>Skill 도구로 호출 (예: <code>superpowers:test-driven-development</code>)</td></tr>
+      <tr><td><code>agent</code></td><td>별도 컨텍스트에서 일하는 전문 작업자</td><td>Agent 도구로 호출 (예: <code>feature-dev:code-explorer</code>), 독립적인 것은 병렬로</td></tr>
+      <tr><td><code>command</code></td><td>플러그인의 슬래시 명령</td><td>Skill 도구로 <code>플러그인:명령</code> 이름을 호출 (예: <code>ponytail:ponytail-review</code>)</td></tr>
+      <tr><td><code>shell</code></td><td>터미널 명령</td><td>Bash로 실행. 파일을 바꾸는 명령은 제안 모드에서 먼저 보여 줌</td></tr>
+      <tr><td><code>user</code></td><td>사람만 실행할 수 있는 명령</td><td>실행하지 않고 그대로 보여 줌 (<code>/plugin</code>, <code>/mcp</code>, <code>/ralph-loop</code> 등)</td></tr>
+    </tbody></table></div>
+  </dd>
+  <dt>조건부 실행 항목 (when)</dt>
+  <dd>조건이 맞을 때만 하는 실행 항목입니다. 예를 들어 4단계의 <code>dispatching-parallel-agents</code>는 "서로 독립적인 도메인이 2개 이상일 때"만 씁니다. stage-pilot은 프로젝트를 보고 조건을 판정하며, 쓰지 않을 때는 그 근거를 기록합니다.</dd>
+  <dt>승인 지점 (approval)</dt>
+  <dd>사람이 결정해야 하는 곳입니다. 예: "규칙 카드와 실제 동작이 다를 때 어느 쪽을 계약으로 볼지". 기본 모드에서는 여기서 멈춥니다.</dd>
+  <dt>완료 기준 (done)</dt>
+  <dd>다음 단계로 넘어가기 전에 실제 출력으로 확인할 조건입니다. 예: "규칙 카드마다 계약 테스트, 전부 통과".</dd>
+  <dt>모드</dt>
+  <dd><strong>제안 모드</strong>(기본): 알려 주기만 합니다. <strong>수행</strong>: <code>run</code>을 입력하면 플러그인을 호출해 작업하되 승인 지점에서 멈춥니다. <strong>자동 승인 모드</strong>: <code>auto on</code>이면 승인 지점에서 멈추지 않고 정해진 원칙으로 결정하며 끝까지 진행합니다.</dd>
+</dl>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="install">
+<h2>3. 설치</h2>
+<h3>준비물</h3>
+<ul>
+  <li>Claude Code (CLI, 데스크톱, IDE 확장 중 하나)</li>
+  <li>Node.js — 훅과 상태 스크립트가 Node.js 표준 라이브러리만으로 동작합니다. 별도 npm 패키지는 필요 없습니다.</li>
+  <li>stage-pilot이 호출할 플러그인 — 가이드의 플러그인을 설치해 두어야 수행 모드가 실제로 호출할 수 있습니다. 없어도 제안 모드는 동작하며, 카드에 설치 명령이 나옵니다.</li>
+</ul>
+<h3>마켓플레이스로 설치 (권장)</h3>
+<pre><code>/plugin marketplace add bluebamus/claude-plugin-for-fastapi
+/plugin install stage-pilot@claude-plugin-for-fastapi</code></pre>
+<p>저장소를 클론해 두었다면 GitHub 주소 대신 로컬 경로를 써도 됩니다: <code>/plugin marketplace add C:/work/claude-plugin-for-fastapi</code></p>
+<h3>가이드 플러그인 설치</h3>
+<p>단계 카드의 "미설치" 줄에 나오는 명령을 그대로 입력하면 됩니다. 한 번에 준비하려면 다음을 실행합니다.</p>
+<pre><code>/plugin install feature-dev@claude-plugins-official
+/plugin install code-modernization@claude-plugins-official
+/plugin install superpowers@claude-plugins-official
+/plugin install pr-review-toolkit@claude-plugins-official
+/plugin install code-simplifier@claude-plugins-official
+/plugin install security-guidance@claude-plugins-official
+/plugin install claude-security@claude-plugins-official
+/plugin install claude-code-setup@claude-plugins-official
+/plugin install hookify@claude-plugins-official
+/plugin install commit-commands@claude-plugins-official
+/plugin install claude-md-management@claude-plugins-official
+/plugin install skill-creator@claude-plugins-official
+/plugin install pyright-lsp@claude-plugins-official      # pyright-langserver 필요 (npm i -g pyright)
+/plugin marketplace add pydantic/skills
+/plugin install pydantic@pydantic-skills
+/plugin marketplace add DietrichGebert/ponytail          # 선택: 과설계 점검
+/plugin install ponytail@ponytail</code></pre>
+<h3>설치 없이 한 번 써 보기</h3>
+<p>전역 설정을 바꾸지 않고 이번 실행에만 불러올 수 있습니다.</p>
+<pre><code>claude --plugin-dir C:/work/claude-plugin-for-fastapi/plugins/stage-pilot</code></pre>
+<h3>설치 확인</h3>
+<ol class="steps">
+  <li>Claude Code에서 <code>/stage-pilot:stage profiles</code>를 입력합니다.</li>
+  <li><code>default</code>, <code>fastapi-default</code>, <code>g6</code> 세 줄이 나오면 설치된 것입니다.</li>
+</ol>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="quickstart">
+<h2>4. 10분 시작하기</h2>
+<p>리팩토링할 FastAPI 프로젝트 폴더에서 Claude Code를 열고 다음 순서로 진행합니다.</p>
+<ol class="steps">
+  <li><strong>시작 단계 정하기</strong> — 처음이면 진입 전 매뉴얼부터 시작합니다.
+<pre><code>/stage-pilot:stage init default pre</code></pre>
+  프로젝트에 <code>.claude/stage-pilot/state.json</code>이 생기고, 그 단계의 카드가 나옵니다. 이 파일이 있는 프로젝트에서만 stage-pilot의 훅이 동작합니다.</li>
+  <li><strong>카드 읽기</strong> — 언제든 현재 단계를 다시 보려면:
+<pre><code>/stage-pilot:stage</code></pre>
+  예시 출력:
+<pre><code>■ stage-pilot · 통합 가이드 — 로컬 FastAPI 레거시 고도화 (0~11단계)
+현재: 4단계 — 기존 동작 보호 테스트 작성  (docs/default/fastapi-claude-plugins-guide.html#s4)
+주 플러그인: superpowers, code-modernization
+보조: pr-review-toolkit, ralph-loop
+실행 순서:
+  1. [Skill] superpowers:test-driven-development
+  2. [Agent] code-modernization:test-engineer — 규칙 카드 → 특성화 테스트
+  3. [Skill] superpowers:dispatching-parallel-agents (조건: 서로 독립적인 도메인(라우터 묶음)이 2개 이상일 때)
+  4. [사용자 입력] /ralph-loop "..." --completion-promise CONTRACT_DONE --max-iterations 15 — 첫 테스트 파일 승인 후에만
+승인 지점(STOP): 규칙 카드와 실제 동작이 다를 때 어느 쪽을 계약으로 볼지(원칙: 현재 동작 유지)
+완료 기준: 규칙 카드마다 계약 테스트, 전부 통과
+모드: 제안 (승인 지점에서 멈춤)
+다음: 5단계 — 라우터에서 비즈니스 로직 분리</code></pre></li>
+  <li><strong>단계 수행</strong> — 카드의 실행 순서대로 플러그인을 호출해 작업합니다.
+<pre><code>/stage-pilot:stage run</code></pre>
+  승인 지점에 닿으면 결과를 요약하고 결정할 것을 묻습니다. 답하면 이어서 진행합니다.</li>
+  <li><strong>다음 단계로</strong> — 완료 기준을 확인한 뒤:
+<pre><code>/stage-pilot:stage next</code></pre></li>
+  <li><strong>(선택) 자동 승인</strong> — 확인 없이 진행하고 싶은 구간에서:
+<pre><code>/stage-pilot:stage auto on
+/stage-pilot:stage run --through 6</code></pre>
+  현재 단계부터 6단계까지 플러그인을 호출해 수행하고, 결정은 모두 기록합니다. 끝나면 <code>auto off</code>로 되돌립니다.</li>
+</ol>
+<div class="callout note">명령을 쓰지 않고 평소처럼 말해도 됩니다. "보호 테스트 써 줘", "지금 뭘 써야 해?" 같은 요청에도 훅이 현재 단계와 추천 플러그인을 Claude에게 알려 주므로, Claude가 카드 기준으로 답합니다.</div>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="commands">
+<h2>5. 명령 레퍼런스</h2>
+<h3>슬래시 명령 <code>/stage-pilot:stage</code></h3>
+<div class="table-wrap"><table>
+<thead><tr><th>입력</th><th>하는 일</th><th>파일 변경</th></tr></thead>
+<tbody>
+<tr><td><code>/stage-pilot:stage</code> 또는 <code>status</code></td><td>현재 단계 카드를 보여 줌. 미설치 플러그인의 설치 명령을 강조</td><td>없음</td></tr>
+<tr><td><code>profiles</code></td><td>프로필 목록과 각 프로필의 단계 id</td><td>없음</td></tr>
+<tr><td><code>init &lt;profile&gt; [stage] [--auto]</code></td><td>상태 파일을 만들고 시작 단계를 정함. stage를 생략하면 <code>pre</code>. <code>--auto</code>를 주면 자동 승인 모드로 시작</td><td>상태 파일</td></tr>
+<tr><td><code>goto &lt;stage&gt;</code></td><td>현재 프로필에서 지정 단계로 이동. 이전 단계 완료 기준이 확인되지 않았으면 먼저 알림</td><td>상태 파일</td></tr>
+<tr><td><code>next</code></td><td>완료 기준을 확인한 뒤 다음 단계로</td><td>상태 파일</td></tr>
+<tr><td><code>auto on</code> / <code>auto off</code></td><td>자동 승인 모드 켜기·끄기. 켤 때 자동 승인 대상이 아닌 일을 한 줄로 알림</td><td>상태 파일</td></tr>
+<tr><td><code>run [stage]</code></td><td>지정 단계(생략 시 현재 단계)를 플러그인 호출로 수행</td><td>프로젝트 코드·테스트</td></tr>
+<tr><td><code>run [stage] --through &lt;stage&gt;</code></td><td>지정 단계까지 이어서 수행 (자동 승인 모드에서 의미가 있음)</td><td>프로젝트 코드·테스트</td></tr>
+</tbody></table></div>
+<h3>상태 스크립트 <code>stage.js</code></h3>
+<p>슬래시 명령과 스킬은 내부적으로 이 스크립트를 부릅니다. 터미널에서 직접 써도 됩니다. 경로는 설치 위치의 <code>plugins/stage-pilot/scripts/stage.js</code>입니다.</p>
+<pre><code>node stage.js status                     # 현재 단계 카드
+node stage.js profiles                   # 프로필 목록
+node stage.js set default 4 [--auto]     # 단계 지정 (기존 결정 기록은 유지)
+node stage.js next                       # 다음 단계
+node stage.js auto on|off                # 자동 승인 모드
+node stage.js log "결정과 근거"           # 결정 기록 추가
+node stage.js plan [stage]               # 도구로 호출할 항목(invoke)과 안내만 할 항목(other)을 JSON으로
+node stage.js session|prompt             # 훅용 (stdin JSON)
+# 모든 명령에 --cwd &lt;프로젝트 경로&gt; 를 붙이면 다른 폴더의 상태를 다룸</code></pre>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="suggest">
+<h2>6. 제안 모드</h2>
+<p>기본 모드입니다. stage-pilot은 알려 주기만 하고 아무것도 실행하지 않습니다. 플러그인 사용법을 익히는 중이거나, 각 단계를 직접 손으로 진행하고 싶을 때 씁니다.</p>
+<h3>이렇게 물어보면 됩니다</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>요청 예시</th><th>stage-pilot의 응답</th></tr></thead>
+<tbody>
+<tr><td>"보호 테스트 단계 하려는데 뭘 써야 해? 실행은 하지 마."</td><td>주 플러그인 → 보조 → 조건부 순서로 추천하고, 실행 순서와 멈출 곳(승인 지점)을 알려 줌</td></tr>
+<tr><td>"지금 바로 보안 검토부터 해도 될까?" (현재 4단계)</td><td>"현재 4단계이고 보안 검토는 9단계라 단계를 건너뛰게 됩니다"라고 알리고, 9단계의 플러그인과 승인 지점을 함께 보여 줌. 건너뛸지는 사용자가 정함</td></tr>
+<tr><td>"pydantic 플러그인 없는데 7단계 할 수 있어?"</td><td>설치 명령(<code>/plugin marketplace add pydantic/skills</code> 후 <code>/plugin install …</code>)을 안내하고, 설치하지 않으면 어떤 부분을 직접 해야 하는지 알려 줌</td></tr>
+</tbody></table></div>
+<h3>조건부 플러그인을 권하는 기준</h3>
+<p>카드의 "조건부" 줄은 조건이 맞을 때만 권합니다. 예를 들어 <code>context7</code>은 질의가 외부 서버로 나가므로 "문서 조회를 허용할 때만", <code>playwright</code>는 "Jinja 템플릿·관리자 화면이 있을 때만" 권합니다. 조건이 맞는지 애매하면 한 줄로 물어봅니다.</p>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="run">
+<h2>7. 수행 모드</h2>
+<p><code>/stage-pilot:stage run</code>을 입력하거나 "4단계 진행해 줘"처럼 분명히 요청하면, 카드의 실행 순서대로 플러그인을 <strong>실제로 호출</strong>해 작업합니다.</p>
+<h3>진행 순서</h3>
+<ol class="steps">
+  <li><strong>계획 받기</strong> — <code>stage.js plan</code>으로 도구로 호출할 항목(<code>invoke</code>)과 안내만 할 항목(<code>other</code>)을 나눕니다.</li>
+  <li><strong>플러그인 호출</strong> — 스킬·명령은 Skill 도구로, 에이전트는 Agent 도구로 부릅니다. 같은 일을 Claude가 직접 해 버리고 플러그인을 생략하지 않습니다. 가이드가 정한 도구가 실제로 쓰이게 하는 것이 이 플러그인의 목적이기 때문입니다.</li>
+  <li><strong>조건 판정</strong> — <code>when</code>이 붙은 항목은 프로젝트를 보고 판정합니다. 조건이 맞지 않으면 호출하지 않고 "조건 불충족: <i>근거</i>"를 기록합니다.</li>
+  <li><strong>대체 수행</strong> — 플러그인이 설치되지 않았거나 프로젝트 스킬(<code>fastapi-layer-slice</code> 등)이 아직 없으면, 같은 목적의 작업을 직접 하고 "대체 수행"으로 기록합니다. 프로젝트 스킬을 만들 단계도 알려 줍니다.</li>
+  <li><strong>결과 반영</strong> — 리뷰·분석 에이전트가 고칠 거리를 내면, 그 단계의 목표 범위 안에서 실제로 고칩니다. 리뷰 지적은 <code>superpowers:receiving-code-review</code> 기준으로 검증한 뒤 반영합니다.</li>
+  <li><strong>승인 지점</strong> — 결과를 요약하고 결정할 것을 묻고 멈춥니다(자동 승인 모드가 아닐 때).</li>
+  <li><strong>완료 확인</strong> — 완료 기준을 테스트 결과·산출물 경로 같은 실제 출력으로 확인하고, 다음 단계로 갈지 묻습니다.</li>
+</ol>
+<h3>수행 후 보고 형식</h3>
+<pre><code>■ 10단계 수행 결과
+호출한 플러그인: code-simplifier:code-simplifier → 중복 계산 함수 1개로 통합
+                ponytail:ponytail-review → 쓰지 않는 옵션 2개 보고
+                pr-review-toolkit:code-reviewer → 지적 3건 (2건 반영, 1건 반박)
+변경: main.py, tests/test_smoke.py
+완료 기준: pytest 3 passed — 충족</code></pre>
+<h3>수행 모드에서도 하지 않는 일</h3>
+<ul>
+  <li>원격 저장소 작업(push, PR). 11단계의 <code>finishing-a-development-branch</code>는 1번(로컬 병합)만 씁니다.</li>
+  <li><code>user</code> 종류 항목의 실행 — <code>/ralph-loop</code>, <code>/plugin</code>, <code>/mcp</code>는 사람이 입력합니다.</li>
+  <li>g6 프로필에서 저장소 안에서 <code>code-modernization</code> 명령 실행 — 저장소 밖 분석 작업 공간(<code>~/work/g6-analysis</code>)에서만 실행합니다.</li>
+</ul>
+</section>
+
+<!-- ============ 8 ============ -->
+<section id="auto">
+<h2>8. 자동 승인 모드</h2>
+<p>자동 승인 모드에서는 승인 지점에서 멈추지 않습니다. 가이드가 정한 기본안으로 결정하고, 그 결정과 근거를 상태 파일에 남긴 뒤 계속 진행합니다. 반복적인 단계를 빠르게 지나가거나, 밤새 여러 단계를 진행해 두고 아침에 결정 기록을 검토하는 식으로 쓸 수 있습니다.</p>
+<pre><code>/stage-pilot:stage auto on          # 켜기
+/stage-pilot:stage run --through 8  # 현재 단계부터 8단계까지 연속 수행
+/stage-pilot:stage auto off         # 끄기</code></pre>
+<p>처음부터 자동으로 시작하려면 <code>/stage-pilot:stage init default 3 --auto</code>처럼 <code>--auto</code>를 붙입니다. 자동 모드는 <code>next</code>나 <code>goto</code>로 단계를 옮겨도 유지됩니다.</p>
+
+<h3 id="auto-rules">자동 결정 원칙</h3>
+<p>승인 지점마다 사람이 고를 내용을 아래 원칙으로 대신 고릅니다. 원칙은 모두 "동작을 바꾸지 않는 쪽, 범위를 좁히는 쪽"입니다. 리팩토링 중에 의도치 않은 변화가 생기는 것을 막기 위해서입니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>결정할 일</th><th>자동으로 고르는 것</th></tr></thead>
+<tbody>
+<tr><td>규칙 카드와 실제 동작이 다름</td><td>현재 동작을 계약으로 고정하고 "버그 후보"로 기록 (리팩토링 중 동작 변경 금지)</td></tr>
+<tr><td>리팩토링 우선 도메인·순서</td><td>위험도 표에서 커버리지가 낮고 변경이 잦은 것 먼저. 동률이면 의존이 적은 것</td></tr>
+<tr><td>설계안 선택</td><td>기존 구조와 차이가 가장 작은 안 (architecture-critic이 과잉 설계로 지적하지 않은 안)</td></tr>
+<tr><td>응답 필드·입력 허용 범위가 바뀌는 수정</td><td>하지 않음. API 계약 변경은 별도 작업으로 기록</td></tr>
+<tr><td>보안 발견</td><td>두 도구가 함께 찾았거나 근거 코드가 명확한 것만 수정, 나머지는 기록</td></tr>
+<tr><td>남은 리뷰 이슈</td><td>이번 단계 범위 안이면 수정, 밖이면 기록</td></tr>
+<tr><td>커밋</td><td>로컬 커밋만, 단계·논리 단위로</td></tr>
+</tbody></table></div>
+
+<h3 id="auto-never">자동 승인 대상이 아닌 일</h3>
+<div class="callout warn">
+자동 승인 모드에서도 다음은 하지 않습니다.
+<ul>
+  <li>원격 저장소 작업(push, PR), 저장소 밖 파일 수정, 데이터·파일 대량 삭제</li>
+  <li><code>user</code> 종류 항목(<code>/plugin</code>, <code>/mcp</code>, <code>/ralph-loop</code> 등) — 실행하지 않고 "사용자 실행 필요"를 기록</li>
+  <li>테스트가 실패한 채로 다음 단계로 넘어가기 — 고치지 못하면 그 자리에서 멈추고 보고</li>
+</ul>
+</div>
+
+<h3 id="auto-log">결정 기록 읽기</h3>
+<p>자동으로 내린 결정은 상태 파일의 <code>decisions</code>에 쌓입니다. 아래는 실제 평가에서 3단계를 자동 수행했을 때 남은 기록입니다.</p>
+<pre><code>"decisions": [
+  { "stage": "3", "text": "리팩토링 순서 확정: 1) POST /appointments (커버리지 낮음, 금액 규칙이 라우터 안에 있어 위험 높음) 2) GET /appointments/{id} — 근거: 커버리지 낮고 위험 높은 것 먼저", "auto": true },
+  { "stage": "3", "text": "제외 엔드포인트: 없음 — 두 개뿐이고 둘 다 핵심 경로", "auto": true },
+  { "stage": "3", "text": "버그 후보 기록(수정 안 함): 음수/0 slots 허용 → 4단계에서 현재 동작으로 고정", "auto": true }
+]</code></pre>
+<p>기록에서 확인할 것은 세 가지입니다.</p>
+<ul>
+  <li><strong>"대체 수행"</strong> — 플러그인이 없어 직접 한 일입니다. 해당 플러그인을 설치하고 다시 돌릴지 판단합니다.</li>
+  <li><strong>"조건 불충족"</strong> — 조건부 항목을 건너뛴 근거입니다. 근거가 맞는지 봅니다.</li>
+  <li><strong>"버그 후보", "별도 작업"</strong> — 리팩토링 범위 밖으로 미룬 일입니다. 다음 작업 목록으로 옮깁니다.</li>
+</ul>
+</section>
+
+<!-- ============ 9 ============ -->
+<section id="hooks">
+<h2>9. 훅이 하는 일</h2>
+<p>stage-pilot에는 훅이 두 개 있습니다. 둘 다 <strong>상태 파일이 있는 프로젝트에서만</strong> 동작하므로, 다른 프로젝트에서는 아무 영향이 없습니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>훅</th><th>언제</th><th>하는 일</th></tr></thead>
+<tbody>
+<tr><td>SessionStart</td><td>세션 시작·재개·<code>/clear</code>·압축 직후</td><td>현재 단계 카드와 현재 모드의 행동 규칙을 Claude의 컨텍스트에 넣음. 세션을 새로 열어도 단계를 이어 갈 수 있는 이유</td></tr>
+<tr><td>UserPromptSubmit</td><td>요청을 보낼 때마다</td><td>요청 문장을 단계별 키워드와 대조해, 다른 단계의 일이면 "이 요청은 N단계 성격, 현재는 M단계"와 추천 플러그인을 알림. 슬래시 명령(<code>/…</code>)에는 개입하지 않음</td></tr>
+</tbody></table></div>
+<p>훅 스크립트가 실패해도 세션은 막히지 않습니다(오류는 stderr로만 남기고 종료 코드 0).</p>
+</section>
+
+<!-- ============ 10 ============ -->
+<section id="profiles">
+<h2>10. 프로필과 단계 전체 표</h2>
+<p>아래 표는 플러그인이 실제로 읽는 <code>stage-map.json</code>에서 그대로 생성했습니다. <span class="rt">스킬</span> <span class="rt">에이전트</span> <span class="rt">명령</span>은 수행 모드에서 도구로 호출하는 항목이고, <span class="rt">셸</span>은 Bash로 실행, <span class="rt">사용자 입력</span>은 안내만 하는 항목입니다.</p>
+<h3 id="profile-default">프로필 <code>default</code> — 통합 가이드 — 로컬 FastAPI 레거시 고도화 (0~11단계)</h3>
+<p>근거 문서: <code>docs/default/fastapi-claude-plugins-guide.html</code></p>
+<div class="table-wrap"><table><thead><tr><th>단계</th><th>주 플러그인 · 보조</th><th>실행 순서 (run)</th><th>승인 지점</th><th>완료 기준</th></tr></thead><tbody>
+<tr><td class="stage">pre<br><small>진입 전: 분석·온보딩 매뉴얼</small></td><td><strong>code-modernization, feature-dev, pyright-lsp</strong><br>explanatory-output-style<br><span class="tag opt">조건부</span> lumen — 이름이 제각각인 코드를 찾아야 할 만큼 클 때</td><td><ol class="runs"><li><span class="rt">명령</span> <code>code-modernization:modernize-preflight</code> <code>&lt;system&gt; --source ./app</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-assess</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-map</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-extract-rules</code></li><li><span class="rt">에이전트</span> <code>feature-dev:code-explorer</code> — 대표 흐름 2~3개 추적</li><li><span class="rt">명령</span> <code>code-modernization:modernize-review</code> — 신뢰도 낮은 규칙 카드 확인</li></ol></td><td>매뉴얼의 확인/추정 표시와 대표 흐름 선택을 사람이 검토</td><td>12장 매뉴얼 HTML, 도식 렌더링, file:line 근거 10개 이상</td></tr>
+<tr><td class="stage">0<br><small>준비 (한 번만)</small></td><td><strong>claude-code-setup, hookify</strong><br>claude-md-management, pydantic, explanatory-output-style<br><span class="tag opt">조건부</span> plugin-dev — 정규식으로 못 잡는 의미 기반 규칙이 필요할 때</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>claude-code-setup:claude-automation-recommender</code> — 읽기 전용 추천</li><li><span class="rt">명령</span> <code>hookify:hookify</code> <code>block-remote-git, require-pytest-before-stop, 라우터 DB 직접 접근 금지</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-preflight</code> <code>&lt;system&gt; --source ./app</code></li><li><span class="rt">셸</span> <code>printf &quot;legacy/\nanalysis/\n&quot; &gt;&gt; .git/info/exclude</code></li><li><span class="rt">사용자 입력</span> <code>/plugin marketplace add pydantic/skills &amp;&amp; /plugin install pydantic@pydantic-skills</code></li></ol></td><td>추천받은 자동화 중 실제로 켤 것, CLAUDE.md 문구</td><td>훅 규칙 동작 확인(git fetch 차단 포함), preflight 통과, git status 에 legacy/ 없음</td></tr>
+<tr><td class="stage">1<br><small>코드베이스 구조 및 의존성 분석</small></td><td><strong>code-modernization, pyright-lsp</strong><br>feature-dev<br><span class="tag opt">조건부</span> lumen — 대규모 코드베이스</td><td><ol class="runs"><li><span class="rt">명령</span> <code>code-modernization:modernize-assess</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-map</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-status</code> — 세션 재시작 시 산출물 신선도</li></ol></td><td>리팩토링 우선 도메인 선택, preflight 질문(테스트 실행 가능 여부, 금지 영역)에 답함</td><td>ASSESSMENT·TOPOLOGY 산출물, 도메인 후보 목록</td></tr>
+<tr><td class="stage">2<br><small>핵심 도메인 흐름 추적</small></td><td><strong>feature-dev, code-modernization</strong><br>pyright-lsp<br><span class="tag opt">조건부</span> lumen — 흩어진 규칙 코드 검색</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>feature-dev:code-explorer</code> — 요청→응답 흐름 추적</li><li><span class="rt">명령</span> <code>code-modernization:modernize-extract-rules</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-review</code></li></ol></td><td>신뢰도 중간·낮음 규칙 카드를 /modernize-review 에서 Right / Wrong / Not sure 로 답함</td><td>BUSINESS_RULES.md, RULE_REVIEWS.json</td></tr>
+<tr><td class="stage">3<br><small>테스트 부족 영역 및 위험도 평가</small></td><td><strong>pr-review-toolkit, code-modernization</strong><br>ponytail<br><span class="tag opt">조건부</span> sonarqube — 조직 표준이거나 로컬 Community Build가 있을 때</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>pr-review-toolkit:pr-test-analyzer</code></li><li><span class="rt">명령</span> <code>ponytail:ponytail-audit</code> <code>app/</code> — 군더더기 항목만 참고</li></ol></td><td>리팩토링 순서 확정, 손대지 않을 엔드포인트 제외</td><td>위험도 표(엔드포인트 | 커버리지 | 위험 | 순서)</td></tr>
+<tr><td class="stage">4<br><small>기존 동작 보호 테스트 작성</small></td><td><strong>superpowers, code-modernization</strong><br>pr-review-toolkit, ralph-loop</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>superpowers:test-driven-development</code></li><li><span class="rt">에이전트</span> <code>code-modernization:test-engineer</code> — 규칙 카드 → 특성화 테스트</li><li><span class="rt">스킬</span> <code>superpowers:dispatching-parallel-agents</code> <span class="tag opt">조건: 서로 독립적인 도메인(라우터 묶음)이 2개 이상일 때</span></li><li><span class="rt">사용자 입력</span> <code>/ralph-loop &quot;...&quot; --completion-promise CONTRACT_DONE --max-iterations 15</code> — 첫 테스트 파일 승인 후에만</li></ol></td><td>규칙 카드와 실제 동작이 다를 때 어느 쪽을 계약으로 볼지(원칙: 현재 동작 유지)</td><td>규칙 카드마다 계약 테스트, 전부 통과</td></tr>
+<tr><td class="stage">5<br><small>라우터에서 비즈니스 로직 분리</small></td><td><strong>feature-dev, code-modernization</strong><br>skill-creator, ponytail<br><span class="tag opt">조건부</span> serena — 대량 심볼 이동</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>feature-dev:code-architect</code> — 설계안 2~3개</li><li><span class="rt">에이전트</span> <code>code-modernization:architecture-critic</code> — 과잉 설계 견제</li><li><span class="rt">스킬</span> <code>skill-creator:skill-creator</code> — 첫 엔드포인트 분리 절차를 fastapi-layer-slice 로 고정</li></ol></td><td>설계안 선택</td><td>첫 엔드포인트 service 분리, 보호 테스트 통과</td></tr>
+<tr><td class="stage">6<br><small>DB 접근을 repository 계층으로 분리</small></td><td><strong>pyright-lsp, feature-dev</strong><br>skill-creator<br><span class="tag opt">조건부</span> serena — 대량 심볼 이동<br><span class="tag opt">조건부</span> context7 — SQLAlchemy 2.0 로딩 전략 확인, 문서 조회 허용 시</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>fastapi-layer-slice</code> — 5단계에서 만든 프로젝트 스킬</li><li><span class="rt">에이전트</span> <code>feature-dev:code-reviewer</code></li></ol></td><td>트랜잭션 경계 변경 여부</td><td>라우터·서비스에서 세션 직접 사용 0, 테스트 통과</td></tr>
+<tr><td class="stage">7<br><small>Pydantic request/response 스키마 분리</small></td><td><strong>pr-review-toolkit, code-modernization, pydantic</strong><br>—<br><span class="tag opt">조건부</span> context7 — Pydantic v2 직렬화 옵션 확인</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>pydantic</code> — Field 제약·alias·검증기 작성 기준</li><li><span class="rt">에이전트</span> <code>pr-review-toolkit:type-design-analyzer</code></li><li><span class="rt">에이전트</span> <code>code-modernization:version-delta-analyst</code> — v1→v2 차이</li></ol></td><td>응답 필드 변경이 API 계약 변경인지 판단</td><td>요청·응답 스키마 분리, OpenAPI 차이 없음</td></tr>
+<tr><td class="stage">8<br><small>동기 블로킹 호출의 async 경계 정리</small></td><td><strong>feature-dev, hookify</strong><br>—<br><span class="tag opt">조건부</span> plugin-dev — 간접 블로킹 호출을 의미 기반 훅으로 경고<br><span class="tag opt">조건부</span> context7 — run_in_threadpool·anyio 확인</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>feature-dev:code-explorer</code> — async def 안의 동기 호출 경로</li><li><span class="rt">명령</span> <code>hookify:hookify</code> <code>async 안 requests·time.sleep 경고</code></li></ol></td><td>threadpool 위임 vs async 라이브러리 교체</td><td>효과 측정 수치(플러그인 없이 직접 측정)</td></tr>
+<tr><td class="stage">9<br><small>보안 검토</small></td><td><strong>claude-security, security-guidance</strong><br>code-modernization<br><span class="tag opt">조건부</span> sonarqube — 로컬 Community Build</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>claude-security:claude-security</code> — Scan changes (baseline 이후)</li><li><span class="rt">명령</span> <code>code-modernization:modernize-harden</code></li></ol></td><td>발견마다 수정 여부 — 두 도구가 모두 찾은 것부터, 패치는 직접 검토 후 git apply</td><td>대조표(두 도구 모두 / 한쪽만), 반영한 패치 목록</td></tr>
+<tr><td class="stage">10<br><small>코드 단순화 및 최종 검증</small></td><td><strong>code-simplifier, pr-review-toolkit</strong><br>superpowers, claude-md-management, ralph-loop, ponytail, skill-creator<br><span class="tag opt">조건부</span> playwright — Jinja 템플릿·관리자 화면이 있을 때</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>code-simplifier:code-simplifier</code></li><li><span class="rt">명령</span> <code>ponytail:ponytail-review</code> — 과설계 보고만</li><li><span class="rt">에이전트</span> <code>pr-review-toolkit:code-reviewer</code></li><li><span class="rt">에이전트</span> <code>pr-review-toolkit:silent-failure-hunter</code></li><li><span class="rt">스킬</span> <code>superpowers:receiving-code-review</code></li><li><span class="rt">스킬</span> <code>superpowers:verification-before-completion</code></li><li><span class="rt">명령</span> <code>claude-md-management:revise-claude-md</code></li></ol></td><td>남은 이슈를 지금 고칠지 미룰지, CLAUDE.md 반영 항목</td><td>pytest·ruff·pyright 통과, 리뷰 이슈 표</td></tr>
+<tr><td class="stage">11<br><small>논리적 커밋 단위 분리</small></td><td><strong>commit-commands</strong><br>superpowers, ponytail</td><td><ol class="runs"><li><span class="rt">명령</span> <code>ponytail:ponytail-debt</code> — 미뤄 둔 임시방편 대장</li><li><span class="rt">명령</span> <code>commit-commands:commit</code></li><li><span class="rt">스킬</span> <code>superpowers:finishing-a-development-branch</code> — 1번(로컬 병합)만</li></ol></td><td>묶음 구성과 순서, 커밋 메시지</td><td>모든 커밋에서 테스트 통과, 원격 push 없음</td></tr>
+</tbody></table></div>
+<h3 id="profile-fastapi-default">프로필 <code>fastapi-default</code> — fastapi-default 구조 리팩토링 (0~11단계)</h3>
+<p>근거 문서: <code>docs/scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html</code></p>
+<div class="table-wrap"><table><thead><tr><th>단계</th><th>주 플러그인 · 보조</th><th>실행 순서 (run)</th><th>승인 지점</th><th>완료 기준</th></tr></thead><tbody>
+<tr><td class="stage">pre<br><small>진입 전: 분석·온보딩 매뉴얼</small></td><td><strong>code-modernization, feature-dev, pyright-lsp</strong><br>explanatory-output-style, pr-review-toolkit</td><td><ol class="runs"><li><span class="rt">명령</span> <code>code-modernization:modernize-assess</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-map</code></li><li><span class="rt">에이전트</span> <code>feature-dev:code-explorer</code></li></ol></td><td>매뉴얼 검토(2·12장 수치는 2단계 뒤 확정)</td><td>매뉴얼 HTML</td></tr>
+<tr><td class="stage">0<br><small>준비</small></td><td><strong>claude-code-setup, hookify, claude-md-management</strong><br>pydantic, explanatory-output-style</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>claude-code-setup:claude-automation-recommender</code></li><li><span class="rt">명령</span> <code>hookify:hookify</code> <code>block-remote-git</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-preflight</code> <code>fastapi-default --source ./app</code></li><li><span class="rt">셸</span> <code>printf &quot;legacy/\nanalysis/\n&quot; &gt;&gt; .git/info/exclude</code></li></ol></td><td>추천 자동화 중 켤 것, CLAUDE.md 문구</td><td>훅 규칙 3개 동작(git fetch 차단 포함), preflight 통과, legacy/ 가 git status 에 없음</td></tr>
+<tr><td class="stage">1<br><small>구조 파악</small></td><td><strong>feature-dev, pyright-lsp</strong><br>code-modernization</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>feature-dev:code-explorer</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-status</code></li></ol></td><td>문서 불일치 시 코드가 정답 — 문서를 고칠지 결정</td><td>매뉴얼 4장이 현재 코드와 맞음</td></tr>
+<tr><td class="stage">2<br><small>기준선 고정</small></td><td><strong>superpowers</strong><br>pr-review-toolkit<br><span class="tag opt">조건부</span> redis-development — Redis 를 쓰는 기능의 테스트가 skip 될 때</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>superpowers:systematic-debugging</code></li><li><span class="rt">에이전트</span> <code>pr-review-toolkit:pr-test-analyzer</code></li></ol></td><td>실패 원인 보고를 보고 수정 방향 승인</td><td>전체 실행 실패 0, skip 0(Redis 기동 시), 기준 수치 기록</td></tr>
+<tr><td class="stage">3<br><small>개선 설계</small></td><td><strong>feature-dev</strong><br>code-modernization, ponytail</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>feature-dev:code-architect</code></li><li><span class="rt">에이전트</span> <code>code-modernization:architecture-critic</code></li></ol></td><td>항목별 채택 안과 순서 — CLAUDE.md 결정 기록에 남김</td><td>후보별 채택 결정</td></tr>
+<tr><td class="stage">4-7<br><small>개선 실행 (repository 인자·커버리지·설정 분할·main.py 분리)</small></td><td><strong>superpowers, pyright-lsp</strong><br>ralph-loop<br><span class="tag opt">조건부</span> serena — 6단계 설정 분할의 대량 심볼 이동</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>superpowers:test-driven-development</code></li><li><span class="rt">스킬</span> <code>superpowers:dispatching-parallel-agents</code> <span class="tag opt">조건: 같은 변경을 적용할 기능 폴더가 2개 이상일 때</span></li></ol></td><td>7단계 동시성 방식·설계안·migration 검토, 계층 신설 구간은 /ponytail lite</td><td>review_gate 전체 통과, SKIP 0</td></tr>
+<tr><td class="stage">8<br><small>새 기능</small></td><td><strong>feature-dev</strong><br>superpowers, pr-review-toolkit, pydantic<br><span class="tag opt">조건부</span> context7 — 최신 API 확인<br><span class="tag opt">조건부</span> redis-development — Redis 를 쓰는 기능</td><td><ol class="runs"><li><span class="rt">명령</span> <code>feature-dev:feature-dev</code></li></ol></td><td>설계안 선택</td><td>새 기능 테스트 통과</td></tr>
+<tr><td class="stage">9<br><small>보안·리뷰·단순화</small></td><td><strong>claude-security, pr-review-toolkit, code-simplifier</strong><br>security-guidance, code-modernization, superpowers, ralph-loop, ponytail</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>claude-security:claude-security</code> — Scan changes (baseline 이후)</li><li><span class="rt">명령</span> <code>code-modernization:modernize-harden</code> <code>fastapi-default</code></li><li><span class="rt">에이전트</span> <code>pr-review-toolkit:code-reviewer</code></li><li><span class="rt">에이전트</span> <code>code-simplifier:code-simplifier</code></li><li><span class="rt">명령</span> <code>ponytail:ponytail-review</code></li><li><span class="rt">스킬</span> <code>superpowers:receiving-code-review</code></li></ol></td><td>보안 발견마다 수정 여부, 반박한 리뷰 지적의 근거</td><td>review_gate 전체 통과</td></tr>
+<tr><td class="stage">10<br><small>커밋 (이력 점검)</small></td><td><strong>commit-commands</strong><br>security-guidance, superpowers, ponytail</td><td><ol class="runs"><li><span class="rt">명령</span> <code>ponytail:ponytail-debt</code></li><li><span class="rt">명령</span> <code>commit-commands:commit</code></li><li><span class="rt">스킬</span> <code>superpowers:finishing-a-development-branch</code></li></ol></td><td>남은 변경 정리, 이력 점검</td><td>단계별 커밋 이력</td></tr>
+<tr><td class="stage">11<br><small>g6로 넘기기</small></td><td><strong>skill-creator</strong><br>claude-md-management</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>skill-creator:skill-creator</code> — layered-slice 생성·평가</li></ol></td><td>누락 단계를 스킬에 넣을지 — 규칙은 CLAUDE.md, 절차는 스킬</td><td>layered-slice 스킬 평가 통과</td></tr>
+</tbody></table></div>
+<h3 id="profile-g6">프로필 <code>g6</code> — g6 레거시 리팩토링 (0~16단계, 슬라이스 반복)</h3>
+<p>근거 문서: <code>docs/scenario-plugin-guide/g6-refactoring-guide.html</code><br><strong>주의:</strong> code-modernization 명령은 저장소 밖 ~/work/g6-analysis 에서만 실행 (/modernize-preflight g6 --source ~/work/g6)</p>
+<div class="table-wrap"><table><thead><tr><th>단계</th><th>주 플러그인 · 보조</th><th>실행 순서 (run)</th><th>승인 지점</th><th>완료 기준</th></tr></thead><tbody>
+<tr><td class="stage">pre<br><small>진입 전: 분석·온보딩 매뉴얼</small></td><td><strong>code-modernization, feature-dev, pyright-lsp</strong><br>playwright, explanatory-output-style</td><td><ol class="runs"><li><span class="rt">명령</span> <code>code-modernization:modernize-preflight</code> <code>g6 --source ~/work/g6</code> — ~/work/g6-analysis 에서</li><li><span class="rt">명령</span> <code>code-modernization:modernize-assess</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-extract-rules</code></li><li><span class="rt">에이전트</span> <code>feature-dev:code-explorer</code></li></ol></td><td>매뉴얼 검토</td><td>매뉴얼 HTML</td></tr>
+<tr><td class="stage">0<br><small>준비</small></td><td><strong>claude-code-setup, hookify, claude-md-management</strong><br>pydantic, code-modernization, playwright, explanatory-output-style</td><td><ol class="runs"><li><span class="rt">명령</span> <code>hookify:hookify</code> <code>block-remote-git</code></li><li><span class="rt">사용자 입력</span> <code>claude mcp add playwright --scope project -- npx -y @playwright/mcp@0.0.83</code></li><li><span class="rt">사용자 입력</span> <code>/mcp</code> — playwright 연결 확인</li></ol></td><td>버전 고정 방식, 커밋 메시지 관례</td><td>import main 성공, 훅 3개, ~/work/g6-analysis preflight 통과, /mcp 에 playwright</td></tr>
+<tr><td class="stage">1<br><small>구조·의존성 분석</small></td><td><strong>code-modernization</strong><br>pyright-lsp<br><span class="tag opt">조건부</span> lumen — 이름이 제각각인 코드 검색</td><td><ol class="runs"><li><span class="rt">명령</span> <code>code-modernization:modernize-assess</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-map</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-status</code></li></ol></td><td>preflight 질문(범위, 손대지 않을 영역 — static/, templates/)</td><td>진단 산출물</td></tr>
+<tr><td class="stage">2<br><small>핵심 흐름 추적</small></td><td><strong>feature-dev, code-modernization</strong><br>pyright-lsp</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>feature-dev:code-explorer</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-extract-rules</code></li><li><span class="rt">명령</span> <code>code-modernization:modernize-review</code></li></ol></td><td>규칙 카드 Right/Wrong/Not sure, 화면·API 차이의 의도 구분</td><td>RULE_REVIEWS.json</td></tr>
+<tr><td class="stage">3<br><small>테스트 기반</small></td><td><strong>superpowers</strong><br>ralph-loop</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>superpowers:test-driven-development</code></li><li><span class="rt">스킬</span> <code>superpowers:dispatching-parallel-agents</code> <span class="tag opt">조건: 테스트를 채울 독립 모듈이 2개 이상일 때</span></li></ol></td><td>첫 테스트 파일 승인 후에만 반복</td><td>pytest 한 줄 실행, 순수 함수 단위 테스트 통과</td></tr>
+<tr><td class="stage">4<br><small>특성화 테스트 (대상 슬라이스)</small></td><td><strong>superpowers, code-modernization</strong><br>—</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>code-modernization:test-engineer</code></li></ol></td><td>Wrong 카드는 현재 동작으로 고정하되 버그 후보로</td><td>대상 슬라이스 특성화 테스트 통과</td></tr>
+<tr><td class="stage">5<br><small>위험도와 순서 결정</small></td><td><strong>pr-review-toolkit</strong><br>code-modernization<br><span class="tag opt">조건부</span> sonarqube — 로컬 Community Build</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>pr-review-toolkit:pr-test-analyzer</code></li></ol></td><td>첫 슬라이스 확정 — 기본안(게시글 작성)과 다르면 6단계 전에 4단계 재수행</td><td>슬라이스 순서</td></tr>
+<tr><td class="stage">6<br><small>슬라이스 설계</small></td><td><strong>feature-dev, code-modernization</strong><br>skill-creator</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>feature-dev:code-architect</code></li><li><span class="rt">에이전트</span> <code>code-modernization:architecture-critic</code></li><li><span class="rt">스킬</span> <code>layered-slice</code></li></ol></td><td>설계안 선택</td><td>슬라이스 설계 문서</td></tr>
+<tr><td class="stage">7-11<br><small>슬라이스 이관 (어댑터·Repository·async·DTO)</small></td><td><strong>superpowers, pyright-lsp</strong><br>hookify, pydantic<br><span class="tag opt">조건부</span> serena — 8단계 대량 이동<br><span class="tag opt">조건부</span> plugin-dev — 10단계 간접 동기 DB 호출 경고<br><span class="tag opt">조건부</span> context7 — 10단계 최신 API 확인</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>superpowers:test-driven-development</code></li></ol></td><td>8단계 원자성 변경 단독 커밋, 11단계 extra 필드 명시 여부, 계층 신설 구간은 /ponytail lite</td><td>단위·특성화·통합 테스트 통과, 슬라이스 .commit() 은 어댑터 1회</td></tr>
+<tr><td class="stage">12<br><small>기능 통합 테스트</small></td><td><strong>superpowers</strong><br>playwright</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>superpowers:verification-before-completion</code></li><li><span class="rt">셸</span> <code>TEST_DATABASE_URL=mysql+... pytest</code> — 로컬 MySQL 8.0 1회</li></ol></td><td>DB 방언 차이 발견 시 처리</td><td>SQLite + MySQL 1회 통과, 화면 스모크</td></tr>
+<tr><td class="stage">13<br><small>보안</small></td><td><strong>claude-security</strong><br>security-guidance, code-modernization, superpowers<br><span class="tag opt">조건부</span> sonarqube — 로컬 Community Build</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>claude-security:claude-security</code> — Scan changes (baseline 이후)</li><li><span class="rt">명령</span> <code>code-modernization:modernize-harden</code> — ~/work/g6-analysis 에서</li></ol></td><td>발견마다 수정 여부</td><td>대조표</td></tr>
+<tr><td class="stage">14<br><small>단순화·리뷰</small></td><td><strong>code-simplifier, pr-review-toolkit</strong><br>superpowers, ralph-loop, ponytail</td><td><ol class="runs"><li><span class="rt">에이전트</span> <code>pr-review-toolkit:silent-failure-hunter</code></li><li><span class="rt">에이전트</span> <code>code-simplifier:code-simplifier</code></li><li><span class="rt">명령</span> <code>ponytail:ponytail-review</code></li><li><span class="rt">스킬</span> <code>superpowers:receiving-code-review</code></li></ol></td><td>F811 이름 변경(operationId 영향)은 사람이 판단</td><td>ruff·pyright 0</td></tr>
+<tr><td class="stage">15<br><small>커밋 (이력 점검)</small></td><td><strong>commit-commands</strong><br>security-guidance, superpowers, ponytail</td><td><ol class="runs"><li><span class="rt">명령</span> <code>ponytail:ponytail-debt</code></li><li><span class="rt">명령</span> <code>commit-commands:commit</code></li></ol></td><td>동작이 바뀌는 커밋이 다른 변경과 섞였는지</td><td>단계별 커밋 이력</td></tr>
+<tr><td class="stage">16<br><small>다음 슬라이스로</small></td><td><strong>skill-creator, claude-md-management</strong><br>code-modernization</td><td><ol class="runs"><li><span class="rt">스킬</span> <code>skill-creator:skill-creator</code> — g6-slice 재평가</li><li><span class="rt">명령</span> <code>code-modernization:modernize-status</code></li></ol></td><td>다음 슬라이스 확정 후 4단계로</td><td>스킬 보완, 다음 슬라이스</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============ 11 ============ -->
+<section id="state">
+<h2>11. 상태 파일</h2>
+<p>위치: 대상 프로젝트의 <code>.claude/stage-pilot/state.json</code>. 손으로 고치지 말고 명령이나 <code>stage.js</code>로 바꿉니다. 팀원과 공유할 필요가 없다면 <code>.gitignore</code>에 넣습니다.</p>
+<pre><code>{
+  "profile": "default",          // 따르는 프로필
+  "stage": "4",                  // 현재 단계 id
+  "auto": true,                  // 자동 승인 모드 여부
+  "decisions": [                 // 결정 기록 (log)
+    { "stage": "3", "text": "…", "auto": true, "at": "2026-10-15T05:54:08Z" }
+  ],
+  "history": [                   // 거쳐 온 단계
+    { "stage": "3", "at": "…" }, { "stage": "4", "at": "…" }
+  ]
+}</code></pre>
+</section>
+
+<!-- ============ 12 ============ -->
+<section id="customize">
+<h2>12. 고치고 늘리기</h2>
+<h3>단계 정보를 바꾸려면</h3>
+<p>모든 단계 정보는 <code>plugins/stage-pilot/skills/stage-pilot/references/stage-map.json</code> 한 파일에 있습니다. 가이드 문서를 고쳤다면 이 파일도 함께 고칩니다. 한 단계는 다음 필드로 이루어집니다.</p>
+<pre><code>{
+  "id": "4", "title": "기존 동작 보호 테스트 작성", "anchor": "#s4",
+  "primary": ["superpowers", "code-modernization"],      // plugins 목록의 이름
+  "assist": ["pr-review-toolkit", "ralph-loop"],
+  "conditional": [{ "plugin": "serena", "when": "대량 심볼 이동" }],
+  "run": [
+    { "type": "skill", "ref": "superpowers:test-driven-development" },
+    { "type": "agent", "ref": "code-modernization:test-engineer", "note": "규칙 카드 → 특성화 테스트" },
+    { "type": "skill", "ref": "superpowers:dispatching-parallel-agents", "when": "서로 독립적인 도메인이 2개 이상일 때" }
+  ],
+  "approval": "…", "done": "…", "keywords": ["보호 테스트", "특성화"]
+}</code></pre>
+<ul>
+  <li><code>keywords</code>는 훅이 요청 문장에서 단계를 알아보는 데 씁니다. 팀이 자주 쓰는 표현을 넣으면 감지가 정확해집니다.</li>
+  <li>새 플러그인을 쓰려면 먼저 상단 <code>plugins</code>에 설치 ID와 역할을 등록합니다.</li>
+</ul>
+<h3>바꾼 뒤 확인</h3>
+<pre><code>node --test plugins/stage-pilot/tests/stage.test.js</code></pre>
+<p>데이터 정합성(모든 플러그인이 목록에 있는지, 단계 id 중복), 가이드 문서의 앵커가 실제로 있는지, 훅 출력, 자동 모드·결정 기록을 확인합니다.</p>
+<h3>실제 Claude Code로 평가하려면</h3>
+<pre><code>python eval/run_eval.py --iters 1,2,3 --out &lt;.claude가 없는 폴더&gt; --python &lt;fastapi·pytest가 설치된 python&gt;</code></pre>
+<p>회차마다 복잡도가 다른 가상 레거시를 만들고, 제안·단계 건너뛰기 감지·자동 수행을 실제로 돌려 채점합니다. 자세한 내용은 <a href="#verification">13. 검증 결과</a>에 있습니다.</p>
+</section>
+
+<!-- ============ 13 ============ -->
+<section id="verification">
+<h2>13. 검증 결과</h2>
+
+<p>stage-pilot이 실제로 플러그인을 제안·호출하는지 확인하기 위해, 회차마다 복잡도와 도메인이 다른 <strong>가상 FastAPI 레거시 프로젝트</strong>를 만들고 실제 Claude Code에서 세 과제를 돌렸습니다. 채점은 Claude의 답변 문구가 아니라 <strong>실제 도구 호출 기록</strong>(stream-json)과 프로젝트 상태(파일 변경, 테스트, 커밋, 상태 파일)로 했습니다.</p>
+<div class="callout ok"><strong>최종본 결과:</strong> 7회 중 7회 통과, 연속 7회 — 목표(같은 기준으로 5회 이상 연속 통과)를 달성했습니다.</div>
+<h3>평가 방법</h3>
+<div class="table-wrap"><table><thead><tr><th>과제</th><th>무엇을 확인하나</th></tr></thead><tbody>
+<tr><td>제안</td><td>그 단계의 주 플러그인을 모두 언급하고 승인 지점을 안내하는가. 파일을 고치거나 run 항목을 호출하지 않는가</td></tr>
+<tr><td>단계 건너뛰기 감지</td><td>다른 단계 요청에 현재 단계와 요청 단계 번호를 모두 밝히는가</td></tr>
+<tr><td>자동 수행</td><td><code>auto on</code> 상태에서 <code>run</code>(또는 <code>run --through</code>)이 호출 가능한 run 항목을 모두 실제로 호출하는가, 질문 없이 결정을 기록하는가, 수행 후 테스트가 통과하는가, 리팩토링 단계는 코드를 실제로 바꾸는가, 11단계는 로컬 커밋으로 작업 트리를 정리하고 원격 작업을 하지 않는가</td></tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>복잡도</th><th>가상 레거시의 특징</th></tr></thead><tbody>
+<tr><td>L1</td><td>main.py 한 파일, 메모리 저장소, 라우터 안 비즈니스 규칙</td></tr>
+<tr><td>L2</td><td>+ sqlite3 원시 SQL 문자열 조립(SQL 인젝션), 라우터에서 직접 커밋</td></tr>
+<tr><td>L3</td><td>+ app 패키지, async 라우터 안의 동기 SQLAlchemy 세션과 time.sleep, 의존성 주입 없음</td></tr>
+<tr><td>L4</td><td>+ 도메인 2개, 요청 하나에 커밋 2번, Pydantic v1식 orm_mode, 비밀값 하드코딩, Jinja 관리자 화면</td></tr>
+<tr><td>L5</td><td>+ 도메인 3개, 도메인 간 라우터 직접 import, async 안의 requests, BackgroundTasks</td></tr>
+</tbody></table></div>
+<p>도메인은 쇼핑몰(주문), 도서관(대출), 병원(예약), 호텔(숙박), 학교(수강) 5종이며 회차마다 조합이 바뀝니다. 공식 플러그인은 <code>--plugin-dir</code>로 실행할 때만 불러왔고, pyright-lsp는 언어 서버가 없는 환경이라 제외했습니다.</p>
+<h3>진단하고 고친 것</h3>
+<div class="table-wrap"><table><thead><tr><th>발견</th><th>원인</th><th>조치</th></tr></thead><tbody>
+<tr><td>4단계 자동 수행에서 <code>dispatching-parallel-agents</code>를 부르지 않음</td><td>가이드상 "도메인이 여럿일 때"만 쓰는 항목인데, 데이터가 조건을 설명에만 두어 필수처럼 보였고 건너뛴 근거가 남지 않음</td><td>실행 항목에 <code>when</code>(조건) 도입. 조건을 판정하고, 불충족이면 "조건 불충족: 근거"를 기록 <span class="tag">플러그인</span></td></tr>
+<tr><td>단계 건너뛰기 안내에 요청 단계 번호가 빠짐</td><td>훅 안내가 "건너뛰는지 알릴 것"만 지시</td><td>첫 줄에 "이 요청은 N단계(제목), 현재는 M단계"로 두 번호를 모두 밝히도록 보완 <span class="tag">플러그인</span></td></tr>
+<tr><td>프로젝트 파일을 고칠 때마다 권한 요구</td><td>평가 프로젝트를 <code>~/.claude</code> 아래에 둠 (Claude Code가 민감 경로로 취급)</td><td>평가 프로젝트를 일반 폴더로 옮김 <span class="tag opt">평가 환경</span> — <a href="#troubleshoot">문제 해결</a>에도 반영</td></tr>
+<tr><td>11단계에서 커밋이 생기지 않음</td><td>변경이 없는 프로젝트에서 11단계만 실행 (플러그인은 빈 커밋을 만들지 않고 근거를 기록 — 올바른 동작)</td><td>앞 단계 작업이 쌓인 상태에서 평가하도록 하네스 보완 <span class="tag opt">평가 환경</span></td></tr>
+</tbody></table></div>
+<h3>최종본 확인 결과 (실행 순서)</h3>
+<p><strong>7회 중 7회 통과 · 최장 연속 통과 7회 · 마지막부터 연속 7회</strong></p>
+<div class="table-wrap"><table><thead><tr><th>회차</th><th>복잡도·도메인</th><th>과제 결과</th><th>자동 수행에서 실제 호출한 플러그인</th><th>대체 수행</th><th>수행 후 테스트</th><th>판정</th></tr></thead><tbody>
+<tr><td>15</td><td>L4<br><small>clinic, library</small></td><td>제안 5 ✓ / 건너뛰기 감지 11-&gt;4 ✓ / 자동 수행 11 ✓</td><td><small>ponytail:ponytail-debt, commit-commands:commit, superpowers:finishing-a-development-branch</small></td><td><small>—</small></td><td><small>3 passed, 5 warnings in 0.77s</small></td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>16</td><td>L2<br><small>clinic</small></td><td>제안 3 ✓ / 건너뛰기 감지 2-&gt;8 ✓ / 자동 수행 7..8 ✓</td><td><small>pr-review-toolkit:type-design-analyzer, code-modernization:version-delta-analyst, feature-dev:code-explorer, hookify:hookify</small></td><td><small>pydantic</small></td><td><small>2 passed, 1 warning in 0.37s</small></td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>4</td><td>L4<br><small>school, clinic</small></td><td>제안 9 ✓ / 건너뛰기 감지 2-&gt;7 ✓ / 자동 수행 5 ✓</td><td><small>feature-dev:code-architect, code-modernization:architecture-critic, skill-creator:skill-creator</small></td><td><small>—</small></td><td><small>11 passed, 5 warnings in 0.89s</small></td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>11</td><td>L1<br><small>shop</small></td><td>제안 0 ✓ / 건너뛰기 감지 4-&gt;8 ✓ / 자동 수행 4 ✓</td><td><small>superpowers:test-driven-development, code-modernization:test-engineer</small></td><td><small>—</small></td><td><small>13 passed, 1 warning in 0.38s</small></td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>14</td><td>L5<br><small>school, clinic, shop</small></td><td>제안 9 ✓ / 건너뛰기 감지 3-&gt;7 ✓ / 자동 수행 10..11 ✓</td><td><small>code-simplifier:code-simplifier, ponytail:ponytail-review, pr-review-toolkit:code-reviewer, pr-review-toolkit:silent-failure-hunter, superpowers:receiving-code-review, superpowers:verification-before-completion, claude-md-management:revise-claude-md, ponytail:ponytail-debt, commit-commands:commit, superpowers:finishing-a-development-branch</small></td><td><small>—</small></td><td><small>4 passed, 1 warning in 0.91s</small></td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>6</td><td>L3<br><small>shop</small></td><td>제안 10 ✓ / 건너뛰기 감지 0-&gt;6 ✓ / 자동 수행 6 ✓</td><td><small>feature-dev:code-reviewer</small></td><td><small>fastapi-layer-slice</small></td><td><small>1 passed, 1 warning in 0.66s</small></td><td><span class="tag ok">PASS</span></td></tr>
+<tr><td>9</td><td>L2<br><small>library</small></td><td>제안 4 ✓ / 건너뛰기 감지 10-&gt;2 ✓ / 자동 수행 3 ✓</td><td><small>pr-review-toolkit:pr-test-analyzer, ponytail:ponytail-audit</small></td><td><small>—</small></td><td><small>1 passed, 1 warning in 0.41s</small></td><td><span class="tag ok">PASS</span></td></tr>
+</tbody></table></div>
+<h3>관찰한 동작</h3>
+<ul>
+<li><strong>조건 판정:</strong> 도메인이 하나인 프로젝트(2·11회차)에서는 병렬 에이전트를 부르지 않고 "조건 불충족: superpowers:dispatching-parallel-agents — 도메인 1개(orders 라우터만 존재)"처럼 근거를 기록했습니다. 조건부 플러그인도 같은 방식으로 판정했습니다. 예: "plugin-dev — async def가 없음", "serena — 이동 심볼 3개, 대량 이동 아님", "context7 — 외부 문서 조회 허용 없음". 여러 도메인 프로젝트에서 4단계를 자동 수행한 회차는 없어, 조건이 충족될 때의 호출은 이번 평가에서 확인하지 않았습니다.</li>
+<li><strong>대체 수행:</strong> pydantic 플러그인이 없는 환경(7·16회차)에서는 스키마 분리를 직접 하고 "대체 수행"으로 기록했습니다. 프로젝트 스킬 <code>fastapi-layer-slice</code>가 없을 때(6·13회차)는 같은 목적의 분리를 직접 했습니다. 13회차에서는 5단계에서 skill-creator로 스킬을 만들었지만 <code>.claude/skills</code> 쓰기가 권한으로 거부되어, 초안을 <code>docs/skills/</code>에 두고 그 절차대로 6단계를 직접 수행했습니다(<a href="#troubleshoot">문제 해결</a> 참고).</li>
+<li><strong>자동 결정:</strong> 3단계에서는 "커버리지 낮고 위험 높은 엔드포인트 먼저"로 순서를 정하고, 음수 입력 허용 같은 동작은 고치지 않고 "버그 후보"로 남겼습니다(동작 유지 원칙).</li>
+<li><strong>하지 않은 일:</strong> 모든 회차에서 원격 저장소 작업과 AskUserQuestion 질문이 없었습니다. 변경이 없을 때는 빈 커밋을 만들지 않았습니다.</li>
+</ul>
+<p>전체 회차 기록과 2차 결과는 저장소의 <code>eval/RESULTS.md</code>에 있습니다.</p>
+
+</section>
+
+<!-- ============ 14 ============ -->
+<section id="troubleshoot">
+<h2>14. 문제 해결</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>증상</th><th>원인</th><th>해결</th></tr></thead>
+<tbody>
+<tr><td>훅이 아무것도 알려 주지 않음</td><td>그 프로젝트에 상태 파일이 없음</td><td><code>/stage-pilot:stage init default</code>로 시작</td></tr>
+<tr><td>설치했는데 카드에 "미설치"로 나옴</td><td><code>--plugin-dir</code>로 불러온 플러그인은 설치 목록에 없어서 카드가 알지 못함</td><td>무시해도 됩니다. 수행 모드는 Claude가 실제로 쓸 수 있는 도구 목록을 기준으로 호출합니다</td></tr>
+<tr><td>설치했는데 수행 모드가 "대체 수행"을 함</td><td>플러그인이 설치는 됐지만 비활성화됨, 또는 세션을 다시 열지 않음</td><td><code>/plugin</code>에서 활성화 확인 후 세션 재시작</td></tr>
+<tr><td>자동 모드인데 파일 편집 때마다 권한을 물음</td><td>프로젝트가 <code>~/.claude</code> 아래처럼 Claude Code가 민감 경로로 보는 곳에 있음</td><td>프로젝트를 일반 작업 폴더로 옮김. 권한 모드가 편집을 허용하는지 확인 (<code>acceptEdits</code> 등)</td></tr>
+<tr><td>skill-creator로 만든 프로젝트 스킬이 <code>.claude/skills</code>에 저장되지 않음</td><td>Claude Code는 프로젝트의 <code>.claude/</code> 폴더 쓰기를 민감 작업으로 보고 확인을 요구함. 비대화형 실행(<code>claude -p</code>)에서는 거부됨</td><td>대화형 세션에서 쓰기를 승인하거나, 초안(stage-pilot은 이때 <code>docs/skills/</code>에 둠)을 직접 <code>.claude/skills/</code>로 옮김</td></tr>
+<tr><td>자동 모드인데 중간에 멈춤</td><td>테스트가 실패했고 고치지 못함 (의도된 멈춤)</td><td>보고된 실패를 확인하고 고친 뒤 <code>run</code>을 다시 입력</td></tr>
+<tr><td>Windows에서 훅 테스트 시 빈 출력</td><td>Git Bash의 <code>/tmp/…</code> 경로를 JSON에 넣으면 Node.js가 다른 경로로 해석</td><td>JSON에는 <code>C:/…</code> 형식 경로 사용 (실제 Claude Code는 Windows 경로를 넘김)</td></tr>
+<tr><td>요청한 단계를 다르게 알아봄</td><td>키워드 대조는 근사치</td><td>상태 파일의 단계가 기준입니다. 자주 틀리면 <code>keywords</code>를 보강</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============ 15 ============ -->
+<section id="limits">
+<h2>15. 한계와 주의</h2>
+<ul>
+  <li><strong>호출은 지시로만 합니다.</strong> 다른 플러그인은 Claude가 Skill·Agent 도구로 부르도록 지시하는 방식으로 실행합니다. 훅이 직접 실행하지는 않습니다.</li>
+  <li><strong>설치 여부만 봅니다.</strong> 카드의 "미설치"는 설치 목록 기준이며, 설치했지만 꺼 둔 플러그인은 구분하지 않습니다.</li>
+  <li><strong>단계 감지는 근사치입니다.</strong> 키워드 대조라 짧거나 모호한 요청은 감지하지 못할 수 있습니다.</li>
+  <li><strong>자동 승인은 가이드의 기본안을 따릅니다.</strong> 팀의 판단이 기본안과 다른 결정(예: 계약 변경을 이번에 함께 하기)은 자동 모드에서 하지 않으므로, 결정 기록을 보고 사람이 이어서 처리합니다.</li>
+  <li><strong>무거운 단계는 오래 걸립니다.</strong> <code>code-modernization</code>의 assess·map·harden, <code>claude-security</code>는 여러 에이전트를 돌려 수십 분이 걸릴 수 있습니다.</li>
+  <li><strong>단계 데이터는 사본입니다.</strong> 가이드를 고치면 <code>stage-map.json</code>도 함께 고쳐야 하며, 테스트는 문서 앵커가 있는지만 확인합니다.</li>
+</ul>
+</section>
+
+<!-- ============ 16 ============ -->
+<section id="changelog">
+<h2>16. 변경 이력</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>버전</th><th>날짜</th><th>내용</th></tr></thead>
+<tbody>
+<tr><td>0.2.0</td><td>2026-10-15</td><td>자동 승인 모드(<code>auto on|off</code>, <code>init --auto</code>), 결정 기록(<code>log</code>, <code>decisions</code>), 실행 계획(<code>plan</code>), 연속 수행(<code>run --through</code>), 조건부 실행 항목(<code>when</code>)과 조건 불충족 기록, 대체 수행 규칙, 단계 건너뛰기 안내에 두 단계 번호 명시. 가상 FastAPI 레거시 평가 하네스 추가, 최종본 7회 연속 통과</td></tr>
+<tr><td>0.1.0</td><td>2026-10-15</td><td>최초 공개. 제안 모드, 수행 모드(승인 지점에서 멈춤), 훅 2종(SessionStart·UserPromptSubmit), 프로필 3종(default·fastapi-default·g6), 단위 테스트 6개</td></tr>
+</tbody></table></div>
+</section>
+
+<footer>
+stage-pilot 0.2.0 · 근거 문서: <a href="../default/fastapi-claude-plugins-guide.html">통합 가이드</a>, <a href="../scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html">fastapi-default 시나리오</a>, <a href="../scenario-plugin-guide/g6-refactoring-guide.html">g6 시나리오</a>
+</footer>
+</main>
+</div>
+<button class="theme-toggle" type="button" onclick="(function(){var r=document.documentElement;var d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');})()">테마 전환</button>
+</body>
+</html>
