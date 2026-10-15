@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TODO: 프로젝트명 온보딩 매뉴얼</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f6f7f9; --bg-code:#f3f4f6; --ink:#1a1d23; --ink-2:#4b5361; --ink-3:#7a8291;
+  --line:#e3e6eb; --accent:#2f6fde; --accent-soft:#e8f0fd; --warn:#b4650a; --warn-soft:#fdf3e4;
+  --ok:#1f8a5b; --ok-soft:#e6f5ee; --bad:#c23b3b; --bad-soft:#fbeaea; --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --bg-soft:#1b1e23; --bg-code:#20242a; --ink:#e7e9ee; --ink-2:#b4bac5; --ink-3:#868d99;
+    --line:#2c3138; --accent:#6ea1ff; --accent-soft:#1d2a42; --warn:#f0b35a; --warn-soft:#33281a;
+    --ok:#5fcf9a; --ok-soft:#18302a; --bad:#ff8a8a; --bad-soft:#3a1f22;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --bg-soft:#1b1e23; --bg-code:#20242a; --ink:#e7e9ee; --ink-2:#b4bac5; --ink-3:#868d99;
+  --line:#2c3138; --accent:#6ea1ff; --accent-soft:#1d2a42; --warn:#f0b35a; --warn-soft:#33281a;
+  --ok:#5fcf9a; --ok-soft:#18302a; --bad:#ff8a8a; --bad-soft:#3a1f22;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:16px;line-height:1.7;word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);max-width:1240px;margin:0 auto;gap:48px;padding:0 24px}
+nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:32px 0;font-size:14px}
+nav.toc .toc-title{font-weight:700;color:var(--ink-3);font-size:12px;margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0}
+nav.toc a{display:block;padding:4px 10px;border-radius:6px;color:var(--ink-2)}
+nav.toc a:hover{background:var(--bg-soft);text-decoration:none}
+main{padding:40px 0 96px;min-width:0}
+header.hero{border-bottom:1px solid var(--line);padding-bottom:24px}
+.eyebrow{font-size:13px;color:var(--ink-3);display:flex;gap:10px;flex-wrap:wrap}
+.eyebrow .chip{background:var(--bg-soft);border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+h1{font-size:30px;line-height:1.3;margin:10px 0 12px}
+h2{font-size:23px;margin:56px 0 14px;padding-top:8px}
+h3{font-size:18px;margin:30px 0 10px}
+.lead{font-size:17px;color:var(--ink-2)}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.88em;background:var(--bg-code);padding:1px 6px;border-radius:5px}
+pre{background:var(--bg-code);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;overflow:auto;font-size:13.5px;line-height:1.6}
+pre code{background:none;padding:0}
+.table-wrap{overflow-x:auto;margin:12px 0 18px;border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--bg-soft);font-weight:650;color:var(--ink-2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.callout{border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:15px;background:var(--bg-soft);border:1px solid var(--line)}
+.callout.warn{background:var(--warn-soft);border-color:transparent}
+.callout.note{background:var(--accent-soft);border-color:transparent}
+.mark{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:0 7px;margin-right:6px}
+.mark.ok{color:var(--ok);background:var(--ok-soft)}
+.mark.warn{color:var(--warn);background:var(--warn-soft)}
+.mark.info{color:var(--accent);background:var(--accent-soft)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.stat{border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat .n{font-size:22px;font-weight:750} .stat .l{font-size:13px;color:var(--ink-3)}
+.card{border:1px solid var(--line);border-radius:12px;padding:6px 18px 12px;margin:14px 0}
+.card .field{font-size:13px;font-weight:700;color:var(--ink-3);margin-top:8px}
+.exercise{border-left:3px solid var(--accent);background:var(--bg-soft);border-radius:0 var(--radius) var(--radius) 0;padding:10px 16px;margin:12px 0}
+figure.diagram{margin:18px 0 24px;border:1px solid var(--line);border-radius:var(--radius);padding:14px;background:var(--bg)}
+figure.diagram .mermaid-out{overflow-x:auto;text-align:center}
+figure.diagram .mermaid-out svg{max-width:100%;height:auto}
+figure.diagram figcaption{font-size:13px;color:var(--ink-3);margin-top:8px}
+.mermaid-error{color:var(--bad);background:var(--bad-soft);white-space:pre-wrap;text-align:left}
+.theme-toggle{position:fixed;right:16px;bottom:16px;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+@media (max-width:960px){
+  .layout{grid-template-columns:1fr;gap:0;padding:0 16px}
+  nav.toc{position:static;max-height:none;padding:20px 0 0;border-bottom:1px solid var(--line)}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  h1{font-size:25px} h2{font-size:21px}
+}
+@media print{nav.toc,.theme-toggle{display:none}.layout{display:block}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="목차">
+  <div class="toc-title">목차</div>
+  <ol>
+    <li><a href="#overview">1. 한눈에 보기</a></li>
+    <li><a href="#setup">2. 로컬에서 실행하기</a></li>
+    <li><a href="#structure">3. 디렉터리·레이어 지도</a></li>
+    <li><a href="#flows">4. 대표 요청 따라가기</a></li>
+    <li><a href="#data">5. 데이터 모델</a></li>
+    <li><a href="#states">6. 상태 전이</a></li>
+    <li><a href="#rules">7. 업무 규칙</a></li>
+    <li><a href="#boundaries">8. 트랜잭션·세션·비동기 경계</a></li>
+    <li><a href="#risks">9. 위험 지도와 함정</a></li>
+    <li><a href="#learning">10. 학습 경로와 실습</a></li>
+    <li><a href="#glossary">11. 용어집</a></li>
+    <li><a href="#evidence">12. 확인된 것과 추정</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow"><span class="chip">TODO: YYYY-MM-DD 분석</span><span>TODO: 저장소 · 커밋 해시</span><span>신규 개발자 온보딩</span></div>
+  <h1>TODO: 프로젝트명 온보딩 매뉴얼</h1>
+  <p class="lead">TODO: 이 시스템이 무엇을 하는지, 이 문서를 다 읽으면 무엇을 할 수 있게 되는지 두 문장.</p>
+</header>
+
+<section id="overview">
+<h2>1. 한눈에 보기</h2>
+<div class="stats">
+  <div class="stat"><div class="n">TODO</div><div class="l">라우트 수</div></div>
+  <div class="stat"><div class="n">TODO</div><div class="l">Python 파일·줄 수</div></div>
+  <div class="stat"><div class="n">TODO</div><div class="l">테이블 수</div></div>
+  <div class="stat"><div class="n">TODO</div><div class="l">테스트 수</div></div>
+</div>
+<figure class="diagram">
+  <script type="text/x-mermaid">
+flowchart LR
+  user(["TODO: 사용자"]) -->|HTTP| app
+  subgraph app["TODO: 시스템명"]
+    web["TODO: 진입 계층"]
+  end
+  app --> db[("TODO: DB")]
+  </script>
+  <figcaption>TODO: 이 도식의 결론 한 문장. 근거: <code>TODO/path.py:1</code></figcaption>
+</figure>
+</section>
+
+<section id="setup">
+<h2>2. 로컬에서 실행하기</h2>
+<pre><code>TODO: 설치·설정·기동·테스트 명령</code></pre>
+<div class="table-wrap"><table>
+<thead><tr><th>흔한 실패</th><th>원인</th><th>해결</th></tr></thead>
+<tbody><tr><td>TODO</td><td>TODO</td><td>TODO</td></tr></tbody>
+</table></div>
+</section>
+
+<section id="structure">
+<h2>3. 디렉터리·레이어 지도</h2>
+<figure class="diagram">
+  <script type="text/x-mermaid">
+flowchart TB
+  subgraph L1["진입"]
+    R["TODO: 라우터"]
+  end
+  subgraph L2["서비스"]
+    S["TODO: 서비스"]
+  end
+  R --> S
+  </script>
+  <figcaption>TODO: 의존 방향과 규칙을 어기는 의존. 근거: <code>TODO/path.py:1</code></figcaption>
+</figure>
+<div class="table-wrap"><table>
+<thead><tr><th>폴더</th><th>책임</th><th>먼저 읽을 파일</th></tr></thead>
+<tbody><tr><td><code>TODO/</code></td><td>TODO</td><td><code>TODO/path.py</code></td></tr></tbody>
+</table></div>
+</section>
+
+<section id="flows">
+<h2>4. 대표 요청 따라가기</h2>
+<p>TODO: 고른 흐름과 고른 이유 한 줄씩.</p>
+<h3>4.1 TODO: 흐름 이름</h3>
+<figure class="diagram">
+  <script type="text/x-mermaid">
+sequenceDiagram
+  autonumber
+  participant C as 클라이언트
+  participant V as TODO 라우터
+  participant D as DB
+  C->>V: TODO 요청
+  V->>D: TODO 쿼리
+  Note over V,D: TODO commit 위치
+  V-->>C: TODO 응답
+  </script>
+  <figcaption>TODO: 결론 한 문장. 근거: <code>TODO/path.py:1</code></figcaption>
+</figure>
+<div class="table-wrap"><table>
+<thead><tr><th>#</th><th>위치</th><th>하는 일</th><th>DB·외부 호출</th></tr></thead>
+<tbody><tr><td>1</td><td><code>TODO/path.py:1</code></td><td>TODO</td><td>TODO</td></tr></tbody>
+</table></div>
+</section>
+
+<section id="data">
+<h2>5. 데이터 모델</h2>
+<figure class="diagram">
+  <script type="text/x-mermaid">
+erDiagram
+  TODO_PARENT ||--o{ TODO_CHILD : has
+  </script>
+  <figcaption>TODO: 핵심 관계와 특이점. 근거: <code>TODO/models.py:1</code></figcaption>
+</figure>
+</section>
+
+<section id="states">
+<h2>6. 상태 전이</h2>
+<figure class="diagram">
+  <script type="text/x-mermaid">
+stateDiagram-v2
+  [*] --> TODO_State
+  TODO_State --> [*]
+  </script>
+  <figcaption>TODO: 상태 컬럼과 전이 위치. 근거: <code>TODO/path.py:1</code> (해당 없으면 이 도식을 지우고 이유를 적는다)</figcaption>
+</figure>
+</section>
+
+<section id="rules">
+<h2>7. 업무 규칙</h2>
+<div class="card">
+  <h3>RULE-001 TODO: 규칙 이름</h3>
+  <div class="field">Given / When / Then</div><p>TODO</p>
+  <div class="field">근거 · 신뢰도</div><p><code>TODO/path.py:1</code> · <span class="mark warn">추정</span></p>
+</div>
+</section>
+
+<section id="boundaries">
+<h2>8. 트랜잭션·세션·비동기 경계</h2>
+<figure class="diagram">
+  <script type="text/x-mermaid">
+flowchart LR
+  H["TODO 핸들러"] --> S["TODO 서비스"]
+  S -->|commit| DB[("DB")]
+  classDef warn stroke:#c23b3b,stroke-width:2px
+  </script>
+  <figcaption>TODO: 누가 언제 커밋하는가, 중간 실패 시 무엇이 남는가. 근거: <code>TODO/path.py:1</code></figcaption>
+</figure>
+</section>
+
+<section id="risks">
+<h2>9. 위험 지도와 함정</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>위험</th><th>위치</th><th>왜 위험한가</th><th>손대기 전에 할 일</th></tr></thead>
+<tbody><tr><td>TODO</td><td><code>TODO/path.py:1</code></td><td>TODO</td><td>TODO</td></tr></tbody>
+</table></div>
+</section>
+
+<section id="learning">
+<h2>10. 학습 경로와 실습</h2>
+<ol><li>TODO: 읽는 순서</li></ol>
+<div class="exercise">
+  <strong>실습 1. TODO: 과제 이름</strong>
+  <p>관련 장: <a href="#flows">4장</a> · 손댈 파일: <code>TODO/path.py</code></p>
+  <p>기대 결과: TODO · 확인 명령: <code>TODO</code></p>
+</div>
+</section>
+
+<section id="glossary">
+<h2>11. 용어집</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>용어</th><th>뜻</th><th>코드상 이름</th></tr></thead>
+<tbody><tr><td>TODO</td><td>TODO</td><td><code>TODO</code></td></tr></tbody>
+</table></div>
+</section>
+
+<section id="evidence">
+<h2>12. 확인된 것과 추정</h2>
+<p><span class="mark ok">확인</span>TODO: 실행한 명령과 결과</p>
+<p><span class="mark warn">추정</span>TODO: 코드만 읽고 판단한 것</p>
+<p><span class="mark info">실행하지 않은 것</span>TODO</p>
+</section>
+
+<footer>TODO: 프로젝트명 온보딩 매뉴얼 · 분석 기준 커밋 TODO</footer>
+</main>
+</div>
+<button class="theme-toggle" type="button" aria-label="테마 전환">테마 전환</button>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs';
+const root = document.documentElement, key = 'manual-theme';
+try { const s = localStorage.getItem(key); if (s) root.setAttribute('data-theme', s); } catch (e) {}
+const isDark = () => { const t = root.getAttribute('data-theme'); return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; };
+let seq = 0;
+async function renderAll() {
+  mermaid.initialize({ startOnLoad: false, theme: isDark() ? 'dark' : 'default', securityLevel: 'strict', fontFamily: 'inherit' });
+  for (const src of document.querySelectorAll('script[type="text/x-mermaid"]')) {
+    let out = src.nextElementSibling;
+    if (!out || !out.classList.contains('mermaid-out')) { out = document.createElement('div'); out.className = 'mermaid-out'; src.after(out); }
+    const code = src.textContent.trim();
+    try { const { svg } = await mermaid.render('mmd-' + (seq++), code); out.innerHTML = svg; }
+    catch (e) { out.textContent = ''; const pre = document.createElement('pre'); pre.className = 'mermaid-error'; pre.textContent = '도식 오류: ' + e.message + '\n\n' + code; out.appendChild(pre); }
+  }
+}
+renderAll();
+document.querySelector('.theme-toggle').addEventListener('click', () => {
+  const next = isDark() ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  try { localStorage.setItem(key, next); } catch (e) {}
+  renderAll();
+});
+</script>
+</body>
+</html>

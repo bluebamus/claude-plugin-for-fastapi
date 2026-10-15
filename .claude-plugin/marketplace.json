@@ -1,0 +1,19 @@
+{
+  "name": "claude-plugin-for-fastapi",
+  "owner": { "name": "bluebamus" },
+  "metadata": { "description": "FastAPI 레거시 고도화 워크플로용 Claude Code 플러그인과 가이드 문서" },
+  "plugins": [
+    {
+      "name": "stage-pilot",
+      "source": "./plugins/stage-pilot",
+      "description": "워크플로 단계별 플러그인 제안·수행 (승인 지점에서 멈춤)",
+      "version": "0.1.0"
+    },
+    {
+      "name": "legacy-onboarding-manual",
+      "source": "./plugins/legacy-onboarding-manual",
+      "description": "레거시 프로젝트를 분석해 Mermaid 도식이 들어간 HTML 온보딩 매뉴얼을 만드는 스킬",
+      "version": "0.1.0"
+    }
+  ]
+}

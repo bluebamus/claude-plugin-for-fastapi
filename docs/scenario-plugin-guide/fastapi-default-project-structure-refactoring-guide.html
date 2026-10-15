@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기준 구조 고도화 가이드</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f6f7f9; --bg-code:#f3f4f6; --ink:#1a1d23; --ink-2:#4b5361; --ink-3:#7a8291;
+  --line:#e3e6eb; --accent:#2f6fde; --accent-soft:#e8f0fd; --warn:#b4650a; --warn-soft:#fdf3e4;
+  --ok:#1f8a5b; --ok-soft:#e6f5ee; --bad:#c23b3b; --bad-soft:#fbeaea; --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --bg-soft:#1b1e23; --bg-code:#20242a; --ink:#e7e9ee; --ink-2:#b4bac5; --ink-3:#868d99;
+    --line:#2c3138; --accent:#6ea1ff; --accent-soft:#1d2a42; --warn:#f0b35a; --warn-soft:#33281a;
+    --ok:#5fcf9a; --ok-soft:#18302a; --bad:#ff8a8a; --bad-soft:#3a1f22;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --bg-soft:#1b1e23; --bg-code:#20242a; --ink:#e7e9ee; --ink-2:#b4bac5; --ink-3:#868d99;
+  --line:#2c3138; --accent:#6ea1ff; --accent-soft:#1d2a42; --warn:#f0b35a; --warn-soft:#33281a;
+  --ok:#5fcf9a; --ok-soft:#18302a; --bad:#ff8a8a; --bad-soft:#3a1f22;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:16px;line-height:1.7;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1240px;margin:0 auto;gap:48px;padding:0 24px}
+nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:32px 0;font-size:14px}
+nav.toc .toc-title{font-weight:700;color:var(--ink-3);font-size:12px;letter-spacing:.06em;margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0}
+nav.toc li{margin:2px 0}
+nav.toc a{display:block;padding:4px 10px;border-radius:6px;color:var(--ink-2)}
+nav.toc a:hover{background:var(--bg-soft);text-decoration:none}
+nav.toc ol ol a{padding-left:22px;font-size:13px;color:var(--ink-3)}
+main{padding:40px 0 96px;min-width:0}
+header.hero{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
+.eyebrow{font-size:13px;color:var(--ink-3);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.eyebrow .chip{background:var(--bg-soft);border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+h1{font-size:31px;line-height:1.3;margin:10px 0 12px;letter-spacing:-.02em}
+h2{font-size:24px;line-height:1.35;margin:56px 0 14px;padding-top:8px;letter-spacing:-.01em}
+h3{font-size:19px;line-height:1.4;margin:34px 0 10px}
+h4{font-size:15px;margin:20px 0 6px;color:var(--ink-2)}
+p{margin:10px 0}
+.lead{font-size:17px;color:var(--ink-2)}
+ul,ol{padding-left:22px;margin:8px 0}
+li{margin:4px 0}
+code{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:var(--bg-code);padding:1px 6px;border-radius:5px}
+pre{background:var(--bg-code);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;overflow:auto;font-size:13.5px;line-height:1.6;margin:10px 0 16px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:12px 0 18px;border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--bg-soft);font-weight:650;color:var(--ink-2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.callout{border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:15px;border:1px solid var(--line);background:var(--bg-soft)}
+.callout.warn{background:var(--warn-soft);border-color:transparent}
+.callout.note{background:var(--accent-soft);border-color:transparent}
+.callout.ok{background:var(--ok-soft);border-color:transparent}
+.card{border:1px solid var(--line);border-radius:14px;padding:4px 22px 18px;margin:18px 0}
+.card h3{margin-top:18px}
+.tag{display:inline-block;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 10px;margin-left:6px;vertical-align:middle}
+.tag.opt{color:var(--warn);background:var(--warn-soft)}
+.tag.no{color:var(--ink-3);background:var(--bg-soft)}
+.field{margin:14px 0 4px;font-weight:700;font-size:14px;color:var(--ink-3);letter-spacing:.02em}
+.scenario{border-left:3px solid var(--accent);background:var(--bg-soft);border-radius:0 var(--radius) var(--radius) 0;padding:10px 16px;margin:12px 0}
+.scenario .who{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.phase{border-left:3px solid var(--line);padding:2px 0 6px 18px;margin:28px 0}
+.phase h3{margin-top:4px}
+.phase.key{border-left-color:var(--accent)}
+.dod{display:inline-block;font-size:12px;font-weight:700;color:var(--ok);background:var(--ok-soft);border-radius:6px;padding:0 7px;margin-right:6px}
+.mark{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:0 7px;margin-right:6px}
+.mark.ok{color:var(--ok);background:var(--ok-soft)}
+.mark.warn{color:var(--warn);background:var(--warn-soft)}
+.mark.info{color:var(--accent);background:var(--accent-soft)}
+.mark.bad{color:var(--bad);background:var(--bad-soft)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.stat{border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.stat .n{font-size:24px;font-weight:750;letter-spacing:-.02em}
+.stat .l{font-size:13px;color:var(--ink-3)}
+figure{margin:18px 0 22px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--ink-3);margin-top:6px}
+.svg-ink{fill:var(--ink)} .svg-quiet{fill:var(--ink-3)} .svg-line{stroke:var(--ink-3)} .svg-dash{stroke:var(--line)}
+.svg-box{fill:var(--bg);stroke:var(--ink-3)} .svg-accent{fill:var(--accent-soft);stroke:var(--accent)} .svg-tint{fill:var(--bg-soft);stroke:var(--ink-3)}
+.svg-accent-line{stroke:var(--accent)} .svg-accent-fill{fill:var(--accent)}
+.theme-toggle{position:fixed;right:16px;bottom:16px;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+@media (max-width:960px){
+  .layout{grid-template-columns:1fr;gap:0;padding:0 16px}
+  nav.toc{position:static;max-height:none;padding:20px 0 0;border-bottom:1px solid var(--line)}
+  nav.toc ol ol{display:none}
+  h1{font-size:25px} h2{font-size:21px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card{padding:2px 14px 14px}
+}
+@media print{nav.toc,.theme-toggle{display:none}.layout{display:block}a{color:inherit}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="목차">
+  <div class="toc-title">목차</div>
+  <ol>
+    <li><a href="#role">이 저장소를 언제·어떻게 쓰나</a></li>
+    <li><a href="#pre-manual">진입 전: 분석·온보딩 매뉴얼</a></li>
+    <li><a href="#facts">분석 결과</a></li>
+    <li><a href="#flow">요청·트랜잭션 흐름</a></li>
+    <li><a href="#findings">개선 후보</a></li>
+    <li><a href="#testing">테스트 원칙</a></li>
+    <li><a href="#plugins">플러그인 구성</a>
+      <ol>
+        <li><a href="#pl-core">핵심 플러그인</a></li>
+        <li><a href="#pl-extra">추가 검토 플러그인</a></li>
+        <li><a href="#pl-unused">기존 플러그인의 미활용 기능</a></li>
+        <li><a href="#pl-map">단계별 사용 지도</a></li>
+      </ol>
+    </li>
+    <li><a href="#workflow">단계별 워크플로</a>
+      <ol>
+        <li><a href="#ph0">0 준비</a></li>
+        <li><a href="#ph1">1 구조 파악</a></li>
+        <li><a href="#ph2">2 기준선 고정</a></li>
+        <li><a href="#ph3">3 개선 설계</a></li>
+        <li><a href="#ph4">4 서비스 단위 테스트</a></li>
+        <li><a href="#ph5">5 커버리지 측정 정정</a></li>
+        <li><a href="#ph6">6 설정 모듈 분할</a></li>
+        <li><a href="#ph7">7 main.py 분리</a></li>
+        <li><a href="#ph8">8 새 기능 추가 표준</a></li>
+        <li><a href="#ph9">9 보안·리뷰·단순화</a></li>
+        <li><a href="#ph10">10 커밋</a></li>
+        <li><a href="#ph11">11 g6로 넘기기</a></li>
+      </ol>
+    </li>
+    <li><a href="#evidence">확인된 것과 추정</a></li>
+    <li><a href="#sources">참고 자료</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow"><span class="chip">2026-10-14 분석</span><span>bluebamus/fastapi-default-project-structure · 로컬 전용</span><span>문서 1 / 2</span></div>
+  <h1>fastapi-default-project-structure 분석·설계·고도화 가이드</h1>
+  <p class="lead">이 저장소는 이미 <strong>View → Dependency → Service → Repository → AsyncSession</strong> 계층, 명시적 트랜잭션 규칙, 1,000건이 넘는 테스트를 갖춘 <strong>기준 구조</strong>입니다. 따라서 할 일은 구조를 다시 쓰는 것이 아니라 ① 흐름을 정확히 이해하고, ② 남은 약점을 작은 단위로 고치고, ③ 새 기능을 같은 절차로 추가하는 방법을 고정하고, ④ 그 패턴을 <strong>gnuboard/g6 리팩토링의 목표 설계</strong>로 넘기는 것입니다.</p>
+</header>
+
+<!-- ================= 역할 ================= -->
+<section id="role">
+<h2>이 저장소를 언제·어떻게 쓰나</h2>
+<p>두 저장소는 역할이 다릅니다. <strong>fastapi-default-project-structure는 "따라갈 모양"</strong>이고, <strong>g6는 "옮겨 갈 대상"</strong>입니다. 이 문서의 작업(1~11단계)을 먼저 끝내 기준을 확정한 뒤, g6 문서의 3단계(설계)부터 이 저장소의 패턴을 가져다 씁니다.</p>
+
+<figure>
+<svg viewBox="0 0 760 330" role="img" aria-label="두 저장소의 사용 시점" font-family="inherit">
+  <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="svg-quiet"/></marker>
+  <marker id="a1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="svg-accent-fill"/></marker></defs>
+  <text x="24" y="30" font-size="15" font-weight="700" class="svg-ink">기준 구조를 먼저 확정하고, g6 슬라이스 이관 때 가져다 쓴다</text>
+  <text x="24" y="98" font-size="13" font-weight="700" class="svg-ink">기준 구조</text>
+  <text x="24" y="114" font-size="11" class="svg-quiet">fastapi-default</text>
+  <text x="24" y="250" font-size="13" font-weight="700" class="svg-ink">레거시 대상</text>
+  <text x="24" y="266" font-size="11" class="svg-quiet">gnuboard/g6</text>
+  <g fill="none" class="svg-line" stroke-width="1.25">
+    <path d="M236 104H254" marker-end="url(#a1)"/><path d="M386 104H404" marker-end="url(#a1)"/><path d="M536 104H554" marker-end="url(#a1)"/>
+    <path d="M236 256H254" marker-end="url(#a1)"/><path d="M386 256H404" marker-end="url(#a1)"/><path d="M536 256H554" marker-end="url(#a1)"/>
+  </g>
+  <g fill="none" class="svg-accent-line" stroke-width="1.5">
+    <path d="M320 132V180H452V228" marker-end="url(#a1b)"/>
+    <path d="M620 132V180H488V228" marker-end="url(#a1b)"/>
+  </g>
+  <text x="330" y="172" font-size="11" class="svg-quiet">목표 계층·테스트 패턴</text>
+  <text x="498" y="172" font-size="11" class="svg-quiet">슬라이스 절차 스킬</text>
+  <rect x="104" y="76" width="132" height="56" rx="8" class="svg-box" stroke-width="1.25"/>
+  <text x="170" y="100" text-anchor="middle" font-size="12.5" font-weight="700" class="svg-ink">로컬 클론·기준선</text>
+  <text x="170" y="118" text-anchor="middle" font-size="11" class="svg-quiet">0~2단계</text>
+  <rect x="254" y="76" width="132" height="56" rx="8" class="svg-accent" stroke-width="1.5"/>
+  <text x="320" y="100" text-anchor="middle" font-size="12.5" font-weight="700" class="svg-ink">규칙·패턴 확정</text>
+  <text x="320" y="118" text-anchor="middle" font-size="11" class="svg-quiet">1·3단계</text>
+  <rect x="404" y="76" width="132" height="56" rx="8" class="svg-box" stroke-width="1.25"/>
+  <text x="470" y="100" text-anchor="middle" font-size="12.5" font-weight="700" class="svg-ink">작은 개선 반복</text>
+  <text x="470" y="118" text-anchor="middle" font-size="11" class="svg-quiet">4~10단계</text>
+  <rect x="554" y="76" width="132" height="56" rx="8" class="svg-accent" stroke-width="1.5"/>
+  <text x="620" y="100" text-anchor="middle" font-size="12.5" font-weight="700" class="svg-ink">스킬로 고정</text>
+  <text x="620" y="118" text-anchor="middle" font-size="11" class="svg-quiet">11단계</text>
+  <rect x="104" y="228" width="132" height="56" rx="8" class="svg-box" stroke-width="1.25"/>
+  <text x="170" y="252" text-anchor="middle" font-size="12.5" font-weight="700" class="svg-ink">로컬 클론·실행</text>
+  <text x="170" y="270" text-anchor="middle" font-size="11" class="svg-quiet">g6 0~1단계</text>
+  <rect x="254" y="228" width="132" height="56" rx="8" class="svg-box" stroke-width="1.25"/>
+  <text x="320" y="252" text-anchor="middle" font-size="12.5" font-weight="700" class="svg-ink">흐름·보호 테스트</text>
+  <text x="320" y="270" text-anchor="middle" font-size="11" class="svg-quiet">g6 2~5단계</text>
+  <rect x="404" y="228" width="132" height="56" rx="8" class="svg-accent" stroke-width="1.5"/>
+  <text x="470" y="252" text-anchor="middle" font-size="12.5" font-weight="700" class="svg-ink">슬라이스 이관</text>
+  <text x="470" y="270" text-anchor="middle" font-size="11" class="svg-quiet">g6 6~12단계</text>
+  <rect x="554" y="228" width="132" height="56" rx="8" class="svg-box" stroke-width="1.25"/>
+  <text x="620" y="252" text-anchor="middle" font-size="12.5" font-weight="700" class="svg-ink">통합 테스트·커밋</text>
+  <text x="620" y="270" text-anchor="middle" font-size="11" class="svg-quiet">g6 13~16단계</text>
+</svg>
+<figcaption>위 줄을 먼저 끝내야 아래 줄의 "슬라이스 이관"이 기준을 갖습니다. 파란 선이 이 저장소에서 g6로 넘어가는 산출물입니다.</figcaption>
+</figure>
+
+<div class="table-wrap"><table>
+<thead><tr><th>시점</th><th>이 저장소에서 하는 일</th><th>g6에 넘기는 것</th></tr></thead>
+<tbody>
+<tr><td>착수 직후 (둘 다 로컬 클론)</td><td>테스트 기준선 측정, 구조·규칙 문서 읽기</td><td>—</td></tr>
+<tr><td>g6 분석 전</td><td>계층 원칙(DEVELOPMENT §1), 트랜잭션 규칙(§4), 테스트 범위표(§12.2)를 CLAUDE.md 규칙으로 정리</td><td>g6의 "목표 계층" 정의</td></tr>
+<tr><td>g6 3단계(설계) 진입 시</td><td><code>catalog</code> 기능을 "한 슬라이스의 완성형" 예시로 고정</td><td>View·Dependency·Service·Repository 파일 구성, 단위·통합 테스트 모양</td></tr>
+<tr><td>g6 슬라이스 반복 중</td><td>skill-creator로 만든 슬라이스 절차 스킬 유지보수</td><td>매 슬라이스에 같은 절차·체크리스트 적용</td></tr>
+<tr><td>g6에서 새 규칙을 배웠을 때</td><td>필요하면 이 저장소 문서·스킬에 역반영</td><td>—</td></tr>
+</tbody></table></div>
+<div class="callout warn">그대로 가져가지 않는 것도 있습니다. 이 저장소의 <strong>비동기 세션(AsyncSession)·Redis 필수 기동·Celery</strong>는 g6가 당장 따라갈 대상이 아닙니다. g6는 동기 세션을 유지한 채 계층과 트랜잭션 규칙부터 옮기는 것이 안전합니다(g6 문서 10단계 참고).</div>
+</section>
+
+<!-- ================= 진입 전 매뉴얼 ================= -->
+<section id="pre-manual">
+<h2>진입 전: 분석·온보딩 매뉴얼</h2>
+<p>개선 작업 전에, 이미 선정한 플러그인으로 이 저장소를 분석·추적해 <strong>개발자가 선행 학습할 매뉴얼</strong>을 단일 HTML(도식은 Mermaid)로 만듭니다. 장 구성·플러그인 배치·Mermaid 작성 규칙의 원본은 <a href="../default/fastapi-claude-plugins-guide.html#pre-manual">통합 플러그인 가이드의 「진입 전」 절</a>이고, 여기서는 이 저장소에 맞춘 차이만 적습니다.</p>
+<div class="callout note">수행 시점: <a href="#ph0">0단계</a>(의존성 설치, CLAUDE.md, 훅) 직후, 1단계 전. 출력 <code>docs/onboarding/fastapi-default-onboarding-manual.html</code>. 이 저장소는 매뉴얼의 기준 구조 예시이기도 해서, 매뉴얼의 3·4·8장은 <a href="#ph11">11단계</a>에서 g6로 넘기는 "목표 계층" 설명에 그대로 쓰입니다.</div>
+<div class="table-wrap"><table>
+<thead><tr><th>장</th><th>이 저장소에서 다룰 것</th><th>Mermaid 도식</th><th>플러그인</th></tr></thead>
+<tbody>
+<tr><td>1·3 구성·레이어</td><td>기능 패키지 8개, View → Dependency → Service → Repository → AsyncSession, <code>review_gate.py</code>가 검사하는 계층 불변식</td><td><code>flowchart</code> 컨텍스트(앱·MySQL·Redis·Celery), <code>flowchart TB</code> 레이어</td><td>code-modernization assess·map(<code>legacy/fastapi-default</code>), pyright-lsp</td></tr>
+<tr><td>2 로컬 실행</td><td><code>uv sync --locked</code>, Redis 테스트 컨테이너, MySQL 마커 제외 실행, 이 문서의 실행 결과(1,068 passed)</td><td>—</td><td><code>/modernize-preflight</code></td></tr>
+<tr><td>4 대표 요청</td><td><code>POST /api/v1/catalog/products</code>(쓰기·커밋 1회), reports Raw SQL 조회(읽기 세션), 접근 수준 선언의 기동 검사</td><td>흐름마다 <code>sequenceDiagram</code></td><td>feature-dev <code>code-explorer</code> 3개 병렬 (1단계 프롬프트와 같음)</td></tr>
+<tr><td>5 데이터 모델</td><td>ORM 모델과 alembic 마이그레이션의 핵심 테이블</td><td><code>erDiagram</code></td><td><code>code-explorer</code></td></tr>
+<tr><td>8 경계</td><td>"응답 DTO 검증 → <code>service.commit()</code> 1회", 읽기 세션 쓰기 차단, replica 라우팅</td><td><code>sequenceDiagram</code>(커밋 지점 <code>Note</code>)</td><td><code>code-explorer</code>, pyright-lsp</td></tr>
+<tr><td>9 위험</td><td>개선 후보 A~E, 불안정 테스트(<code>test_db_router_env.py</code>), 커버리지 측정 차이</td><td>(선택) <code>quadrantChart</code></td><td><code>/modernize-assess</code>, <code>pr-test-analyzer</code></td></tr>
+<tr><td>10 실습</td><td>catalog 서비스 단위 테스트 1개 추가, 새 엔드포인트의 접근 수준 선언 빠뜨려 기동 거부 확인 등</td><td>(선택) <code>timeline</code></td><td>explanatory-output-style</td></tr>
+</tbody></table></div>
+<p>이 저장소는 이미 <code>docs/guides/ARCHITECTURE.md</code>·<code>DEVELOPMENT.md</code>가 있으므로 매뉴얼은 그것을 대신하지 않습니다. 규칙 설명은 원문 절 번호로 링크하고, <strong>코드로 확인한 흐름과 문서·코드 불일치</strong>를 12장에 기록하는 데 집중합니다. 업무 규칙 카드(7장)는 레거시 규칙 추출 대상이 아니므로 핵심 기능(catalog·auth)만 짧게 둡니다.</p>
+<pre><code>진입 전 분석 매뉴얼을 docs/onboarding/fastapi-default-onboarding-manual.html 로 만들어줘. 소스는 읽기만.
+/modernize-assess·map fastapi-default 결과와 code-explorer 3개(catalog 쓰기, reports Raw SQL 조회, 접근 수준 기동 검사)로
+1·3·4·5·8장을 Mermaid 도식(flowchart, sequenceDiagram, erDiagram)과 file:line 근거로 채우고,
+ARCHITECTURE.md·DEVELOPMENT.md 의 설명과 코드가 다른 곳은 12장에 "불일치"로 모아줘.
+10장 실습 3개는 4~8단계에서 실제로 할 작업의 축소판으로.</code></pre>
+<p>Mermaid 작성·검증 규칙은 <a href="../default/fastapi-claude-plugins-guide.html#pre-manual">통합 가이드</a>와 같습니다(CDN <code>mermaid@11.4.1</code> 고정, 원문은 <code>&lt;script type="text/x-mermaid"&gt;</code>, 도식마다 캡션과 근거). <strong>완료 기준:</strong> 12개 장, 필수 도식 3종 포함 6개 이상, 실습 3개, 브라우저 도식 오류 0. 1단계는 이 매뉴얼의 4장을 다시 검증하는 단계로 줄어듭니다. 매뉴얼의 테스트 수치(2·12장)는 <a href="#ph2">2단계 기준선 고정</a> 뒤에 확정합니다 — 그전에는 "추정"으로 둡니다.</p>
+</section>
+
+<!-- ================= 분석 결과 ================= -->
+<section id="facts">
+<h2>분석 결과</h2>
+<p>로컬에 클론해 코드·문서를 읽고, 이 분석 환경에서 실제로 테스트를 실행한 결과입니다.</p>
+
+<div class="stats">
+  <div class="stat"><div class="n">8</div><div class="l">기능 패키지 (auth·blog·catalog·home·reply·reports·sns·user)</div></div>
+  <div class="stat"><div class="n">1,068</div><div class="l">통과한 테스트 (MySQL 제외 실행)</div></div>
+  <div class="stat"><div class="n">96%</div><div class="l">앱 코드 커버리지 (테스트 파일 제외 재계산)</div></div>
+  <div class="stat"><div class="n">4</div><div class="l">전체 실행에서만 실패한 테스트 (단독 실행은 통과)</div></div>
+</div>
+
+<div class="table-wrap"><table>
+<thead><tr><th>항목</th><th>내용</th><th>근거</th></tr></thead>
+<tbody>
+<tr><td>스택</td><td>Python 3.14(최소 3.13), FastAPI 0.141, SQLAlchemy 2.0 async + aiomysql, Pydantic v2, Redis 6.2+ 필수, Celery 5, uv</td><td><code>pyproject.toml</code>, README</td></tr>
+<tr><td>계층</td><td>View(<code>api/routers/v1</code>) → Dependency(조립만) → Service(<code>BaseService</code>) → Repository(<code>BaseRepository</code> ORM / <code>RawRepositoryBase</code> Raw SQL) → AsyncSession</td><td><code>docs/guides/DEVELOPMENT.md</code> §1</td></tr>
+<tr><td>트랜잭션</td><td>쓰기 View 본문에서 "응답 DTO 검증 → <code>service.commit()</code> 1회 → 반환". 의존성·Repository는 커밋하지 않음</td><td>DEVELOPMENT §4, <code>tests/test_write_dto_before_commit.py</code></td></tr>
+<tr><td>세션</td><td>조회는 <code>get_read_only_db_session</code>(쓰기 차단), 쓰기는 <code>get_writer_db_session</code>. 라우터 옵션으로 replica 라우팅</td><td><code>app/core/db/session.py</code>, <code>router.py</code></td></tr>
+<tr><td>인증·인가</td><td>JWT access/refresh(회전·재사용 탐지), Argon2id, 뷰마다 접근 수준 선언(<code>Public</code>·<code>PublicWrite</code>·<code>LoginRequired</code>·<code>SuperuserRequired</code>) — 선언이 없으면 기동 거부</td><td><code>app/core/security/access.py</code></td></tr>
+<tr><td>품질 게이트</td><td>CI: ruff·mypy(콜드 캐시)·bandit·<code>scripts/review_gate.py</code>(계층 불변식·공개 API 불변·pip-audit)·SKIP 0 판정·alembic 단일 head, MySQL 8.4 별도 job</td><td><code>.github/workflows/ci.yml</code></td></tr>
+<tr><td>문서 체계</td><td>README가 유일한 색인, <code>docs/guides</code>(현재 동작), <code>docs/specs</code>(고정 기준선), <code>docs/crp</code>(검수 이력, append-only)</td><td>README "문서 안내"</td></tr>
+<tr><td>파일 규모</td><td><code>config.py</code> 1,341줄(설정 클래스 12개 + 검증 함수), <code>main.py</code> 374줄, <code>app/core/db/router.py</code> 463줄. 기능 파일은 대부분 150줄 이하</td><td><code>wc -l</code></td></tr>
+</tbody></table></div>
+
+<h3>이 환경에서 실행한 테스트 결과</h3>
+<pre><code>uv sync --locked
+uv run python -m pytest -m "not mysql" -q --cov=app --cov-branch
+→ 1068 passed, 4 failed, 3 skipped, 18 deselected (69초)
+   skipped 3: tests/integration/test_uvicorn_lifecycle.py (Redis 미기동)
+   failed 4 : tests/core/test_db_router_env.py (JSONDecodeError: Extra data)
+uv run python -m pytest tests/core/test_db_router_env.py   → 12 passed (단독 실행)</code></pre>
+<ul>
+  <li><span class="mark warn">추정</span>4건 실패는 자식 프로세스 출력 파싱 오류이며, 단독 실행에서는 모두 통과하므로 <strong>실행 순서나 출력 혼입에 따른 불안정</strong>으로 봅니다. 원인은 확정하지 않았습니다(2단계에서 진단).</li>
+  <li><span class="mark ok">확증</span>기본 커버리지 리포트는 <strong>73%</strong>로 나오지만, 리포트에 <code>app/features/*/tests/*.py</code>가 0%로 포함돼 있습니다. 같은 데이터에서 테스트·마이그레이션·<code>__init__</code>을 제외하면 <strong>96%</strong>(3,260문 중 100문 미실행)입니다. <code>pyproject.toml</code>의 <code>omit</code>이 이 실행에서 적용되지 않은 것으로 보이며, 원인은 추정 단계입니다(5단계).</li>
+</ul>
+</section>
+
+<!-- ================= 흐름 ================= -->
+<section id="flow">
+<h2>요청·트랜잭션 흐름</h2>
+<p>상품 생성(<code>POST /api/v1/catalog/products</code>) 한 요청이 지나가는 순서입니다. 이 흐름이 g6 슬라이스의 목표 모양입니다.</p>
+<figure>
+<svg viewBox="0 0 760 470" role="img" aria-label="상품 생성 요청의 계층별 시퀀스" font-family="inherit">
+  <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="svg-quiet"/></marker>
+  <marker id="a2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="svg-accent-fill"/></marker></defs>
+  <text x="24" y="28" font-size="15" font-weight="700" class="svg-ink">커밋은 View 본문에서 응답 검증 뒤 정확히 한 번</text>
+  <g font-size="12" font-weight="700" class="svg-ink" text-anchor="middle">
+    <rect x="22" y="48" width="96" height="30" rx="7" class="svg-tint" stroke-width="1.25"/><text x="70" y="68">클라이언트</text>
+    <rect x="142" y="48" width="96" height="30" rx="7" class="svg-tint" stroke-width="1.25"/><text x="190" y="68">View</text>
+    <rect x="262" y="48" width="96" height="30" rx="7" class="svg-tint" stroke-width="1.25"/><text x="310" y="68">Dependency</text>
+    <rect x="382" y="48" width="96" height="30" rx="7" class="svg-tint" stroke-width="1.25"/><text x="430" y="68">Service</text>
+    <rect x="502" y="48" width="96" height="30" rx="7" class="svg-tint" stroke-width="1.25"/><text x="550" y="68">Repository</text>
+    <rect x="622" y="48" width="116" height="30" rx="7" class="svg-tint" stroke-width="1.25"/><text x="680" y="68">AsyncSession</text>
+  </g>
+  <g class="svg-dash" stroke-width="1" stroke-dasharray="4 4">
+    <path d="M70 78V450"/><path d="M190 78V450"/><path d="M310 78V450"/><path d="M430 78V450"/><path d="M550 78V450"/><path d="M680 78V450"/>
+  </g>
+  <g fill="none" class="svg-line" stroke-width="1.25">
+    <path d="M70 116H186" marker-end="url(#a2)"/>
+    <path d="M190 148H306" marker-end="url(#a2)"/>
+    <path d="M310 180H676" marker-end="url(#a2)"/>
+    <path d="M306 212H194" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+    <path d="M190 244H426" marker-end="url(#a2)"/>
+    <path d="M430 276H546" marker-end="url(#a2)"/>
+    <path d="M550 308H676" marker-end="url(#a2)"/>
+    <path d="M426 340H194" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+    <path d="M190 362H210V382H194" marker-end="url(#a2)"/>
+    <path d="M186 440H74" stroke-dasharray="5 4" marker-end="url(#a2)"/>
+  </g>
+  <path d="M190 410H676" fill="none" class="svg-accent-line" stroke-width="2" marker-end="url(#a2b)"/>
+  <g font-size="11" class="svg-quiet">
+    <text x="76" y="110">POST /products</text>
+    <text x="196" y="142">Depends(get_catalog_service)</text>
+    <text x="316" y="174">get_writer_db_session → writer 세션</text>
+    <text x="200" y="206">CatalogService(db_session)</text>
+    <text x="196" y="238">create_product(payload)</text>
+    <text x="436" y="270">create(dict)</text>
+    <text x="556" y="302">add + flush</text>
+    <text x="200" y="334">Product</text>
+    <text x="216" y="377">ProductResponse.model_validate</text>
+    <text x="80" y="434">201 + 응답 DTO</text>
+  </g>
+  <text x="196" y="404" font-size="11.5" font-weight="700" class="svg-ink">await service.commit() — 1회</text>
+</svg>
+<figcaption>예외가 나면 커밋은 0회이고 세션 의존성이 롤백합니다. 조회 요청은 읽기 세션을 쓰고 커밋하지 않습니다.</figcaption>
+</figure>
+<p>기동·종료 흐름(설정 검사 → Redis 연결·버전 확인 → 요청 처리 → background task·Redis·DB 풀·로그 큐 순서의 종료)은 저장소의 <code>docs/guides/server-lifecycle-guide.html</code>이 도식과 함께 다룹니다. 수명 관련 코드를 건드릴 때는 그 문서와 <code>tests/core/test_resources.py</code>, 실제 uvicorn 통합 테스트를 Redis를 띄운 상태로 함께 돌립니다.</p>
+</section>
+
+<!-- ================= 개선 후보 ================= -->
+<section id="findings">
+<h2>개선 후보</h2>
+<p>구조를 바꾸는 큰 리팩토링은 필요 없습니다. 아래는 작은 단위로 안전하게 고칠 수 있는 항목이며, 저장소 스스로 정한 원칙("요구가 없는데 UnitOfWork·Factory·Strategy 같은 추상을 새로 들이지 않는다")을 지키는 범위로 제한했습니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>#</th><th>항목</th><th>근거</th><th>판단</th><th>제안</th><th>위험</th></tr></thead>
+<tbody>
+<tr><td>A</td><td>서비스 단위 테스트가 DB를 거침</td><td>Service가 생성자 안에서 <code>ProductRepository(db_session)</code>를 직접 만들어 가짜 Repository를 끼울 자리가 없음. 서비스 테스트는 in-memory SQLite로 Repository까지 함께 실행(<code>home/tests/test_access_log_service.py</code>)</td><td><span class="mark ok">확증</span></td><td>생성자에 <code>repository: X | None = None</code> 선택 인자를 추가해 가장 단순한 가짜 객체 단위 테스트를 가능하게 함 (4단계)</td><td>낮음</td></tr>
+<tr><td>B</td><td>커버리지 리포트에 테스트 파일 포함</td><td>기본 리포트 73%, 테스트 제외 재계산 96%</td><td><span class="mark ok">확증</span> 현상 / <span class="mark warn">추정</span> 원인</td><td><code>omit</code> 경로가 적용되도록 수정하고 <code>tests/test_coverage_contract.py</code>와 함께 검증 (5단계)</td><td>낮음</td></tr>
+<tr><td>C</td><td>전체 실행에서만 실패하는 테스트 4건</td><td><code>tests/core/test_db_router_env.py</code> 단독 12 passed, 전체 실행 4 failed</td><td><span class="mark warn">추정</span> 순서 의존</td><td>원인을 재현·축소한 뒤 테스트 격리를 고침. 원인 확정 전에는 코드를 바꾸지 않음 (2단계)</td><td>낮음</td></tr>
+<tr><td>D</td><td><code>config.py</code> 1,341줄</td><td>설정 클래스 12개 + 배포 안전 검사 함수가 한 파일</td><td><span class="mark ok">확증</span> 규모 / 분할은 선택</td><td><code>app/core/settings/</code> 패키지로 나누되 <code>config</code> import 경로는 재노출로 유지 (6단계)</td><td>중간 — 설정 계약 테스트가 보호</td></tr>
+<tr><td>E</td><td><code>main.py</code> 374줄</td><td>예외 핸들러 등록, health·docs 등록, 라우터 취합이 한 파일</td><td><span class="mark ok">확증</span></td><td>예외 핸들러와 health/docs 등록 함수를 <code>app/core</code> 모듈로 옮기고 <code>main.py</code>는 조립만 (7단계)</td><td>낮음 — 공개 API 불변 검사가 보호</td></tr>
+<tr><td>F</td><td>기능 간 비슷한 보일러플레이트 (blog·reply·sns)</td><td>세 기능의 View·Service 형태가 유사</td><td>개선 대상 아님</td><td>공통 베이스로 묶지 않음. 명시적 중복이 읽기·수정에 유리하다는 저장소 원칙 유지</td><td>—</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ================= 테스트 원칙 ================= -->
+<section id="testing">
+<h2>테스트 원칙</h2>
+<p>모든 작업은 <strong>가장 단순하고 명확한 단위 테스트</strong>로 시작하고, 한 기능의 워크플로가 모두 구현되면 그 기능의 <strong>통합 테스트</strong>를 추가합니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>층</th><th>무엇을 확인</th><th>도구·형태</th><th>언제</th></tr></thead>
+<tbody>
+<tr><td>Schema 단위</td><td>필수값·범위·null과 미전달 구분</td><td>Pydantic 모델 직접 생성, DB 없음</td><td>스키마를 만들거나 바꿀 때마다</td></tr>
+<tr><td>Service 단위</td><td>업무 분기·부재(404)·변경 없음 처리</td><td>가짜 Repository 주입, DB 없음 (4단계에서 가능해짐)</td><td>서비스 메서드마다</td></tr>
+<tr><td>Repository</td><td>쿼리 결과·정렬·오류 변환</td><td>in-memory SQLite (<code>catalog/tests/test_repository.py</code> 형태)</td><td>쿼리를 만들거나 바꿀 때</td></tr>
+<tr><td>Endpoint·트랜잭션 (기능 통합)</td><td>상태 코드·응답 스키마·권한·커밋 횟수</td><td><code>httpx.ASGITransport</code> + 읽기·쓰기 세션 둘 다 <code>dependency_overrides</code></td><td>기능의 워크플로가 모두 구현됐을 때</td></tr>
+<tr><td>실제 DB 통합</td><td>MySQL 방언·Decimal·시간대·제약</td><td><code>@pytest.mark.mysql</code> + <code>compose.test.yaml</code></td><td>기능 완료 후, MySQL 전용 동작이 있을 때</td></tr>
+<tr><td>등록·계약</td><td>라우트 인벤토리, 접근 수준 표, Admin 목록, OpenAPI</td><td>기존 계약 테스트에 한 줄 추가</td><td>새 엔드포인트를 노출할 때</td></tr>
+</tbody></table></div>
+
+<h3>가장 단순한 서비스 단위 테스트 (4단계 적용 후)</h3>
+<pre><code># app/features/catalog/tests/test_service_unit.py
+from decimal import Decimal
+
+import pytest
+
+from app.features.catalog.exceptions import ProductNotFoundException
+from app.features.catalog.models.models import Product
+from app.features.catalog.schemas.catalog_schema import ProductUpdate
+from app.features.catalog.services.catalog_service import CatalogService
+
+
+class FakeProductRepository:
+    def __init__(self, products=()):
+        self.products = {p.id: p for p in products}
+        self.update_calls = []
+
+    async def get_by_id(self, product_id):
+        return self.products.get(product_id)
+
+    async def update_by_id(self, product_id, changes):
+        self.update_calls.append((product_id, changes))
+        return None
+
+    async def delete_by_id(self, product_id):
+        return self.products.pop(product_id, None) is not None
+
+
+def make_service(*products):
+    repository = FakeProductRepository(products)
+    return CatalogService(db_session=None, repository=repository), repository
+
+
+async def test_update_without_changes_returns_existing_and_sends_no_update():
+    existing = Product(id="p1", name="키보드", price=Decimal("10.00"), is_active=True)
+    service, repository = make_service(existing)
+
+    result = await service.update_product("p1", ProductUpdate())
+
+    assert result is existing
+    assert repository.update_calls == []
+
+
+async def test_get_missing_product_raises_not_found():
+    service, _ = make_service()
+
+    with pytest.raises(ProductNotFoundException):
+        await service.get_product("missing")</code></pre>
+<div class="callout ok"><strong>검증함:</strong> 4단계의 생성자 변경을 적용한 임시 사본에서 위 테스트 3건과 기존 catalog 테스트가 함께 통과했습니다(<code>20 passed</code>). 검증 후 사본은 원래대로 되돌렸습니다.</div>
+<p>규칙: 테스트 하나는 한 가지 동작만 확인하고, 이름이 곧 명세가 되게 씁니다. 가짜 객체는 테스트에 필요한 메서드만 갖고, mock 라이브러리보다 짧은 클래스가 읽기 쉬우면 클래스를 씁니다.</p>
+</section>
+
+<!-- ================= 플러그인 ================= -->
+<section id="plugins">
+<h2>플러그인 구성</h2>
+<p>각 플러그인이 무엇인지, 왜 쓰는지, 어떻게 부르는지, 이 저장소에서의 실제 시나리오로 정리했습니다. 채택·조건부·제외 판정은 <a href="../default/fastapi-claude-plugins-guide.html#extensions">통합 플러그인 가이드의 확장 플러그인 검토</a>(신뢰성·안정성 6개 기준)를 따르고, 이 저장소가 이미 갖춘 품질 게이트(ruff·mypy·bandit·pip-audit·<code>review_gate.py</code>)를 고려해 쓰임을 조정했습니다.</p>
+<div class="callout note"><strong>이 저장소의 플러그인 전략 한 줄 요약</strong> — 구조가 이미 정돈돼 있으므로 진단·변환보다 <strong>설계 견제(architecture-critic)·TDD·절차 고정(skill-creator)</strong>에 무게를 둡니다. 새로 설치하는 것은 skill-creator와 pydantic뿐이고, 나머지 빈칸은 이미 설치한 플러그인의 미활용 기능으로 채웁니다.</div>
+
+<h3 id="pl-core">핵심 플러그인</h3>
+
+<article class="card">
+<h3>pyright-lsp <span class="tag">코드 인텔리전스</span></h3>
+<p><strong>무엇:</strong> Pyright 언어 서버를 Claude Code에 연결해 <code>LSP</code> 도구(정의·참조·호출 계층·타입)와 편집 후 자동 진단을 제공합니다. <strong>목적:</strong> grep 대신 심볼 단위로 정확히 추적하고, 옮긴 코드의 import 오류를 즉시 잡습니다. <strong>사용법:</strong> 명령 없이 "LSP로 추적해줘"라고 요청합니다. <code>.venv</code>를 만든 뒤 그 환경을 활성화하고 <code>claude</code>를 시작해야 서드파티 import를 해석합니다.</p>
+<div class="scenario"><div class="who">시나리오 — 6단계 설정 분할 전 영향 범위</div>
+<code>get_db_settings</code>와 <code>db_settings</code>를 참조하는 모든 위치를 LSP로 찾아 줘. 테스트 코드와 앱 코드를 나눠서 표로.<br>
+→ Claude가 참조 찾기로 위치 목록을 만들고, 분할 후에도 <code>config</code>에서 재노출해야 할 이름을 정리합니다.</div>
+</article>
+
+<article class="card">
+<h3>feature-dev <span class="tag">추적·설계</span></h3>
+<p><strong>무엇:</strong> <code>code-explorer</code>(실행 경로 추적), <code>code-architect</code>(설계안 비교), <code>code-reviewer</code>(CLAUDE.md 기준 리뷰) 세 에이전트와 <code>/feature-dev</code> 7단계 명령. <strong>목적:</strong> 이 저장소에서는 흐름 이해(1단계), 개선 설계(3단계), 새 기능 추가(8단계)에 씁니다. <strong>사용법:</strong> 리팩토링에는 에이전트를 단독 호출하고, 새 기능에는 <code>/feature-dev</code>를 씁니다.</p>
+<div class="scenario"><div class="who">시나리오 — 8단계 새 기능</div>
+<code>/feature-dev 재고(inventory) 기능 추가 — 상품별 수량 조회·증감, 감소는 음수 불가, 슈퍼유저만 변경</code><br>
+→ 탐색 단계에서 catalog를 기준 예시로 찾고, 질문 단계에서 동시성(조건부 UPDATE)과 실패 응답을 묻고, 설계안 2~3개를 비교한 뒤 승인 후 구현합니다.</div>
+</article>
+
+<article class="card">
+<h3>code-modernization <span class="tag">리팩토링 (진단 중심)</span></h3>
+<p><strong>무엇:</strong> <code>/modernize-assess</code>·<code>/modernize-map</code>·<code>/modernize-extract-rules</code> 등 진단·계획·변환 명령과 <code>architecture-critic</code>·<code>test-engineer</code> 같은 전문 에이전트. <strong>목적:</strong> 이 저장소는 이미 정돈돼 있어 변환 명령보다 <strong>architecture-critic으로 개선안의 과잉 설계를 견제</strong>하는 데 가치가 큽니다. <strong>사용법:</strong> 분석 대상은 <code>legacy/&lt;이름&gt;</code> 경로를 가정하므로 심볼릭 링크로 연결합니다. 0단계에서 <code>/modernize-preflight fastapi-default --source ./app</code>으로 <code>legacy/fastapi-default</code> 링크를 만들고(복사하지 않음), 이후 명령에는 이름 <code>fastapi-default</code>를 넘깁니다. 9단계에서는 <code>/modernize-harden</code>을 claude-security의 독립 2차 의견으로 씁니다. <code>/modernize-review</code>·<code>version-delta-analyst</code>는 규칙 추출 대상 레거시가 아니고 이미 Pydantic v2라 이 저장소에서는 쓸 일이 적습니다(g6에서 사용).</p>
+<div class="scenario"><div class="who">시나리오 — 3단계 설계 검토</div>
+architecture-critic으로 "설정을 도메인별 패키지 7개로 쪼개고 공용 BaseSettings 상속 계층을 만든다"는 안을 검토해 줘.<br>
+→ 과잉 분할을 지적하고, 재노출을 유지하는 단순 분할을 권하는 식의 응답을 기대합니다.</div>
+</article>
+
+<article class="card">
+<h3>superpowers <span class="tag">TDD·디버깅</span></h3>
+<p><strong>무엇:</strong> <code>test-driven-development</code>, <code>systematic-debugging</code>, <code>verification-before-completion</code>, <code>writing-plans</code> 등 스킬 묶음. <strong>목적:</strong> "실패하는 테스트 → 최소 구현 → 확인" 규율과 원인 중심 디버깅. <strong>사용법:</strong> 켜 두면 단계에 맞게 자동 적용되고, <code>/superpowers:&lt;스킬명&gt;</code>으로 직접 부를 수 있습니다. 같은 묶음의 <code>dispatching-parallel-agents</code>(4단계 기능별 확대), <code>receiving-code-review</code>(9단계 리뷰 지적 검증), <code>finishing-a-development-branch</code>(10단계 로컬 병합)도 함께 씁니다.</p>
+<div class="scenario"><div class="who">시나리오 — 2단계 불안정 테스트</div>
+systematic-debugging으로 <code>test_db_router_env.py</code>가 전체 실행에서만 실패하는 원인을 찾아 줘. 고치기 전에 재현 조건과 원인을 먼저 보여 줘.<br>
+→ 단독·조합 실행으로 범위를 좁히고, 자식 프로세스 stdout에 섞인 출력이 무엇인지 확인한 뒤에만 수정안을 냅니다.</div>
+</article>
+
+<article class="card">
+<h3>pr-review-toolkit <span class="tag">변경분 검토</span></h3>
+<p><strong>무엇:</strong> <code>pr-test-analyzer</code>, <code>type-design-analyzer</code>, <code>silent-failure-hunter</code>, <code>code-reviewer</code>, <code>comment-analyzer</code>, <code>code-simplifier</code> 6개 에이전트. <strong>목적:</strong> 로컬 git diff를 관점별로 검토. <strong>사용법:</strong> "직전 커밋 이후 변경분에 pr-test-analyzer와 code-reviewer를 병렬로" 같이 범위를 좁혀 요청합니다.</p>
+<div class="scenario"><div class="who">시나리오 — 4단계 직후</div>
+이번 변경분에 pr-test-analyzer를 돌려 catalog 서비스의 업무 분기 중 단위 테스트가 없는 것을 찾아 줘.<br>
+→ <code>list_products(active_only=True)</code> 분기처럼 남은 공백을 점수와 함께 돌려줍니다.</div>
+</article>
+
+<article class="card">
+<h3>code-simplifier <span class="tag">가독성</span></h3>
+<p><strong>무엇:</strong> 동작을 유지한 채 최근 수정 코드를 다듬는 에이전트. <strong>목적:</strong> 구조 변경 뒤 마무리. <strong>사용법:</strong> "이번 세션 변경분만, API 동작은 바꾸지 말고". 이 저장소는 ruff·mypy 규칙이 엄격하므로 다듬은 뒤 반드시 <code>ruff check</code>·<code>mypy</code>·테스트를 다시 돌립니다.</p>
+</article>
+
+<article class="card">
+<h3>security-guidance + claude-security <span class="tag">보안</span></h3>
+<p><strong>무엇:</strong> security-guidance는 편집 시 위험 패턴 경고·턴 종료 diff 리뷰·커밋 리뷰를 하는 상시 훅, claude-security는 <code>/claude-security</code>로 실행하는 다중 에이전트 심층 스캔과 패치 제안. <strong>목적:</strong> 이 저장소에는 이미 bandit·pip-audit 게이트가 있으므로, 이 둘은 <strong>코드 맥락이 필요한 취약점</strong>(소유권 확인 누락, Raw SQL 식별자 조합)을 보완합니다. <strong>주의:</strong> 리뷰를 위해 diff와 관련 파일 내용을 모델 엔드포인트로 보냅니다.</p>
+<div class="scenario"><div class="who">시나리오 — 9단계</div>
+<code>/claude-security</code> → Scan changes(이번 브랜치) — 새 inventory 엔드포인트의 접근 수준 선언, 수량 감소의 경쟁 조건, Raw SQL 사용 시 named bind 준수에 집중.</div>
+</article>
+
+<article class="card">
+<h3>claude-code-setup + hookify <span class="tag">프로젝트 맞춤 자동화</span></h3>
+<p><strong>무엇:</strong> claude-code-setup은 저장소를 읽고 훅·스킬·서브에이전트를 추천(읽기 전용), hookify는 마크다운 규칙 파일로 경고·차단 훅을 만듭니다. <strong>목적:</strong> 이 저장소의 금지 규칙(Repository·Dependency 커밋 금지, 요청 경로 동기 I/O 금지, <code>config.py</code> 밖 환경 변수 읽기 금지)을 편집 순간에 알려 줍니다.</p>
+<pre><code>---
+name: no-commit-outside-view
+enabled: true
+event: file
+action: warn
+conditions:
+  - field: file_path
+    operator: regex_match
+    pattern: app/features/.*/(repositories|dependencies)/.*\.py$
+  - field: new_text
+    operator: regex_match
+    pattern: \.commit\(\)
+---
+Repository·Dependency에서는 커밋하지 않습니다. 쓰기 View 본문에서 응답 DTO 검증 뒤 service.commit()을 한 번 호출하세요.</code></pre>
+<p>이 저장소는 GitHub에서 클론했으므로 <code>origin</code>이 살아 있습니다. 로컬 전용 원칙을 지키도록 원격 명령 차단 규칙을 처음부터 <code>block</code>으로 둡니다(오탐 범위가 좁음).</p>
+<pre><code>---
+name: block-remote-git
+enabled: true
+event: bash
+action: block
+pattern: git\s+(push|pull|fetch|remote\s+add)|gh\s+pr
+---
+이 작업은 로컬 전용입니다. 원격 저장소 명령은 실행하지 않습니다.</code></pre>
+</article>
+
+<article class="card">
+<h3>commit-commands <span class="tag">로컬 커밋</span></h3>
+<p><strong>무엇:</strong> <code>/commit</code>이 변경을 분석해 저장소 스타일의 메시지로 커밋합니다(<code>/commit-push-pr</code>은 원격·<code>gh</code>가 필요해 쓰지 않음). <strong>목적:</strong> 이 저장소의 관례 <code>type(scope): 한글 설명 (그룹)</code>을 따르는 작은 커밋. <strong>사용법:</strong> 묶음을 먼저 정해 <code>git add</code>로 스테이징한 뒤 <code>/commit</code>.</p>
+</article>
+
+<article class="card">
+<h3>claude-md-management <span class="tag">규칙 축적</span></h3>
+<p><strong>무엇:</strong> <code>claude-md-improver</code> 스킬(코드와 CLAUDE.md 비교)과 <code>/revise-claude-md</code> 명령(세션에서 배운 것 반영). <strong>목적:</strong> 이 저장소에는 CLAUDE.md가 없으므로 0단계에서 만들고, DEVELOPMENT.md의 계층·트랜잭션·테스트 규칙을 요약해 리뷰 에이전트의 기준으로 씁니다. 원본은 DEVELOPMENT.md이고 CLAUDE.md는 요약·링크만 둡니다.</p>
+</article>
+
+<article class="card">
+<h3>skill-creator <span class="tag">확장 · 채택 · 절차 고정</span></h3>
+<p><strong>무엇:</strong> Anthropic의 스킬 작성·개선·평가 도구. 대화에서 절차를 뽑아 <code>.claude/skills/&lt;이름&gt;/SKILL.md</code>를 쓰고, 테스트 프롬프트로 "스킬 사용/미사용"을 비교 평가합니다. <strong>목적:</strong> 8단계에서 실제로 수행한 "기능 슬라이스" 절차를 <code>layered-slice</code> 스킬로 고정해 g6 슬라이스 이관의 기준으로 넘깁니다. <strong>사용법:</strong> 8단계를 끝까지 마친 뒤(11단계) 생성하고, catalog·inventory 재현과 g6 설계 1건으로 평가합니다. <strong>주의:</strong> 평가는 하위 에이전트를 돌려 시간·토큰이 듭니다. 규칙은 CLAUDE.md, 절차는 스킬로 나눕니다(<a href="../default/fastapi-claude-plugins-guide.html#p-skill-creator">상세</a>).</p>
+</article>
+
+<article class="card">
+<h3>pydantic <span class="tag">확장 · 채택 · 스키마 작성 기준</span></h3>
+<p><strong>무엇:</strong> Pydantic 팀이 관리하는 스킬 플러그인(<code>pydantic@pydantic-skills</code>, MIT). 제약·필드 메타데이터, 검증기, 판별 유니언, 모델 상속의 권장 작성법. <strong>목적:</strong> 이 저장소는 이미 Pydantic v2이므로 이관이 아니라 <strong>새 스키마의 작성 기준</strong>으로 씁니다 — 8단계 <code>inventory_schema.py</code>의 <code>StockAdjust</code> 제약, 기존 catalog 스키마 관례와의 일치. <strong>사용법:</strong> 0단계에서 <code>/plugin marketplace add pydantic/skills</code> → <code>/plugin install pydantic@pydantic-skills</code>. <strong>주의:</strong> 스킬 기준과 저장소 관례가 다르면 <strong>저장소 관례(DEVELOPMENT.md)가 우선</strong>입니다(<a href="../default/fastapi-claude-plugins-guide.html#p-pydantic">상세</a>).</p>
+</article>
+
+<article class="card">
+<h3>ralph-loop <span class="tag opt">확장 · 범위 한정</span></h3>
+<p><strong>무엇:</strong> Stop 훅이 종료를 가로채 같은 프롬프트를 반복 주입하는 루프(<code>/ralph-loop</code>, <code>--max-iterations</code>, <code>--completion-promise</code>, 중단 <code>/cancel-ralph</code>). <strong>목적:</strong> 완료 조건이 기계적으로 판정되는 반복만 — 4단계에서 catalog 패턴을 나머지 기능으로 넓히는 일, 9단계 뒤 ruff·mypy·테스트 오류 0까지. <strong>주의:</strong> <code>--max-iterations</code> 필수(기본 무제한). 설계 결정·보안 패치에는 쓰지 않습니다. hookify의 "pytest 없이 종료 차단" 규칙과 Stop 훅이 겹치므로 루프 중에는 그 규칙을 <code>warn</code>으로 둡니다(<a href="../default/fastapi-claude-plugins-guide.html#p-ralph">상세</a>).</p>
+</article>
+
+<article class="card">
+<h3>ponytail <span class="tag opt">확장 · 범위 한정</span></h3>
+<p><strong>무엇:</strong> 개인이 별도 마켓플레이스로 배포하는 플러그인(MIT). "요청되지 않은 추상화·의존성을 만들지 않는다"는 규칙을 세션 시작 훅으로 상시 넣고, 보고 전용 명령 <code>/ponytail-review</code>(변경분)·<code>/ponytail-audit</code>(저장소)·<code>/ponytail-debt</code>(<code>shortcut:</code> 주석 대장)를 제공합니다. <strong>목적:</strong> 9단계에서 code-simplifier 다음에 <code>/ponytail-review</code>로 이번 변경의 과설계(구현이 하나뿐인 기반 클래스, 쓰지 않는 옵션, 새 의존성)를 보고받고, 지적은 <code>receiving-code-review</code>로 검증한 뒤 반영합니다. <strong>주의:</strong> 4~8단계는 계층·인자를 새로 넣는 작업이라 상시 규칙과 부딪힐 수 있으니, 프롬프트에 "요청 범위"라고 밝히거나 <code>/ponytail lite</code>로 낮춥니다(추정). 유지 주체가 개인이고 버전이 sha로 고정되지 않으므로 범위 한정입니다(<a href="../default/fastapi-claude-plugins-guide.html#p-ponytail">상세</a>).</p>
+</article>
+
+<article class="card">
+<h3>explanatory-output-style <span class="tag">보조 · 설명·학습</span></h3>
+<p><strong>무엇:</strong> 세션 시작 훅이 지시문을 넣어, 작업 전후에 <code>★ Insight</code> 블록으로 코드베이스 패턴과 설계 선택을 2~3개씩 설명합니다. <strong>목적:</strong> <a href="#pre-manual">진입 전 매뉴얼</a> 10장(학습 경로·실습)과 1~3단계에서 "왜 이 저장소가 이렇게 생겼는가"를 함께 기록합니다. <strong>사용법:</strong> 분석·학습 구간에만 켜고, 4단계 이후 반복 개선 구간에서는 토큰 비용 때문에 끕니다(<a href="../default/fastapi-claude-plugins-guide.html#p-support">상세</a>).</p>
+</article>
+
+<h3 id="pl-extra">추가 검토 플러그인</h3>
+<p>공식 마켓플레이스 315개 목록(2026-10-14 기준)과 Pydantic 공식 마켓플레이스에서 이 작업에 관련 있는 것을 골라, <a href="../default/fastapi-claude-plugins-guide.html#criteria">통합 가이드의 신뢰성·안정성 기준</a>(유지 주체·로컬 실행·역할 중복·버전 고정·라이선스·외부 의존성)으로 판단했습니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>플러그인</th><th>무엇</th><th>판단</th><th>이 저장소에서의 쓰임</th></tr></thead>
+<tbody>
+<tr><td><code>skill-creator</code></td><td>스킬 생성·개선·평가</td><td><span class="tag">채택</span></td><td>11단계에서 8단계의 "새 기능 슬라이스 추가" 절차를 <code>layered-slice</code> 스킬로 고정·평가해 g6에서 재사용</td></tr>
+<tr><td><code>pydantic</code></td><td>Pydantic 팀 공식 스킬 (별도 마켓플레이스)</td><td><span class="tag">채택</span></td><td>8단계 새 스키마 작성 기준. 이미 v2라 이관 용도는 없음</td></tr>
+<tr><td><code>ralph-loop</code></td><td>Stop 훅으로 같은 프롬프트를 반복 실행하는 루프</td><td><span class="tag opt">범위 한정</span></td><td>4단계 확대(기능별 선택적 repository 인자 + 단위 테스트), 9단계 뒤 정적 검사 오류 0. <code>--max-iterations</code> 필수</td></tr>
+<tr><td><code>ponytail</code></td><td>과설계 점검 규칙 훅 + 보고 전용 명령</td><td><span class="tag opt">범위 한정</span></td><td>9단계 <code>/ponytail-review</code>로 변경분의 요청되지 않은 추상화 보고, 10단계 전 <code>/ponytail-debt</code></td></tr>
+<tr><td><code>typescript-lsp</code></td><td>TS·JS 언어 서버 (<code>.ts·.js</code> 등)</td><td><span class="tag no">해당 없음</span></td><td>이 저장소의 수정 대상은 <code>.py</code>이고 pyright-lsp가 맡음. JS·TS 파일을 고치는 작업이 생길 때만 켬</td></tr>
+<tr><td><code>plugin-dev</code></td><td>훅·명령·에이전트·스킬 개발 도구 모음</td><td><span class="tag opt">조건부</span></td><td>프롬프트 기반 훅으로 의미 검사를 할 때. 이 저장소는 <code>review_gate.py</code>가 계층 불변식을 이미 검사하므로 필요성이 낮음</td></tr>
+<tr><td><code>serena</code></td><td>언어 서버 기반 심볼 탐색·편집 MCP (<code>uvx</code>로 실행)</td><td><span class="tag opt">조건부</span></td><td>6단계 설정 분할처럼 대량 심볼 이동이 필요할 때만. 기본 브랜치를 실행해 버전이 고정되지 않고 GPL이므로, 쓰면 버전을 고정해 <code>.mcp.json</code>에 등록</td></tr>
+<tr><td><code>context7</code></td><td>호스팅 MCP로 라이브러리 최신 문서 조회</td><td><span class="tag opt">조건부</span></td><td>이 저장소는 Python 3.14·FastAPI 0.141·SQLAlchemy 2.0 async로 최신 버전이라 학습 데이터보다 새 API를 확인할 일이 있음. 질의가 외부로 나가므로 문서 조회를 허용할 때만</td></tr>
+<tr><td><code>lumen</code></td><td>로컬 임베딩(Ollama 등) 의미 기반 코드 검색 MCP</td><td><span class="tag opt">조건부</span></td><td>이 저장소 규모(파이썬 약 2만 9천 줄)에서는 LSP·grep으로 충분. 더 큰 저장소에서 고려</td></tr>
+<tr><td><code>sonarqube</code></td><td>SonarQube 규칙·품질 게이트를 편집 루프에 연결</td><td><span class="tag opt">조건부</span></td><td>로컬 Community Build를 띄울 때만 로컬 전용과 맞음. 이미 ruff·mypy·bandit·<code>review_gate.py</code> 게이트가 있어 조직 표준일 때가 아니면 불필요</td></tr>
+<tr><td><code>redis-development</code></td><td>Redis 공식 스킬 (키 설계·TTL, 연결 풀·파이프라이닝, 보안·관측). MIT, 계정 불필요</td><td><span class="tag opt">조건부</span></td><td>이 저장소는 Redis 6.2+를 필수로 기동합니다. Redis를 쓰는 코드(캐시, 레이트 리밋, 토큰 저장 등)를 바꾸는 개선이나 새 기능에서만 씁니다. 개선 후보 A~E에는 해당하지 않으며, 8단계 새 기능이 Redis를 쓸 때 연결 풀·키 이름·TTL 기준으로 참고합니다. 저장소 관례(DEVELOPMENT.md)가 우선</td></tr>
+<tr><td><code>playwright</code></td><td>브라우저 자동화·E2E MCP</td><td><span class="tag no">해당 적음</span></td><td>"화면이 있을 때만" 조건에 해당하지 않음 — API 중심이고 화면은 <code>/admin</code> 로그인뿐. g6에서는 조건 충족</td></tr>
+<tr><td><code>mattpocock-skills</code></td><td>tdd, diagnosing-bugs, improve-codebase-architecture 등 엔지니어링 스킬</td><td><span class="tag no">추가 불필요</span></td><td>tdd·diagnosing-bugs는 superpowers와, git-guardrails는 hookify와 겹침. 3단계 설계 검토는 code-architect + architecture-critic으로 충분</td></tr>
+<tr><td><code>semgrep</code></td><td>Semgrep Guardian — 편집 훅 + MCP</td><td><span class="tag no">보류</span></td><td>semgrep.dev 로그인·텔레메트리가 필요해 로컬 전용과 맞지 않음. 이미 bandit·pip-audit이 있음</td></tr>
+<tr><td><code>code-review</code>, <code>sourcegraph</code>, <code>qodo</code>, <code>coderabbit</code>, <code>greptile</code></td><td>GitHub PR·외부 플랫폼 기반 리뷰·검색</td><td><span class="tag no">제외</span></td><td>원격 PR·서비스 연동이 전제. 로컬 변경분 리뷰는 pr-review-toolkit이 담당</td></tr>
+</tbody></table></div>
+
+<h3 id="pl-unused">기존 플러그인의 미활용 기능</h3>
+<p>새로 설치하지 않고 이미 켠 플러그인 안에서 꺼내 쓰는 구성요소입니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>구성요소</th><th>플러그인</th><th>이 저장소에서의 쓰임</th><th>단계</th></tr></thead>
+<tbody>
+<tr><td><code>/modernize-status</code></td><td>code-modernization</td><td>1단계에서 <code>/modernize-map</code>을 썼다면, 세션을 다시 시작할 때 산출물이 낡았는지 확인</td><td>1 이후 (선택)</td></tr>
+<tr><td><code>/modernize-harden</code></td><td>code-modernization</td><td>claude-security와 독립적인 2차 보안 스캔. 패치는 <code>analysis/</code>에만 쓰고 비밀값은 gitignore된 파일에만 원문</td><td>9</td></tr>
+<tr><td><code>dispatching-parallel-agents</code></td><td>superpowers</td><td>catalog 승인 뒤 나머지 7개 기능의 선택적 repository 주입을 기능별 에이전트로 나눔. 기능 폴더가 분리돼 충돌이 적음</td><td>4</td></tr>
+<tr><td><code>receiving-code-review</code></td><td>superpowers</td><td>pr-review-toolkit 지적을 그대로 따르지 않고 검증한 뒤 반영</td><td>9</td></tr>
+<tr><td><code>finishing-a-development-branch</code></td><td>superpowers</td><td><code>refactor/baseline</code>을 로컬 기준 브랜치로 병합. <strong>1번(로컬 병합)만</strong> 사용</td><td>10</td></tr>
+<tr><td><code>/modernize-review</code>, <code>version-delta-analyst</code></td><td>code-modernization</td><td>규칙 추출 대상 레거시가 아니고 이미 Pydantic v2라 해당 적음 — g6 문서에서 사용</td><td>—</td></tr>
+</tbody></table></div>
+
+<h3 id="pl-map">단계별 사용 지도</h3>
+<p><span class="tag">채택</span> <span class="tag opt">조건부·범위 한정</span> <span class="tag no">기존 플러그인의 미활용 기능</span></p>
+<div class="table-wrap"><table>
+<thead><tr><th>단계</th><th>주 플러그인</th><th>보조</th></tr></thead>
+<tbody>
+<tr><td>진입 전 매뉴얼</td><td>code-modernization assess·map, feature-dev code-explorer, pyright-lsp</td><td>explanatory-output-style, pr-test-analyzer (<a href="#pre-manual">상세</a>)</td></tr>
+<tr><td>0 준비</td><td>claude-code-setup, hookify, claude-md-management</td><td><span class="tag">pydantic</span> 설치, hookify <code>block-remote-git</code>, <code>/modernize-preflight --source</code>, explanatory-output-style(분석 구간)</td></tr>
+<tr><td>1 구조 파악</td><td>feature-dev code-explorer, pyright-lsp</td><td>code-modernization assess·map, <span class="tag no">/modernize-status</span></td></tr>
+<tr><td>2 기준선 고정</td><td>superpowers systematic-debugging</td><td>pr-review-toolkit pr-test-analyzer</td></tr>
+<tr><td>3 개선 설계</td><td>feature-dev code-architect</td><td>code-modernization architecture-critic</td></tr>
+<tr><td>4~7 개선 실행</td><td>superpowers test-driven-development, pyright-lsp</td><td><span class="tag no">dispatching-parallel-agents</span> 또는 <span class="tag opt">ralph-loop</span>(4단계 확대), <span class="tag opt">serena</span>(6단계)</td></tr>
+<tr><td>8 새 기능</td><td><code>/feature-dev</code></td><td>superpowers, pr-test-analyzer, <span class="tag">pydantic</span> 스킬, <span class="tag opt">context7</span>, <span class="tag opt">redis-development</span>(Redis를 쓰는 기능일 때)</td></tr>
+<tr><td>9 보안·리뷰·단순화</td><td>claude-security, pr-review-toolkit, code-simplifier</td><td>security-guidance(상시), <span class="tag no">/modernize-harden</span>, <span class="tag no">receiving-code-review</span>, <span class="tag opt">ralph-loop</span>(정적 검사 0), <span class="tag opt">ponytail</span>(과설계 보고)</td></tr>
+<tr><td>10 커밋</td><td>commit-commands <code>/commit</code></td><td>security-guidance 커밋 리뷰, <span class="tag no">finishing-a-development-branch</span></td></tr>
+<tr><td>11 g6로 넘기기</td><td><span class="tag">skill-creator</span> (생성·평가)</td><td>claude-md-management</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ================= 워크플로 ================= -->
+<section id="workflow">
+<h2>단계별 워크플로</h2>
+<p>각 단계는 목표, 플러그인, 프롬프트, Claude가 할 작업, 단위·통합 테스트, 승인 지점, 실패 대응, 완료 기준으로 정리했습니다. 4~7단계는 서로 독립적이라 순서를 바꿔도 되지만, <strong>한 번에 하나만</strong> 진행하고 단계마다 커밋합니다.</p>
+
+<div class="phase" id="ph0">
+<h3>0단계. 준비</h3>
+<pre><code>mkdir -p ~/work &amp;&amp; cd ~/work
+git clone https://github.com/bluebamus/fastapi-default-project-structure.git   # 이후 원격은 쓰지 않음
+cd fastapi-default-project-structure
+uv sync --locked
+source .venv/bin/activate        # pyright-lsp가 의존성을 해석하도록
+git switch -c refactor/baseline
+claude</code></pre>
+<div class="field">플러그인·프롬프트</div>
+<pre><code>이 저장소에 맞는 Claude Code 자동화를 추천해줘. 외부 서비스·원격 저장소 연동은 제외.
+이미 ruff, mypy, bandit, pytest, scripts/review_gate.py 가 있다.</code></pre>
+<pre><code>docs/guides/DEVELOPMENT.md §1·§4·§12·§13 을 요약해 CLAUDE.md 를 만들어줘.
+원본은 DEVELOPMENT.md 이고 CLAUDE.md 에는 규칙 요약과 링크만 둬.</code></pre>
+<pre><code>/modernize-preflight fastapi-default --source ./app</code></pre>
+<p>code-modernization 진단용 <code>legacy/fastapi-default</code> 링크를 만듭니다(복사하지 않음). 진입 전 매뉴얼·1·9단계의 <code>/modernize-*</code> 명령이 이 링크를 씁니다. 링크와 산출물이 커밋되지 않도록 터미널에서 <code>printf "legacy/\nanalysis/\n" &gt;&gt; .git/info/exclude</code>를 한 번 실행합니다. 직접 <code>ln -s</code>는 Windows Git Bash에서 복사가 될 수 있어 쓰지 않습니다.</p>
+<p>hookify로 위 <code>no-commit-outside-view</code> 규칙과 "pytest 실행 없이 종료 차단" 규칙을 <code>warn</code>으로 시작하고, <code>block-remote-git</code>은 처음부터 <code>block</code>으로 둡니다(클론한 <code>origin</code>이 살아 있음). 확장 플러그인은 skill-creator와 pydantic만 켭니다.</p>
+<pre><code>/plugin marketplace add pydantic/skills
+/plugin install pydantic@pydantic-skills</code></pre>
+<div class="field">승인 지점</div><p>추천받은 자동화 중 실제로 켤 것, CLAUDE.md 문구. claude-code-setup이 외부 MCP를 추천하면 <a href="../default/fastapi-claude-plugins-guide.html#criteria">신뢰성·안정성 기준</a>으로 걸러냄.</p>
+<div class="field">완료 기준</div><p><span class="dod">DoD</span>의존성 설치, CLAUDE.md 생성, 훅 규칙 3개 동작 확인(<code>git fetch</code>가 차단되는지 포함), preflight 통과와 <code>legacy/</code>가 <code>git status</code>에 나오지 않음.</p>
+</div>
+
+<div class="phase" id="ph1">
+<h3>1단계. 구조 파악</h3>
+<div class="field">목표</div><p>계층·세션·트랜잭션·인가가 실제 코드에서 어떻게 이어지는지 확인하고, 문서와 코드가 일치하는지 봅니다.</p>
+<div class="field">플러그인</div><p>feature-dev <code>code-explorer</code>, pyright-lsp, (선택) code-modernization <code>/modernize-map</code></p>
+<div class="field">프롬프트</div>
+<pre><code>code-explorer 3개를 병렬로 띄워줘.
+(1) POST /api/v1/catalog/products: View → Dependency → Service → Repository → 커밋까지
+(2) GET /api/v1/reports/... : Raw SQL Repository 경로와 읽기 세션 쓰기 차단
+(3) 접근 수준 선언(Public/LoginRequired/SuperuserRequired)이 기동 시 검사되는 경로
+각 단계에 file:line 을 붙이고, ARCHITECTURE.md 설명과 다른 점이 있으면 표시해줘. 심볼은 LSP로.</code></pre>
+<div class="field">진입 전 매뉴얼과의 관계</div><p><a href="#pre-manual">진입 전 매뉴얼</a>의 4장에 같은 세 흐름이 이미 있다면, code-explorer를 다시 처음부터 돌리지 말고 "매뉴얼 4장의 file:line이 지금 코드와 맞는지 검증하고 다른 곳만 고쳐줘"로 줄입니다.</p>
+<div class="field">기대 출력</div><p>세 흐름의 단계별 file:line 목록, 문서와 코드의 불일치 목록(있다면).</p>
+<div class="field">테스트</div><p>이 단계는 읽기만 하므로 새 테스트 없음. 대신 흐름마다 이미 존재하는 보호 테스트 파일을 함께 찾아 둡니다(예: <code>tests/test_write_dto_before_commit.py</code>, <code>tests/core/test_read_only_guard.py</code>, <code>tests/test_authorization.py</code>).</p>
+<div class="field">승인 지점</div><p>문서 불일치가 있으면 코드가 정답(README 원칙). 문서를 고칠지 결정.</p>
+<div class="field">실패 대응</div><p>LSP가 import를 못 찾으면 <code>.venv</code> 활성화 후 재시작.</p>
+</div>
+
+<div class="phase" id="ph2">
+<h3>2단계. 기준선 고정</h3>
+<div class="field">목표</div><p>바꾸기 전에 "지금 무엇이 통과하는지"를 숫자로 고정하고, 불안정한 테스트를 먼저 정리합니다.</p>
+<div class="field">플러그인</div><p>superpowers <code>systematic-debugging</code>, pr-review-toolkit <code>pr-test-analyzer</code></p>
+<div class="field">프롬프트</div>
+<pre><code>uv run python -m pytest -m "not mysql" -q -rsxX --cov=app --cov-branch 를 실행하고 결과를 표로 정리해줘.
+실패·skip 이 있으면 systematic-debugging 으로 원인을 먼저 좁혀줘. 원인이 확정되기 전엔 코드를 고치지 마.
+Redis 가 필요한 skip 은 docker compose -f compose.test.yaml up -d --wait redis-test 로 해소해줘.</code></pre>
+<div class="field">Claude 작업</div><p>전체·단독·부분 조합 실행으로 <code>test_db_router_env.py</code> 실패 조건 재현 → 자식 프로세스 출력에 섞인 내용 확인 → 원인 보고. 수정은 테스트 격리(예: 자식 환경 변수 정리, 출력 파싱 강화) 중 원인에 맞는 최소 변경.</p>
+<div class="field">단위 테스트</div><p>원인이 출력 파싱이라면, 파싱 함수에 "보고 줄 뒤에 다른 출력이 붙어도 보고 줄만 읽는다"는 작은 단위 테스트를 먼저 추가(RED) 후 수정(GREEN).</p>
+<div class="field">승인 지점</div><p>원인 보고를 보고 수정 방향 승인. 원인이 환경 문제(이 분석 환경 고유)라면 코드 변경 없이 기록만.</p>
+<div class="field">실패 대응</div><p>재현이 안 되면 실패 로그·실행 순서를 남기고 다음 단계로 진행하되, CI에서 SKIP·실패 0 판정이 유지되는지 확인.</p>
+<div class="field">완료 기준</div><p><span class="dod">DoD</span>전체 실행에서 실패 0, skip 0(Redis 기동 시), 기준 수치 기록. 이 수치로 진입 전 매뉴얼 2장(실행)·12장(확인된 것)을 확정합니다.</p>
+</div>
+
+<div class="phase" id="ph3">
+<h3>3단계. 개선 설계</h3>
+<div class="field">목표</div><p><a href="#findings">개선 후보</a> A~E의 범위와 순서를 정합니다. 기준은 "작고, 되돌리기 쉽고, 기존 계약 테스트가 보호하는가".</p>
+<div class="field">플러그인</div><p>feature-dev <code>code-architect</code>, code-modernization <code>architecture-critic</code> (설계안과 견제를 짝으로 씀. 별도 아키텍처 리포트 플러그인은 추가하지 않음)</p>
+<div class="field">프롬프트</div>
+<pre><code>개선 후보 A(서비스에 선택적 repository 주입), D(config 분할), E(main.py 분리)에 대해
+code-architect 로 "최소 변경" 안과 "균형" 안을 만들고, architecture-critic 으로 과잉 설계를 검토해줘.
+제약: 공개 API 불변(review_gate check_public_api_unchanged), config import 경로 유지, 새 추상 계층 금지.
+각 안의 변경 파일 수, 영향받는 테스트, 되돌리는 방법을 표로.</code></pre>
+<div class="field">기대 출력</div><p>항목별 2개 안 비교표와 추천, architecture-critic의 반대 의견.</p>
+<div class="field">승인 지점</div><p>항목별 채택 안과 순서. 이 결정은 CLAUDE.md "결정 기록"에 한 줄씩 남깁니다.</p>
+</div>
+
+<div class="phase key" id="ph4">
+<h3>4단계. 서비스 단위 테스트를 가능하게 (후보 A)</h3>
+<div class="field">목표</div><p>Service가 Repository를 주입받을 수 있게 해 DB 없는 단위 테스트를 기본으로 만듭니다. 기존 호출부(<code>CatalogService(db_session)</code>)는 그대로 동작해야 합니다.</p>
+<div class="field">플러그인</div><p>superpowers <code>test-driven-development</code>, pyright-lsp</p>
+<div class="field">프롬프트</div>
+<pre><code>TDD로 진행해줘. 먼저 catalog 하나만.
+1) app/features/catalog/tests/test_service_unit.py 에 가짜 Repository 를 쓰는 테스트를 작성 → 실패 확인(RED)
+2) CatalogService.__init__ 에 repository: ProductRepository | None = None 인자 추가 → 통과(GREEN)
+3) catalog 전체 테스트와 review_gate --fast 실행
+다른 기능은 내가 승인한 뒤에 같은 방식으로.</code></pre>
+<div class="field">변경 예</div>
+<pre><code>class CatalogService(BaseService):
+    def __init__(
+        self,
+        db_session: AsyncSession,
+        repository: ProductRepository | None = None,
+    ) -&gt; None:
+        super().__init__(db_session)
+        self.repository = repository or ProductRepository(db_session)</code></pre>
+<div class="field">단위 테스트</div><p><a href="#testing">테스트 원칙</a>의 예시 3건(변경 없음, 조회 부재, 삭제 부재)부터. 이후 <code>list_products</code>의 <code>active_only</code> 분기를 각각 한 테스트로.</p>
+<div class="field">통합 테스트</div><p>기능 전체 변경이 아니므로 새 통합 테스트는 없음. 기존 <code>catalog/tests/test_endpoint.py</code>와 <code>tests/integration/test_mysql_orm_smoke.py</code>가 그대로 통과하면 충분.</p>
+<div class="field">승인 지점</div><p>catalog 결과를 본 뒤 나머지 7개 기능에 확대할지. 확대는 기능 하나당 커밋 하나.</p>
+<div class="field">확대 — 나머지 7개 기능</div>
+<p>catalog 패턴이 승인되면 같은 변경을 기능마다 반복합니다. 기능 폴더가 서로 독립적이므로 superpowers <code>dispatching-parallel-agents</code>로 기능별 에이전트에 나누는 것을 기본으로 하고, 한 세션에서 순서대로 돌리고 싶으면 ralph-loop를 씁니다. 어느 쪽이든 커밋은 사람이 기능 단위로 승인합니다.</p>
+<pre><code>/ralph-loop "app/features 중 서비스 생성자에 선택적 repository 인자가 없는 기능을 하나 골라
+catalog 와 같은 방식으로 인자를 추가하고, 가짜 Repository 단위 테스트를 먼저 쓴다(RED → GREEN).
+그 기능의 테스트와 review_gate --fast 를 실행한다. 커밋은 하지 않는다.
+모든 기능에 인자와 단위 테스트가 있고 전부 통과하면 &lt;promise&gt;REPO_DI_DONE&lt;/promise&gt;" \
+  --completion-promise "REPO_DI_DONE" --max-iterations 10</code></pre>
+<p>루프 중에는 hookify의 "pytest 없이 종료 차단" 규칙을 <code>warn</code>으로 둡니다(두 Stop 훅이 겹침).</p>
+<div class="field">실패 대응</div><p>기존 테스트가 깨지면 기본값(<code>repository=None</code>)일 때 예전과 똑같이 <code>ProductRepository(db_session)</code>를 만드는지 확인합니다. mypy 설정은 <code>tests/</code>가 포함된 경로를 검사에서 제외하므로 가짜 객체 타입 때문에 게이트가 막히지는 않을 것으로 봅니다(추정). 막히면 새 추상(<code>Protocol</code>)을 들이기보다 테스트 쪽에서 해결합니다.</p>
+<div class="field">완료 기준</div><p><span class="dod">DoD</span>기능마다 서비스 단위 테스트가 DB 없이 돎, 기존 테스트 전부 통과.</p>
+</div>
+
+<div class="phase" id="ph5">
+<h3>5단계. 커버리지 측정 정정 (후보 B)</h3>
+<div class="field">프롬프트</div>
+<pre><code>uv run python -m pytest -m "not mysql" -q --cov=app --cov-branch --cov-report=term 결과에
+app/features/*/tests 파일이 포함되는 원인을 찾아줘. pyproject.toml [tool.coverage.run] omit 이 왜 적용되지 않는지
+재현하고, 고친 뒤 같은 명령의 TOTAL 이 테스트 제외 수치와 맞는지 보여줘. fail_under 는 건드리지 마.</code></pre>
+<div class="field">테스트</div><p><code>tests/test_coverage_contract.py</code>가 지키는 계약(명령줄에 <code>--cov-fail-under</code> 금지, 하한 단일 정본)을 깨지 않는지 함께 실행합니다.</p>
+<div class="field">승인 지점</div><p>측정값이 올라간 뒤 <code>fail_under</code>를 올릴지(DEVELOPMENT §12.3 절차대로 실제 값보다 조금 낮게)는 별도 결정.</p>
+</div>
+
+<div class="phase" id="ph6">
+<h3>6단계. 설정 모듈 분할 (후보 D, 선택)</h3>
+<div class="field">목표</div><p><code>config.py</code>를 읽기 쉬운 크기로 나누되, 모든 import(<code>from config import db_settings</code> 등)와 동작은 그대로 둡니다.</p>
+<div class="field">플러그인</div><p>pyright-lsp(참조 전수 조사), superpowers, code-simplifier, (조건부) serena — 설정 클래스 12개를 여러 모듈로 옮기는 대량 이동을 텍스트 치환보다 안전하게 하고 싶을 때만, 버전을 고정해 등록</p>
+<div class="field">프롬프트</div>
+<pre><code>config.py 를 app/core/settings/ 패키지(app.py, database.py, security.py, logging.py, validation.py 등)로 옮기되
+config.py 는 기존 이름을 전부 재노출하는 얇은 모듈로 남겨줘. 동작 변경 금지.
+먼저 LSP 로 config 의 공개 이름 사용처를 표로 만들고, 옮긴 뒤
+tests/core/test_settings_contract.py, tests/core/test_deployment_safety.py, 전체 테스트를 실행해줘.</code></pre>
+<div class="field">단위 테스트</div><p>새 동작이 없으므로 새 테스트보다 기존 계약 테스트가 보호합니다. 단, 재노출 누락을 막기 위해 "config 모듈의 공개 이름 목록이 분할 전과 같다"는 테스트 하나를 먼저 추가합니다.</p>
+<div class="field">실패 대응</div><p>import 순환이 생기면(<code>config</code>는 import 시점 검사를 수행) 검사 함수 호출 위치를 원래와 같게 되돌리고, 분할 범위를 클래스 정의만으로 줄입니다.</p>
+</div>
+
+<div class="phase" id="ph7">
+<h3>7단계. main.py 분리 (후보 E)</h3>
+<div class="field">프롬프트</div>
+<pre><code>main.py 의 _register_exception_handlers 와 _add_health_and_docs 를 app/core/exception_handlers.py 와
+app/core/health.py 로 옮겨줘. main.py 는 앱 생성·미들웨어·라우터 취합만 남기고, 라우터 등록 순서는 그대로.
+tests/test_main.py, tests/test_route_inventory.py, tests/test_openapi_contract.py,
+scripts/review_gate.py --fast(공개 API 불변 검사 포함)를 실행해줘.</code></pre>
+<div class="field">테스트</div><p>옮긴 함수마다 "앱에 등록된 예외 핸들러 종류가 같다", "<code>/health</code>·<code>/ready</code> 경로가 존재한다" 수준의 단순 테스트가 이미 있는지 확인하고 없으면 먼저 추가.</p>
+<div class="field">실패 대응</div><p>OpenAPI 기준선(<code>docs/crp/groups/orm-raw-repository/baseline/openapi.json</code>) 비교가 실패하면 등록 순서·메타데이터가 바뀐 것이므로 원래 순서로 되돌림.</p>
+</div>
+
+<div class="phase key" id="ph8">
+<h3>8단계. 새 기능 추가 표준 (예: inventory)</h3>
+<div class="field">목표</div><p>기능 하나를 처음부터 끝까지 추가하는 표준 절차를 실제로 한 번 수행해, g6 슬라이스 이관의 원형으로 씁니다. 절차 원본은 DEVELOPMENT §2.</p>
+<div class="field">플러그인</div><p><code>/feature-dev</code>(탐색·질문·설계·구현·리뷰), superpowers TDD, pr-review-toolkit, pydantic 스킬(스키마 작성 기준), (조건부) context7(SQLAlchemy 2.0 조건부 UPDATE·FastAPI 0.141 API 확인)</p>
+<div class="field">프롬프트</div>
+<pre><code>/feature-dev inventory 기능 추가
+- 상품별 재고 조회(공개), 증감(슈퍼유저), 감소 결과가 음수면 409
+- catalog 를 기준 예시로 따르고, DEVELOPMENT.md §2.1~2.3 의 파일 목록과 연결 지점을 모두 지켜줘
+- 구현은 Schema → Service(가짜 Repository 단위 테스트) → Repository(SQLite) → View 순서, 각 층마다 테스트 먼저
+- 스키마는 pydantic 스킬 기준(Field 제약, 판별 유니언)으로 쓰되 catalog 스키마 관례와 다르면 관례를 따름
+- 기능이 끝나면 endpoint·트랜잭션 테스트, 접근 수준 표, 라우트 인벤토리를 갱신하고 mysql 마커 통합 테스트 1건 추가</code></pre>
+<div class="field">작업 순서와 테스트</div>
+<div class="table-wrap"><table>
+<thead><tr><th>순서</th><th>만들 것</th><th>먼저 쓰는 테스트 (가장 단순한 것)</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><code>schemas/inventory_schema.py</code></td><td><code>StockAdjust(delta=0)</code>은 422, 문자열 수량은 422</td></tr>
+<tr><td>2</td><td><code>services/inventory_service.py</code></td><td>가짜 Repository로 "재고 3에서 -5 요청 → 충돌 예외"</td></tr>
+<tr><td>3</td><td><code>repositories/inventory_repository.py</code></td><td>SQLite에서 조건부 UPDATE가 음수가 되는 경우 0행을 반환</td></tr>
+<tr><td>4</td><td><code>dependencies/</code>, <code>api/routers/v1/</code></td><td>(층 테스트 대신 기능 통합 테스트로 확인)</td></tr>
+<tr><td>5</td><td>등록: <code>main.py</code>, <code>tags_metadata.py</code>, <code>admin.py</code>, migration</td><td>기존 계약 테스트(<code>test_route_inventory</code>, <code>test_authorization</code>, <code>test_admin_wiring</code>)에 한 줄씩</td></tr>
+<tr><td>6 (기능 완료)</td><td>통합 테스트</td><td>endpoint: 200/404/409/401/403 + 쓰기 커밋 1회·조회 커밋 0회 / <code>@pytest.mark.mysql</code>: 동시 감소 두 건 중 하나만 성공</td></tr>
+</tbody></table></div>
+<div class="field">승인 지점</div><p>질문 단계의 동시성 방식(조건부 UPDATE vs 잠금), 설계안 선택, migration 검토(DEVELOPMENT §8).</p>
+<div class="field">실패 대응</div><p>등록 테스트가 실패하면 DEVELOPMENT §2.2 "빠뜨리면" 열을 대조. SQLite에서 통과했는데 MySQL에서 실패하면 방언 차이이므로 mysql 마커 테스트를 기준으로 Repository를 고침.</p>
+<div class="field">완료 기준</div><p><span class="dod">DoD</span>review_gate 전체 통과, SKIP 0, README API 표 갱신.</p>
+</div>
+
+<div class="phase" id="ph9">
+<h3>9단계. 보안·리뷰·단순화</h3>
+<div class="field">프롬프트</div>
+<pre><code>/claude-security → Scan changes (refactor/baseline 이후)
+/modernize-harden fastapi-default
+claude-security 결과와 analysis/fastapi-default/SECURITY_FINDINGS.md, bandit 결과를 대조해
+셋 다 찾은 것 / 일부만 찾은 것으로 나눠줘. 일부만 찾은 항목은 근거 코드를 다시 읽고 판단해줘.
+그다음 이번 변경분에 pr-review-toolkit 의 code-reviewer, silent-failure-hunter, pr-test-analyzer 를 병렬로 돌리고,
+지적은 receiving-code-review 스킬로 하나씩 검증한 뒤 반영해줘.
+code-simplifier 로 이번 세션 변경분만 다듬고, 마지막에 uv run python -m scripts.review_gate 전체 실행.</code></pre>
+<div class="field">승인 지점</div><p>보안 발견마다 수정 여부 — 여러 도구가 함께 찾은 것부터. 두 보안 도구 모두 패치를 자동 적용하지 않으므로 직접 검토 후 <code>git apply</code>. 리뷰 지적 중 반박한 항목의 근거 확인, 리뷰 이슈의 수정 시점.</p>
+<div class="field">과설계 점검 (범위 한정)</div><p>code-simplifier 다음에 <code>/ponytail-review</code>로 이번 변경분에 요청되지 않은 추상화·옵션·의존성이 생겼는지 보고받습니다. 10단계 전에 <code>/ponytail-debt</code>로 미뤄 둔 임시방편 대장을 만듭니다.</p>
+<div class="field">반복 구간 (범위 한정)</div><p>단순화 뒤 ruff·mypy·테스트 오류를 0까지 줄이는 일만 ralph-loop로 돌릴 수 있습니다(<code>--max-iterations 10</code>, 동작 변경이 필요한 수정은 목록에만).</p>
+<div class="field">실패 대응</div><p>단순화 후 테스트가 깨지면 그 변경만 되돌립니다(단순화는 동작을 바꾸면 안 됨).</p>
+</div>
+
+<div class="phase" id="ph10">
+<h3>10단계. 커밋</h3>
+<p>커밋 원칙: 2~9단계는 <strong>단계가 끝날 때마다</strong> 커밋합니다(4단계 확대는 기능 하나당 하나). 이 단계는 일괄 커밋이 아니라 <strong>아직 커밋하지 않은 변경 정리와 이력 점검</strong>입니다.</p>
+<pre><code>refactor/baseline 이후 커밋 목록(git log --oneline)과 아직 커밋하지 않은 변경을 보여줘.
+아래 기대 이력과 대조해 빠진 커밋, 한 커밋에 관심사가 섞인 곳, 관례 "type(scope): 한글 설명 (그룹)"에 어긋난 메시지를 찾아줘.
+기대 이력: test(catalog) 서비스 단위 테스트 → refactor(catalog) 선택적 repository 주입 → 기능별 확대
+→ build(coverage) omit 정정 → (선택) refactor(config)·refactor(main) → feat(inventory) → fix(security)·style 정리
+남은 변경만 묶음으로 나눠 보여주고, 승인한 묶음만 git add 후 /commit. 커밋마다 테스트 통과 확인.
+이미 만든 커밋을 고쳐야 하면 방법(reword·squash)만 제안하고 실행 전에 확인받아줘.</code></pre>
+<p>원격 push는 하지 않습니다(<code>block-remote-git</code> 훅이 막음). 문제 시 <code>git revert</code> 또는 아직 공유 전이면 <code>git reset --soft HEAD~1</code>(사용자 확인 후).</p>
+<div class="field">작업 브랜치 마무리</div>
+<p>커밋을 나눈 뒤 superpowers <code>finishing-a-development-branch</code>로 테스트 통과를 다시 확인하고, 선택지 중 <strong>1번 "Merge back to base-branch locally"</strong>만 골라 <code>refactor/baseline</code>을 로컬 기준 브랜치로 병합합니다. 2번(push·PR)은 쓰지 않습니다.</p>
+</div>
+
+<div class="phase key" id="ph11">
+<h3>11단계. g6로 넘기기</h3>
+<div class="field">목표</div><p>8단계에서 실제로 수행한 "기능 슬라이스" 절차를 g6에서도 같은 방식으로 반복할 수 있게 고정합니다.</p>
+<div class="field">플러그인</div><p>skill-creator, claude-md-management</p>
+<div class="field">프롬프트</div>
+<pre><code>skill-creator 로 "layered-slice" 스킬을 만들어줘.
+내용: (1) 계층별 책임 표 (2) 커밋 규칙 "응답 검증 → commit 1회" (3) 층별 가장 단순한 단위 테스트 모양
+(4) 기능 완료 시 통합 테스트 체크리스트 (5) 등록·계약 테스트 갱신 목록.
+예시는 catalog 와 inventory 를 쓰고, 비동기 세션·Redis 는 "선택 사항"으로 표시해줘 — g6 는 동기 세션을 쓴다.
+평가: (a) inventory 절차를 처음부터 다시 따라가는 케이스, (b) g6 게시글 작성 슬라이스의 설계안을 만드는 케이스.
+스킬 사용/미사용을 비교해서, 미사용 쪽이 빠뜨린 단계(커밋 1회 규칙, 등록·계약 테스트 갱신)를 스킬이 잡는지 보여줘.</code></pre>
+<div class="field">산출물</div><p><code>.claude/skills/layered-slice/SKILL.md</code>(로컬), 평가 결과, 갱신된 CLAUDE.md. g6 작업 공간에 같은 스킬을 복사해 사용합니다(g6 문서 6단계).</p>
+<div class="field">승인 지점</div><p>평가에서 드러난 누락 단계를 스킬에 넣을지, 규칙성 내용(예: 커밋 1회)은 스킬이 아니라 CLAUDE.md에 둘지 — <strong>규칙은 CLAUDE.md, 절차는 스킬</strong>.</p>
+</div>
+</section>
+
+<!-- ================= 근거 ================= -->
+<section id="evidence">
+<h2>확인된 것과 추정</h2>
+<p><span class="mark ok">확증</span>저장소 구조·계층·트랜잭션 규칙·CI 단계(코드와 문서 대조), 테스트 실행 결과(1,068 passed / 4 failed / 3 skipped / 18 deselected), 단독 실행 시 <code>test_db_router_env.py</code> 12 passed, 기본 커버리지 73%와 테스트 제외 96%, 서비스가 Repository를 생성자에서 직접 만든다는 점, 4단계 변경으로 가짜 Repository 단위 테스트가 통과한다는 점(임시 사본에서 실행 후 되돌림), 각 플러그인의 구성(공식 마켓플레이스 저장소와 README).</p>
+<p><span class="mark warn">추정</span></p>
+<ul>
+  <li><code>test_db_router_env.py</code> 4건 실패의 원인(순서 의존·출력 혼입). 이 분석 환경 고유 문제일 가능성도 있습니다.</li>
+  <li>커버리지 <code>omit</code>이 적용되지 않은 원인.</li>
+  <li>6단계 설정 분할에서 import 순환이 생길 가능성.</li>
+  <li>ralph-loop와 hookify stop 규칙을 함께 쓸 때의 상호작용, 확장 플러그인의 설치 동작 — 이 저장소에서 설치·실행하지 않았습니다.</li>
+  <li>대화·출력 예시는 동작 설명을 위한 가상 예시입니다.</li>
+</ul>
+<p><span class="mark info">실행하지 않은 것</span>MySQL 마커 테스트(18건 deselected), Redis가 필요한 실제 uvicorn 수명 테스트 3건, CI.</p>
+</section>
+
+<section id="sources">
+<h2>참고 자료</h2>
+<ul>
+  <li><a href="https://github.com/bluebamus/fastapi-default-project-structure">bluebamus/fastapi-default-project-structure</a> — README, <code>docs/guides/ARCHITECTURE.md</code>, <code>docs/guides/DEVELOPMENT.md</code>, <code>.github/workflows/ci.yml</code>, <code>scripts/review_gate.py</code></li>
+  <li><a href="https://github.com/anthropics/claude-plugins-official">anthropics/claude-plugins-official</a> — <code>.claude-plugin/marketplace.json</code>(315개), <code>plugins/*/README.md</code>, <code>external_plugins/serena</code>, <code>external_plugins/playwright</code></li>
+  <li><a href="https://code.claude.com/docs/en/plugins/code-intelligence.md">Code intelligence plugins — Claude Code Docs</a></li>
+  <li><a href="https://github.com/obra/superpowers">obra/superpowers</a> — <code>skills/test-driven-development</code>, <code>skills/systematic-debugging</code></li>
+  <li><a href="../default/fastapi-claude-plugins-guide.html">로컬 FastAPI 레거시 고도화를 위한 Claude Code 플러그인 가이드</a> — 확장 플러그인 검토(선정 기준·후보 평가표·미활용 기능·제외 사유)</li>
+  <li><a href="https://github.com/pydantic/skills">pydantic/skills</a> — <code>plugins/pydantic</code></li>
+  <li><a href="https://github.com/mattpocock/skills">mattpocock/skills</a> — 추가 불필요 판단 근거(<code>engineering/tdd</code>, <code>git-guardrails-claude-code</code>)</li>
+  <li><a href="https://github.com/semgrep/mcp-marketplace">semgrep/mcp-marketplace</a> — Semgrep Guardian README</li>
+</ul>
+</section>
+
+<footer>문서 1 / 2 · fastapi-default-project-structure 분석·설계·고도화 가이드 · 짝 문서: g6 분석·설계·리팩토링 가이드</footer>
+</main>
+</div>
+<button class="theme-toggle" type="button" aria-label="테마 전환">테마 전환</button>
+<script>
+(function(){
+  var root=document.documentElement,key='guide-theme';
+  try{var s=localStorage.getItem(key);if(s)root.setAttribute('data-theme',s);}catch(e){}
+  document.querySelector('.theme-toggle').addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme');
+    var dark=cur?cur==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var next=dark?'light':'dark';root.setAttribute('data-theme',next);
+    try{localStorage.setItem(key,next);}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>

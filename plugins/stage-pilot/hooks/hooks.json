@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/stage.js\" session; exit 0",
+            "timeout": 5,
+            "statusMessage": "stage-pilot: 현재 단계 확인..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/stage.js\" prompt; exit 0",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

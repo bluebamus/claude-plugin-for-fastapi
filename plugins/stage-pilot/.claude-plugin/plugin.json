@@ -1,0 +1,7 @@
+{
+  "name": "stage-pilot",
+  "version": "0.1.0",
+  "description": "FastAPI 레거시 고도화 워크플로의 단계마다 필요한 플러그인을 제안하고, 요청하면 그 플러그인으로 단계를 수행한다(승인 지점에서 멈춤). 근거: fastapi-claude-plugins-guide.html #selection·#stage-map.",
+  "author": { "name": "bluebamus" },
+  "license": "UNLICENSED"
+}
