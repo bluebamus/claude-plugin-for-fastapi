@@ -131,7 +131,7 @@
          "primary": ["commit-commands", "claude-md-management"], "assist": ["superpowers", "ponytail"],
          "conditional": [],
          "run": [
-           {"type": "command", "ref": "claude-md-management:revise-claude-md", "note": "프로젝트 규칙·명령을 CLAUDE.md 에"},
+           {"type": "command", "ref": "claude-md-management:revise-claude-md", "note": "프로젝트 규칙·명령과 의뢰서의 프로젝트 조건(외부 문서 조회 허용 여부·운영 DB·인증 등)을 CLAUDE.md 에"},
            {"type": "command", "ref": "ponytail:ponytail-debt", "note": "미뤄 둔 임시방편 대장"},
            {"type": "command", "ref": "commit-commands:commit", "note": "논리 단위 로컬 커밋"},
            {"type": "skill", "ref": "superpowers:finishing-a-development-branch", "note": "로컬 병합만, push·PR 없음"}],

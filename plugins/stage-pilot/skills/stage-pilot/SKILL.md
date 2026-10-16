@@ -140,7 +140,10 @@ description: FastAPI 프로젝트를 워크플로 단계로 이끄는 지휘자.
 - `ralph-loop`는 첫 결과물이 승인된 뒤에만, `--max-iterations`를 붙여 사용자에게 제안한다. 설계 결정·보안 패치에는 쓰지 않는다.
 - `ponytail`의 점검 명령은 보고 전용이다. 지적은 검증 후 반영하고, 계층을 새로 만드는 구간(default 5·6, fastapi-default 4~7, g6 7~11, 신규 5)에서는 `/ponytail lite`를 권한다.
 - g6 프로필의 `code-modernization` 명령은 저장소 밖 `~/work/g6-analysis`에서만 실행한다(`workspace_note`).
-- `context7`은 질의가 외부로 나가므로, 사용자가 외부 문서 조회를 허용했을 때만 쓴다(의뢰서·CLAUDE.md·대화에서 확인). 허용이 없으면 조건 불충족으로 기록한다.
+- `context7`은 질의가 외부로 나가므로, 사용자가 외부 문서 조회를 허용했을 때만 쓴다. 허용 여부는 의뢰서(BRIEF 등)·CLAUDE.md·대화에서 찾아 **그 위치(파일:행)를 근거로** 적는다 — 기억이나 짐작으로 판정하지 않는다.
+  - 허용 문장이 없으면 `skip context7 "<찾아본 파일들>에 허용 없음"`.
+  - 허용됐는데 MCP 도구가 세션에 없으면(인증 전 `needs-auth` 등) `skip`이 아니라 `fallback context7 "허용됨(<파일:행>), MCP 미연결 — 사용자가 /mcp 에서 인증 필요 → <대신 확인한 방법>"`.
+- 신규 트랙 8단계에서 CLAUDE.md 를 정리할 때, 의뢰서의 프로젝트 조건(외부 문서 조회 허용 여부, 운영 DB, 인증 방식 등)을 "프로젝트 조건" 절로 남긴다. 뒤 트랙(기능 추가·리팩토링·고도화)이 조건부 판정의 근거로 쓴다.
 - `typescript-lsp`는 이 트랙들에서 쓰지 않는다(정적 JS 를 고칠 때만).
 - `claude-security` 스캔은 Workflow 도구와 `python3` 실행 파일이 있어야 돈다. 없으면 스캔을 흉내 내지 말고 `fallback claude-security:claude-security "<없는 것> → <대신 한 검토>"`를 기록한 뒤 `code-modernization:security-auditor` 등으로 검토하고, 보고서에 해결 방법(예: Windows 는 `python3` 별칭 설치)을 적는다.
 
