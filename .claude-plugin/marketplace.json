@@ -1,13 +1,13 @@
 {
   "name": "claude-plugin-for-fastapi",
   "owner": { "name": "bluebamus" },
-  "metadata": { "description": "FastAPI 레거시 고도화 워크플로용 Claude Code 플러그인과 가이드 문서" },
+  "metadata": { "description": "FastAPI 신규 개발과 레거시 고도화 워크플로용 Claude Code 플러그인과 가이드 문서" },
   "plugins": [
     {
       "name": "stage-pilot",
       "source": "./plugins/stage-pilot",
-      "description": "워크플로 단계별 플러그인 제안·수행 (승인 지점에서 멈춤)",
-      "version": "0.2.0"
+      "description": "신규·레거시(기능 추가·리팩토링·고도화) 워크플로 단계별 플러그인 제안·수행, 완료 확인, 자동 승인 모드",
+      "version": "0.3.0"
     },
     {
       "name": "legacy-onboarding-manual",
