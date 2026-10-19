@@ -1,0 +1,26 @@
+{
+  "g6": {
+    "doc": "docs/scenario-plugin-guide/g6-refactoring-guide.html",
+    "url": "https://github.com/gnuboard/g6.git",
+    "commit": "a4b991a70762f22279c7fffd2d2c5146c3063c07",
+    "note": "그누보드6 6.0.10(2024-07-12). 문서 #facts 의 대상 판",
+    "setup": [
+      "uv venv -q --allow-existing -p 3.11 .venv",
+      "uv pip install -q --python .venv -r requirements.txt fastapi==0.110.3 starlette==0.37.2 pytest httpx",
+      "python -c \"import re;s=open('example.env',encoding='utf-8').read();open('.env','w',encoding='utf-8').write(re.sub(r'^DB_PORT = .*$','DB_PORT = 3306',re.sub(r'^DB_ENGINE = .*$','DB_ENGINE = \\\"sqlite\\\"',s,flags=re.M),flags=re.M))\"",
+      "python -c \"open('.git/info/exclude','a').write('.venv/\\n')\""
+    ],
+    "baseline": [".venv\\Scripts\\python -c \"import main; print('import main ok')\""]
+  },
+  "fastapi-default": {
+    "doc": "docs/scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html",
+    "url": "https://github.com/bluebamus/fastapi-default-project-structure.git",
+    "commit": "49d9ee5",
+    "note": "문서 분석일(2026-10-14) 직전 main(2026-10-13 18:07). 이후 커밋은 문서에 없는 변경",
+    "setup": [
+      "uv sync -q --locked",
+      "python -c \"open('.git/info/exclude','a').write('.venv/\\n')\""
+    ],
+    "baseline": ["uv run pytest -m \"not mysql\" -q -p no:cacheprovider"]
+  }
+}

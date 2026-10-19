@@ -32,7 +32,7 @@ flowchart LR
 flowchart LR
   user(["사용자 브라우저"]) -->|HTTP| app
   admin(["관리자"]) -->|/admin| app
-  subgraph app["g6 (FastAPI 단일 앱)"]
+  subgraph app["myapp (FastAPI 단일 앱)"]
     web["화면 라우터<br/>Jinja 템플릿"]
     api["REST API /api/v1"]
   end
