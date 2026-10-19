@@ -138,7 +138,11 @@ def judge_stage(profile, sid, r, st, docs_lookup, check, since="", mcp=None):
         called = mcp_called(r["tools"], ref) if x["type"] == "mcp" else invoked(r["tools"], ref)
         # MCP 항목은 세션에 실제로 연결됐을 때만 쓸 수 있다(needs-auth 면 미설치와 같이 대체 수행 기록을 요구)
         usable = plugin in AVAILABLE and (x["type"] != "mcp" or any(ref in k and v == "connected" for k, v in (mcp or {}).items()))
-        if not usable:
+        if ref == "context7" and not docs_lookup:
+            # 의뢰서가 문서 조회를 막은 회차는 연결 여부와 상관없이 쓰지 않고 근거를 남기는 것이 정답
+            good = not called and recorded("skip", ref)
+            detail.append((ref, "조건불충족기록" if good else "호출" if called else "판정기록없음"))
+        elif not usable:
             good = called or recorded("fallback", ref)
             detail.append((ref, "미설치→" + ("대체기록" if good else "기록없음")))
         elif x.get("when"):
@@ -182,7 +186,8 @@ def run_track(proj, profile, sc, docs_lookup, n, logdir, rep):
         start = ids[0] if intake else st0["stage"]
         log = os.path.join(logdir, f"{profile}-{sess:02d}-{'intake' if intake else start}.jsonl")
         since = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
-        r = claude(prompt if intake else CONTINUE[(n + sess) % 2], proj, log, 5400)
+        # 한 세션이 여러 단계를 이어서 하므로 L5 규모는 90분을 넘는다 — 제한은 멈춤 감지용
+        r = claude(prompt if intake else CONTINUE[(n + sess) % 2], proj, log, 14400)
         st = state(proj)
         if intake:
             track["intake"] = {"profile_ok": st.get("profile") == profile, "auto": bool(st.get("auto")),

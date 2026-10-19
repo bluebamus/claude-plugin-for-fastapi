@@ -310,7 +310,8 @@ function main(argv) {
     const res = check(map, st, id, cwd);
     for (const r of res) console.log(`${r.ok ? '✓' : '✗'} ${r.label}${r.why ? ` — ${r.why}` : ''}`);
     const ok = res.every((r) => r.ok);
-    console.log(ok ? `${id}단계 완료 확인 통과` : `${id}단계 완료 확인 실패 — 채우지 못한 항목을 마저 하거나, 할 수 없으면 log 로 이유를 남기고 멈춘다`);
+    const last = id === st.stage && !findStage(map, st.profile, st.stage).p.stages[findStage(map, st.profile, st.stage).i + 1];
+    console.log(ok ? `${id}단계 완료 확인 통과 — 다음: stage.js next${last ? ' (마지막 단계 — next 를 해야 트랙 완료가 기록된다. 상태 파일 .claude/stage-pilot/ 은 작업 트리 정리 판정에서 빠지므로 커밋 뒤에 해도 된다)' : ''}` : `${id}단계 완료 확인 실패 — 채우지 못한 항목을 마저 하거나, 할 수 없으면 log 로 이유를 남기고 멈춘다`);
     return ok ? 0 : 1;
   }
   if (cmd === 'next') {

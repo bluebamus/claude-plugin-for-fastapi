@@ -126,6 +126,22 @@ test('check: 문서 내용·ID 추적·.claude 승인 대기 초안을 확인하
   assert.strictEqual(typeof main, 'function');
 });
 
+test('check 통과 시 next 를 안내하고, 마지막 단계는 커밋 뒤에도 next 로 트랙 완료를 기록한다', () => {
+  const cwd = tmp();
+  const git = (...a) => execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...a], { cwd, stdio: 'pipe' });
+  git('init', '-q');
+  execFileSync('node', [SCRIPT, 'set', 'greenfield', '8', '--cwd', cwd]);
+  const sp = path.join(cwd, '.claude', 'stage-pilot', 'state.json');
+  fs.writeFileSync(sp, JSON.stringify({ ...JSON.parse(fs.readFileSync(sp, 'utf8')), test_cmd: 'node -e 0' }));
+  put(cwd, 'CLAUDE.md', '# 프로젝트 조건\n');
+  writeReport(cwd, 'greenfield', '8');
+  git('add', '-A'); git('commit', '-q', '-m', 'x');
+  const out = execFileSync('node', [SCRIPT, 'check', '--cwd', cwd]).toString();
+  assert.match(out, /완료 확인 통과 — 다음: stage\.js next \(마지막 단계/);
+  execFileSync('node', [SCRIPT, 'next', '--cwd', cwd]);
+  assert.strictEqual(JSON.parse(fs.readFileSync(sp, 'utf8')).completed.length, 1, '상태 파일 변경은 정리 판정 밖이라 커밋 뒤에도 완료 기록');
+});
+
 test('feature 트랙은 --work 이름으로 문서 경로를 나누고 next 에서도 유지한다', () => {
   const cwd = tmp();
   execFileSync('node', [SCRIPT, 'set', 'feature', '0', '--work', 'coupon', '--cwd', cwd]);
