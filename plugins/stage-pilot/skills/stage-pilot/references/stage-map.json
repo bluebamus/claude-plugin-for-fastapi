@@ -32,7 +32,7 @@
   "profiles": {
     "greenfield": {
       "title": "신규 프로젝트 — 기획·설계·기술 선정·작업 계획부터 구현·커밋까지 (0~8단계)",
-      "doc": "docs/manual/stage-pilot-manual-v0.3.0.html",
+      "doc": "docs/manual/stage-pilot-manual-v0.3.1.html",
       "kind": "new",
       "keywords": ["새 프로젝트", "신규 프로젝트", "처음부터", "프로젝트를 시작", "새로 만들", "새로 시작", "greenfield"],
       "stages": [
@@ -114,8 +114,9 @@
            {"type": "skill", "ref": "superpowers:receiving-code-review", "note": "지적을 검증한 뒤 반영"},
            {"type": "skill", "ref": "superpowers:verification-before-completion"}],
          "approval": "남은 이슈를 지금 고칠지 미룰지",
-         "done": "리뷰 이슈 표(반영/보류와 근거), 테스트 통과",
-         "checks": [{"test": true}],
+         "done": "리뷰 이슈 표(반영/보류와 근거), 테스트 통과, shortcut 재검토(남은 shortcut: 마다 이 변경에서 적은 비용으로 고칠 수 있으면 고치고, 남기면 이유)",
+         "checks": [{"test": true}, {"testsAvoid": "docs/work/"}],
+         "report": ["shortcut 재검토"],
          "keywords": ["리뷰", "검증", "단순화", "review", "simplify"]},
         {"id": "7", "title": "보안 검토", "anchor": "#gf-7",
          "primary": ["claude-security", "security-guidance"], "assist": ["code-modernization"],
@@ -143,7 +144,7 @@
     },
     "feature": {
       "title": "레거시 기능 추가 — 영향 분석부터 커밋까지 (0~6단계)",
-      "doc": "docs/manual/stage-pilot-manual-v0.3.0.html",
+      "doc": "docs/manual/stage-pilot-manual-v0.3.1.html",
       "kind": "legacy",
       "keywords": ["기능 추가", "기능을 추가", "새 기능", "기능 개발", "feature"],
       "stages": [
@@ -209,8 +210,9 @@
            {"type": "agent", "ref": "code-simplifier:code-simplifier"},
            {"type": "skill", "ref": "superpowers:receiving-code-review"}],
          "approval": "리뷰·보안 발견마다 수정 여부",
-         "done": "이슈 표, 테스트 통과",
-         "checks": [{"test": true}],
+         "done": "이슈 표, 테스트 통과, shortcut 재검토(남은 shortcut: 마다 이 변경에서 적은 비용으로 고칠 수 있으면 고치고, 남기면 이유)",
+         "checks": [{"test": true}, {"testsAvoid": "docs/work/"}],
+         "report": ["shortcut 재검토"],
          "keywords": ["리뷰", "보안", "review"]},
         {"id": "6", "title": "커밋", "anchor": "#ft-6",
          "primary": ["commit-commands"], "assist": ["claude-md-management", "superpowers"],
@@ -219,14 +221,14 @@
            {"type": "command", "ref": "commit-commands:commit"},
            {"type": "command", "ref": "claude-md-management:revise-claude-md", "when": "이번 작업에서 CLAUDE.md 에 남길 규칙·명령·패턴이 생겼을 때"}],
          "approval": "커밋 묶음과 메시지",
-         "done": "작업 트리 정리, 원격 작업 없음",
-         "checks": [{"test": true}, {"clean": true}],
+         "done": "작업 트리 정리, 원격 작업 없음, 배포 영향(설정·환경 변수·마이그레이션·세션/쿠키 무효화·최소 버전)과 릴리스 노트 docs/work/{work}/release-notes.md",
+         "checks": [{"file": "docs/work/{work}/release-notes.md", "has": ["배포 영향"]}, {"test": true}, {"clean": true}],
          "keywords": ["커밋", "commit"]}
       ]
     },
     "enhance": {
       "title": "레거시 고도화 — 성능·안정성·운영성·버전 (0~8단계)",
-      "doc": "docs/manual/stage-pilot-manual-v0.3.0.html",
+      "doc": "docs/manual/stage-pilot-manual-v0.3.1.html",
       "kind": "legacy",
       "keywords": ["고도화", "성능 개선", "최적화", "업그레이드", "안정성", "운영성", "enhance"],
       "stages": [
@@ -313,8 +315,9 @@
            {"type": "agent", "ref": "code-simplifier:code-simplifier"},
            {"type": "skill", "ref": "superpowers:receiving-code-review"}],
          "approval": "발견마다 수정 여부",
-         "done": "이슈 표, 테스트 통과",
-         "checks": [{"test": true}],
+         "done": "이슈 표, 테스트 통과, shortcut 재검토(남은 shortcut: 마다 이 변경에서 적은 비용으로 고칠 수 있으면 고치고, 남기면 이유)",
+         "checks": [{"test": true}, {"testsAvoid": "docs/work/"}],
+         "report": ["shortcut 재검토"],
          "keywords": ["보안", "리뷰"]},
         {"id": "8", "title": "커밋", "anchor": "#en-8",
          "primary": ["commit-commands"], "assist": ["claude-md-management"],
@@ -323,8 +326,8 @@
            {"type": "command", "ref": "commit-commands:commit"},
            {"type": "command", "ref": "claude-md-management:revise-claude-md", "when": "이번 작업에서 CLAUDE.md 에 남길 규칙·명령·패턴이 생겼을 때"}],
          "approval": "커밋 묶음",
-         "done": "작업 트리 정리, 원격 작업 없음",
-         "checks": [{"test": true}, {"clean": true}],
+         "done": "작업 트리 정리, 원격 작업 없음, 배포 영향(설정·환경 변수·마이그레이션·세션/쿠키 무효화·최소 버전)과 릴리스 노트 docs/work/{work}/release-notes.md",
+         "checks": [{"file": "docs/work/{work}/release-notes.md", "has": ["배포 영향"]}, {"test": true}, {"clean": true}],
          "keywords": ["커밋", "commit"]}
       ]
     },
@@ -464,8 +467,9 @@
            {"type": "skill", "ref": "superpowers:verification-before-completion"},
            {"type": "command", "ref": "claude-md-management:revise-claude-md"}],
          "approval": "남은 이슈를 지금 고칠지 미룰지, CLAUDE.md 반영 항목",
-         "done": "pytest·ruff·pyright 통과, 리뷰 이슈 표",
-         "checks": [{"test": true}],
+         "done": "pytest·ruff·pyright 통과, 리뷰 이슈 표, shortcut 재검토(남은 shortcut: 마다 이 변경에서 적은 비용으로 고칠 수 있으면 고치고, 남기면 이유)",
+         "checks": [{"test": true}, {"testsAvoid": "docs/work/"}],
+         "report": ["shortcut 재검토"],
          "keywords": ["단순화", "리뷰", "정리", "검증", "simplify", "review", "과설계"]},
         {"id": "11", "title": "논리적 커밋 단위 분리", "anchor": "#s11",
          "primary": ["commit-commands"], "assist": ["superpowers", "ponytail"],
@@ -475,8 +479,8 @@
            {"type": "command", "ref": "commit-commands:commit"},
            {"type": "skill", "ref": "superpowers:finishing-a-development-branch", "note": "1번(로컬 병합)만"}],
          "approval": "묶음 구성과 순서, 커밋 메시지",
-         "done": "모든 커밋에서 테스트 통과, 원격 push 없음",
-         "checks": [{"test": true}, {"clean": true}],
+         "done": "모든 커밋에서 테스트 통과, 원격 push 없음, 배포 영향(설정·환경 변수·마이그레이션·세션/쿠키 무효화·최소 버전)과 릴리스 노트 docs/work/{work}/release-notes.md",
+         "checks": [{"file": "docs/work/{work}/release-notes.md", "has": ["배포 영향"]}, {"test": true}, {"clean": true}],
          "keywords": ["커밋", "commit", "브랜치 마무리", "이력"]}
       ]
     }

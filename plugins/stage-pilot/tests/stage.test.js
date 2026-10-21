@@ -221,3 +221,31 @@ test('테스트 명령: --test 로 준 명령을 트랙이 바뀌어도 쓰고, 
   const st = JSON.parse(fs.readFileSync(sp, 'utf8'));
   assert.deepStrictEqual([st.profile, S.testCommand(cwd, st)], ['enhance', 'uv run pytest -m "not mysql" -q']);
 });
+
+test('리뷰 단계: 테스트가 docs/work 를 읽으면 실패하고, 보고서에 shortcut 재검토 절이 있어야 한다', () => {
+  const cwd = tmp();
+  const avoid = { testsAvoid: 'docs/work/' };
+  put(cwd, 'tests/test_a.py', 'def test_a():\n    assert True\n');
+  assert.ok(S.runCheck(cwd, {}, avoid).ok);
+  put(cwd, 'tests/test_b.py', 'NAMES = open("docs/work/x/names.txt").read()\n');
+  assert.ok(!S.runCheck(cwd, {}, avoid).ok, '작업 문서를 읽는 테스트는 실패');
+  const st = { profile: 'feature', work: 'w' };
+  const { s } = S.findStage(map, 'feature', '5');
+  const report = { file: 'docs/stage-pilot/w/feature-5.md', has: ['호출한 플러그인', '완료 기준', ...s.report] };
+  writeReport(cwd, 'feature', '5', 'w');
+  assert.ok(!S.runCheck(cwd, st, report).ok, 'shortcut 재검토 절이 없으면 실패');
+  put(cwd, 'docs/stage-pilot/w/feature-5.md', '호출한 플러그인: x\n완료 기준: 충족\n## shortcut 재검토\n없음\n');
+  assert.ok(S.runCheck(cwd, st, report).ok);
+});
+
+test('레거시 커밋 단계: 릴리스 노트에 배포 영향이 있어야 한다', () => {
+  const cwd = tmp();
+  for (const [p, id] of [['feature', '6'], ['enhance', '8'], ['default', '11']]) {
+    const c = S.findStage(map, p, id).s.checks.find((x) => x.file);
+    assert.strictEqual(c.file, 'docs/work/{work}/release-notes.md', `${p}/${id}`);
+  }
+  const c = S.findStage(map, 'feature', '6').s.checks[0];
+  assert.ok(!S.runCheck(cwd, { profile: 'feature', work: 'w' }, c).ok);
+  put(cwd, 'docs/work/w/release-notes.md', '## 배포 영향\n없음\n');
+  assert.ok(S.runCheck(cwd, { profile: 'feature', work: 'w' }, c).ok);
+});

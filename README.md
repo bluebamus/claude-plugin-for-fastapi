@@ -34,7 +34,7 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
   - `.claude/` 쓰기가 막혔을 때의 승인 대기 초안
 - **하지 않는 일:** 원격 저장소 작업, 데이터 삭제, 사용자 전용 명령은 자동 모드에서도 하지 않습니다.
 
-자세한 사용법은 **[stage-pilot 사용 매뉴얼 v0.3.0](docs/manual/stage-pilot-manual-v0.3.0.html)** 에 있습니다. 이전 판은 [v0.2.0](docs/manual/stage-pilot-manual-v0.2.0.html)입니다.
+자세한 사용법은 **[stage-pilot 사용 매뉴얼 v0.3.1](docs/manual/stage-pilot-manual-v0.3.1.html)** 에 있습니다. 이전 판은 [v0.2.0](docs/manual/stage-pilot-manual-v0.2.0.html)입니다.
 
 ## 구성
 
@@ -43,7 +43,7 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 | `docs/default/fastapi-claude-plugins-guide.html` | 통합 가이드: 플러그인 선정, 상세, 확장 검토, 역할 경계, 진입 전 매뉴얼, 0~11단계 워크플로 |
 | `docs/scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html` | 실전 평가 시나리오(검증 전용): 계층 구조가 이미 있는 FastAPI 저장소 개선 — 플러그인은 이 문서에 의존하지 않는다 |
 | `docs/scenario-plugin-guide/g6-refactoring-guide.html` | 실전 평가 시나리오(검증 전용): 테스트 없는 레거시(g6)의 슬라이스 단위 리팩토링 |
-| `docs/manual/stage-pilot-manual-v0.3.0.html` | stage-pilot 사용 매뉴얼 (트랙별 단계 설명, 모드, 완료 확인, 단계 전체 표, 검증 결과, 문제 해결) |
+| `docs/manual/stage-pilot-manual-v0.3.1.html` | stage-pilot 사용 매뉴얼 (트랙별 단계 설명, 모드, 완료 확인, 단계 전체 표, 검증 결과, 문제 해결) |
 | `plugins/stage-pilot/` | 단계별 플러그인 제안·수행 플러그인 |
 | `plugins/legacy-onboarding-manual/` | 레거시 프로젝트 분석 결과를 Mermaid 도식 HTML 매뉴얼로 만드는 스킬과 검사 스크립트 |
 | `eval/` | stage-pilot 평가 도구와 결과(`RESULTS.md`). 실전 평가는 `eval/real/`(두 시나리오 문서의 실제 저장소·과제, 계획은 `PLAN.md`) |

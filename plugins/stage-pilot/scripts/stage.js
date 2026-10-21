@@ -62,6 +62,7 @@ function fmtRun(r, st) {
 function fmtCheck(c, st) {
   if (c.test) return '테스트 통과';
   if (c.clean) return '작업 트리 정리(커밋되지 않은 변경 없음)';
+  if (c.testsAvoid) return `테스트가 ${c.testsAvoid} 를 읽지 않음(기준 데이터는 tests/ 아래)`;
   if (c.trace) return `${c.trace} 추적: ${sub(c.from, st)} 의 ID 가 모두 ${c.to.map((t) => sub(t, st)).join(', ')} 에 있음`;
   return `${sub(c.file, st)}${c.has ? ` 에 ${c.has.join(' · ')}` : ' 있음'}`;
 }
@@ -80,7 +81,7 @@ function card(map, profile, id, installed, st = {}) {
     '실행 순서:', ...s.run.map((r, n) => `  ${n + 1}. ${fmtRun(r, view)}`),
     `승인 지점(STOP): ${s.approval}`,
     `완료 기준: ${s.done}`,
-    `완료 확인(check): ${[...(s.checks || []).map((c) => fmtCheck(c, view)), `단계 보고서 ${reportPath(view, s.id)}`].join(' / ')}`,
+    `완료 확인(check): ${[...(s.checks || []).map((c) => fmtCheck(c, view)), `단계 보고서 ${reportPath(view, s.id)}${s.report ? ` (${s.report.join(' · ')} 절 포함)` : ''}`].join(' / ')}`,
     `모드: ${st.auto ? '자동 승인 — 승인 지점에서 멈추지 않고 기본 원칙으로 결정한 뒤 log 로 기록' : '제안 (승인 지점에서 멈춤)'}`,
     `비용 승인 기록: ${(st.consent || []).length ? (st.consent || []).map((c) => `"${c.text}" (${c.at.slice(0, 10)})`).join(' / ') : '없음 — 비용 확인을 요구하는 스캔(claude-security)은 사용자가 직접 승인해야 실행'}`,
   ];
@@ -192,7 +193,7 @@ function plan(map, st, id) {
     profile: st.profile, stage: s.id, title: s.title, work: workOf(st), approval: s.approval, done: s.done,
     invoke: s.run.filter((r) => INVOKE.includes(r.type)).map(view),
     other: s.run.filter((r) => !INVOKE.includes(r.type)).map(view),
-    checks: [...(s.checks || []).map((c) => fmtCheck(c, st)), `단계 보고서 ${reportPath(st, s.id)}`],
+    checks: [...(s.checks || []).map((c) => fmtCheck(c, st)), `단계 보고서 ${reportPath(st, s.id)}${s.report ? ` (${s.report.join(' · ')} 절 포함)` : ''}`],
     report: reportPath(st, s.id),
     record: '조건(when)이 맞지 않아 쓰지 않은 항목은 stage.js skip <ref> "<근거>", 같은 트랙 앞 단계에서 이미 실행해 결과가 최신인 항목은 stage.js reuse <ref> "<앞 단계·산출물·최신 확인>", 호출할 수 없어 직접 한 항목은 stage.js fallback <ref> "<이유 → 한 일>" — 항목마다 ref 그대로',
   };
@@ -258,6 +259,11 @@ function runCheck(cwd, st, c) {
     const left = (r.stdout || '').split(/\r?\n/).filter((l) => l.trim() && !/\s\.claude\//.test(l));
     return { ok: r.status === 0 && !left.length, why: left.length ? `커밋 안 된 변경 ${left.length}개: ${left.slice(0, 3).join(', ')}` : '' };
   }
+  if (c.testsAvoid) {
+    // 작업 문서(docs/work)는 정리될 수 있으므로 테스트 기준값을 거기서 읽으면 나중에 깨진다
+    const hit = testText(cwd).split(/\r?\n/).filter((l) => l.includes(c.testsAvoid));
+    return { ok: !hit.length, why: hit.length ? `테스트에서 ${c.testsAvoid} 참조 ${hit.length}곳: ${hit[0].trim().slice(0, 100)}` : '' };
+  }
   if (c.trace) {
     const from = resolveFile(cwd, sub(c.from, st));
     if (!from) return { ok: false, why: `${sub(c.from, st)} 없음` };
@@ -281,7 +287,7 @@ function runCheck(cwd, st, c) {
 
 function check(map, st, id, cwd) {
   const { s } = findStage(map, st.profile, id);
-  const items = [...(s.checks || []), { file: reportPath(st, s.id), has: ['호출한 플러그인', '완료 기준'] }];
+  const items = [...(s.checks || []), { file: reportPath(st, s.id), has: ['호출한 플러그인', '완료 기준', ...(s.report || [])] }];
   return items.map((c) => ({ label: fmtCheck(c, st), ...runCheck(cwd, st, c) }));
 }
 

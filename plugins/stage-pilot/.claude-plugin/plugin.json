@@ -1,6 +1,6 @@
 {
   "name": "stage-pilot",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "FastAPI 신규 프로젝트(기획·설계·기술 선정·작업 계획→구현·검증·보안·커밋)와 레거시 기능 추가·리팩토링·고도화의 단계마다 필요한 플러그인을 제안하고, 요청하면 그 플러그인으로 단계를 수행한다(승인 지점에서 멈추거나 자동 승인). 완료 확인을 통과해야 다음 단계로 간다.",
   "author": { "name": "bluebamus" },
   "license": "UNLICENSED"

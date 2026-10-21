@@ -88,16 +88,19 @@ def expect_ok(proj, e, base=None):
     return len(fs) >= e.get("min", 1)
 
 
-def audit(proj, base, case, st):
+def audit(proj, base, case, st, t0=None):
     r = subprocess.run(st.get("test_cmd") or _test_cmd(proj), cwd=proj, shell=True, capture_output=True, text=True,
                        encoding="utf-8", errors="replace", timeout=3600)
     tail = (r.stdout + r.stderr).strip().splitlines()[-1:] or [""]
     diff = rt.git(proj, "diff", "--shortstat", base, "HEAD")
+    # 세션이 이미 있던 브랜치(사람 커밋 포함)에 병합하면 base..HEAD 에 회차 전 커밋이 섞여 diff 가 부풀려진다
+    pre = sum(int(t) < t0 for t in rt.git(proj, "log", "--format=%ct", f"{base}..HEAD").split()) if t0 else 0
     items = {f"{track}:{json.dumps(e, ensure_ascii=False)}": expect_ok(proj, e, base)
              for track, es in case.get("expect", {}).items() for e in es}
     ids = sorted({m for f in files(proj, "docs/**/*.md") for m in re.findall(r"\b[RFE]-\d+\b", open(f, encoding="utf-8", errors="replace").read())})
     return {"tests_ok": r.returncode == 0, "tests_tail": tail[0][-200:], "test_cmd": st.get("test_cmd") or _test_cmd(proj),
             "commits_added": rt.git(proj, "rev-list", "--count", f"{base}..HEAD"), "diff": diff,
+            "commits_preexisting": pre, **({"warning": f"base..HEAD 에 회차 전 커밋 {pre}개 — diff 는 세션 변경만이 아님"} if pre else {}),
             "trace_ids": len(ids), "expect": items}
 
 
@@ -196,7 +199,7 @@ def run_case(cid, out):
     expected = sum(len(rt.MAP["profiles"][p]["stages"]) for p in tracks)
     rep.setdefault("env_repairs", []).extend(venv_guard(proj))
     rep["infra_at_audit"] = ensure_infra()  # 회차 중 세션이 테스트 DB 를 내렸어도 감사 테스트는 같은 조건에서
-    rep["audit"] = audit(proj, base, case, rt.state(proj))
+    rep["audit"] = audit(proj, base, case, rt.state(proj), t0)
     a = rep["audit"]
     rep["stages_passed"] = len(stages) >= expected and all(all(s["checks"].values()) for s in stages)
     rep["passed"] = rep["stages_passed"] and a["tests_ok"] and all(a["expect"].values())
