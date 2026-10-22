@@ -72,7 +72,17 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 /stage-pilot:stage run                        # 플러그인을 호출해 단계 수행 (승인 지점에서 멈춤)
 /stage-pilot:stage check                      # 완료 확인
 /stage-pilot:stage next                       # 완료 확인을 통과하면 다음 단계
+
+# 레거시 프로젝트를 처음 맡았을 때 (legacy-onboarding-manual)
+이 프로젝트를 처음 보는 사람이 코드를 만지기 전에 읽을 온보딩 매뉴얼로 정리해줘. 소스는 고치지 마.
 ```
+
+온보딩 매뉴얼은 `docs/onboarding/<이름>-onboarding-manual.html` 한 파일로 나옵니다. 구성도, 요청 시퀀스, ERD, 트랜잭션 경계를 Mermaid로 그리고, 설명마다 `file:line` 근거를 붙입니다.
+
+## 주의
+
+- **Windows에서 hookify 규칙.** stage-pilot이 만든 hookify 규칙(원격 push 차단 등)이 실제로 막으려면 두 가지가 필요합니다. 첫째, `python3`가 Microsoft Store 바로가기가 아니라 실제 Python을 실행해야 합니다. 둘째, 사용자 환경 변수 `PYTHONUTF8=1`이 있어야 합니다. 둘 중 하나라도 없으면 규칙이 조용히 무시됩니다([매뉴얼 18장](docs/manual/stage-pilot-manual-v0.3.1.html#troubleshoot)).
+- **다른 워크플로 플러그인과 함께 쓸 때.** 모든 작업 요청을 자기 절차로 처리하라고 지시하는 플러그인이 함께 켜져 있으면, stage-pilot의 트랙 추천이 밀릴 수 있습니다. 요청에 "stage-pilot으로"를 넣거나, 그 프로젝트에서는 플러그인을 하나만 켭니다([매뉴얼 19장](docs/manual/stage-pilot-manual-v0.3.1.html#limits)).
 
 ## 검증
 
@@ -94,6 +104,12 @@ python plugins/legacy-onboarding-manual/skills/legacy-onboarding-manual/scripts/
 - 채점에는 단계 판정과 산출물 감사(테스트 재실행, 커밋, 추적 ID, 기대 조건)를 함께 씁니다.
 
 **평가 요약 (v0.3.0):** 최종본(판 L)으로 실전 6회차를 모두 통과했습니다(1~5회차 5회 연속, 6회차는 환경 손상을 바로잡은 뒤 재판정). 난이도는 중·상·최상이고, 회차마다 29~38단계를 진행했으며 테스트 재실행 결과는 82~1,237건 통과입니다. 평가 중 찾은 결함 6건은 플러그인에서 고쳤습니다.
+
+**v0.3.1:** 평가에서 생성된 코드를 사람 리뷰어 관점으로 검토했고, 거기서 나온 약점을 완료 조건으로 바꿨습니다.
+- 리뷰 단계: 남긴 `shortcut:`을 다시 보고, 테스트가 `docs/work/`를 읽지 않게 합니다.
+- 레거시 커밋 단계: 릴리스 노트에 "배포 영향"을 적습니다.
+
+변경 회귀 확인으로 바뀐 단계 7곳을 모두 지나는 실전 2회차(연쇄형 g6)를 다시 돌렸고, 38단계 모두 통과했습니다(114분, 테스트 재실행 95건 통과). 새 조건 3가지도 모두 지켜졌습니다. 다만 1회 확인이며, 5회 연속 기준의 재평가는 아닙니다.
 
 결과와 진단 이력은 `eval/RESULTS.md`에 있습니다. v0.2.0의 단계별 평가 도구(`eval/gen_legacy.py`, `eval/run_eval.py`)도 함께 남겨 두었습니다.
 
