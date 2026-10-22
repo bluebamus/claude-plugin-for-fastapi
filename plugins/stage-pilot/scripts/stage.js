@@ -131,8 +131,11 @@ function intake(map, prompt, info) {
     .map(([name, p]) => ({ name, p, hits: (p.keywords || []).filter((k) => text.includes(k.toLowerCase())).length }))
     .filter((x) => x.hits).sort((a, b) => b.hits - a.hits)[0];
   if (!hit && !/stage-pilot|단계|워크플로/.test(text)) return null;
-  const name = hit ? hit.name : (info.kind === 'new' ? 'greenfield' : 'default');
-  return { profile: name, mismatch: map.profiles[name].kind !== info.kind, auto: /자동 ?승인|자동으로|auto/.test(text) };
+  const auto = /자동 ?승인|자동으로|auto/.test(text);
+  // 키워드가 없으면 레거시 트랙을 짐작하지 않는다 — 기능 추가 요청을 리팩토링으로 안내한 사례가 있었다
+  if (!hit && info.kind !== 'new') return { profile: null, auto };
+  const name = hit ? hit.name : 'greenfield';
+  return { profile: name, mismatch: map.profiles[name].kind !== info.kind, auto };
 }
 
 // 사용자가 요청에서 시간·토큰 비용을 직접 승인했는지(스캔 등 비용 확인을 요구하는 스킬용)
@@ -150,6 +153,11 @@ function intakeText(map, prompt, cwd) {
   if (!r) return '';
   const p = map.profiles[r.profile];
   const state = info.kind === 'new' ? '빈 프로젝트(파이썬 파일 0개)' : `레거시(파이썬 ${info.py}개, 테스트 ${info.tests}개, FastAPI ${info.fastapi ? '사용' : '미확인'})`;
+  if (!r.profile) {
+    const opts = ['feature', 'default', 'enhance'].map((n) => `${n}(${map.profiles[n].title.split(' — ')[0]}, 첫 단계 ${map.profiles[n].stages[0].id})`).join(', ');
+    return `[stage-pilot] 프로젝트 상태: ${state}. 요청에서 트랙을 정하지 못함 — 레거시 트랙 중 요청 내용에 맞는 것을 고를 것: ${opts}. ` +
+      `stage-pilot 스킬을 불러 node stage.js set <트랙> <첫 단계>${r.auto ? ' --auto' : ''} (기능 추가·고도화는 --work <짧은-영문-작업명>) 로 시작. 요청만으로 판단이 어려우면 사용자에게 한 번 물을 것.` + consentNote(prompt);
+  }
   const named = r.profile === 'feature' || r.profile === 'enhance' ? ' --work <짧은-영문-작업명>' : '';
   return `[stage-pilot] 프로젝트 상태: ${state}. 추천 트랙: ${r.profile} — ${p.title}.` +
     (r.mismatch ? ` 주의: 요청은 ${p.kind === 'new' ? '신규' : '레거시'} 트랙인데 프로젝트는 ${info.kind === 'new' ? '비어 있음' : '코드가 있음'} — 트랙을 확인할 것.` : '') +

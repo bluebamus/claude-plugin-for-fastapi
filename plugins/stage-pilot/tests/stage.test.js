@@ -101,6 +101,11 @@ test('상태가 없을 때: 빈 폴더 + 신규 요청은 greenfield, 코드가 
   assert.doesNotMatch(t, /--auto/, '자동 승인을 요청하지 않으면 --auto 를 붙이지 않음');
   assert.match(hook('prompt', { cwd: legacy, prompt: '새 프로젝트를 만들자' }), /주의: 요청은 신규 트랙인데 프로젝트는 코드가 있음/);
   assert.strictEqual(hook('prompt', { cwd: legacy, prompt: '오늘 날씨 어때' }), '', '관계없는 요청에는 개입하지 않음');
+  // GitHub 설치 검증에서 기능 추가 요청을 리팩토링으로 추천한 사례
+  assert.match(hook('prompt', { cwd: legacy, prompt: 'stage-pilot으로 상품 목록 조회에 페이지네이션을 추가하는 기능 작업을 하려고 해. 0단계 진행해줘.' }), /추천 트랙: feature/);
+  const vague = hook('prompt', { cwd: legacy, prompt: 'stage-pilot으로 진행해줘' });
+  assert.match(vague, /트랙을 정하지 못함.*feature.*default.*enhance/s);
+  assert.doesNotMatch(vague, /추천 트랙/, '키워드가 없으면 레거시 트랙을 짐작하지 않음');
   assert.strictEqual(S.detect(empty).kind, 'new');
 });
 

@@ -34,7 +34,7 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
   - `.claude/` 쓰기가 막혔을 때의 승인 대기 초안
 - **하지 않는 일:** 원격 저장소 작업, 데이터 삭제, 사용자 전용 명령은 자동 모드에서도 하지 않습니다.
 
-자세한 사용법은 **[stage-pilot 사용 매뉴얼 v0.3.1](docs/manual/stage-pilot-manual-v0.3.1.html)** 에 있습니다. 이전 판은 [v0.2.0](docs/manual/stage-pilot-manual-v0.2.0.html)입니다.
+자세한 사용법은 **[stage-pilot 사용 매뉴얼 v0.3.2](docs/manual/stage-pilot-manual-v0.3.2.html)** 에 있습니다. 이전 판은 [v0.2.0](docs/manual/stage-pilot-manual-v0.2.0.html)입니다.
 
 ## 구성
 
@@ -43,7 +43,7 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 | `docs/default/fastapi-claude-plugins-guide.html` | 통합 가이드: 플러그인 선정, 상세, 확장 검토, 역할 경계, 진입 전 매뉴얼, 0~11단계 워크플로 |
 | `docs/scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html` | 실전 평가 시나리오(검증 전용): 계층 구조가 이미 있는 FastAPI 저장소 개선 — 플러그인은 이 문서에 의존하지 않는다 |
 | `docs/scenario-plugin-guide/g6-refactoring-guide.html` | 실전 평가 시나리오(검증 전용): 테스트 없는 레거시(g6)의 슬라이스 단위 리팩토링 |
-| `docs/manual/stage-pilot-manual-v0.3.1.html` | stage-pilot 사용 매뉴얼 (트랙별 단계 설명, 모드, 완료 확인, 단계 전체 표, 검증 결과, 문제 해결) |
+| `docs/manual/stage-pilot-manual-v0.3.2.html` | stage-pilot 사용 매뉴얼 (트랙별 단계 설명, 모드, 완료 확인, 단계 전체 표, 검증 결과, 문제 해결) |
 | `plugins/stage-pilot/` | 단계별 플러그인 제안·수행 플러그인 |
 | `plugins/legacy-onboarding-manual/` | 레거시 프로젝트 분석 결과를 Mermaid 도식 HTML 매뉴얼로 만드는 스킬과 검사 스크립트 |
 | `eval/` | stage-pilot 평가 도구와 결과(`RESULTS.md`). 실전 평가는 `eval/real/`(두 시나리오 문서의 실제 저장소·과제, 계획은 `PLAN.md`) |
@@ -81,8 +81,8 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 
 ## 주의
 
-- **Windows에서 hookify 규칙.** stage-pilot이 만든 hookify 규칙(원격 push 차단 등)이 실제로 막으려면 두 가지가 필요합니다. 첫째, `python3`가 Microsoft Store 바로가기가 아니라 실제 Python을 실행해야 합니다. 둘째, 사용자 환경 변수 `PYTHONUTF8=1`이 있어야 합니다. 둘 중 하나라도 없으면 규칙이 조용히 무시됩니다([매뉴얼 18장](docs/manual/stage-pilot-manual-v0.3.1.html#troubleshoot)).
-- **다른 워크플로 플러그인과 함께 쓸 때.** 모든 작업 요청을 자기 절차로 처리하라고 지시하는 플러그인이 함께 켜져 있으면, stage-pilot의 트랙 추천이 밀릴 수 있습니다. 요청에 "stage-pilot으로"를 넣거나, 그 프로젝트에서는 플러그인을 하나만 켭니다([매뉴얼 19장](docs/manual/stage-pilot-manual-v0.3.1.html#limits)).
+- **Windows에서 hookify 규칙.** stage-pilot이 만든 hookify 규칙(원격 push 차단 등)이 실제로 막으려면 두 가지가 필요합니다. 첫째, `python3`가 Microsoft Store 바로가기가 아니라 실제 Python을 실행해야 합니다. 둘째, 사용자 환경 변수 `PYTHONUTF8=1`이 있어야 합니다. 둘 중 하나라도 없으면 규칙이 조용히 무시됩니다([매뉴얼 18장](docs/manual/stage-pilot-manual-v0.3.2.html#troubleshoot)).
+- **다른 워크플로 플러그인과 함께 쓸 때.** 모든 작업 요청을 자기 절차로 처리하라고 지시하는 플러그인이 함께 켜져 있으면, stage-pilot의 트랙 추천이 밀릴 수 있습니다. 요청에 "stage-pilot으로"를 넣거나, 그 프로젝트에서는 플러그인을 하나만 켭니다([매뉴얼 19장](docs/manual/stage-pilot-manual-v0.3.2.html#limits)).
 
 ## 검증
 
@@ -110,6 +110,8 @@ python plugins/legacy-onboarding-manual/skills/legacy-onboarding-manual/scripts/
 - 레거시 커밋 단계: 릴리스 노트에 "배포 영향"을 적습니다.
 
 변경 회귀 확인으로 바뀐 단계 7곳을 모두 지나는 실전 2회차(연쇄형 g6)를 다시 돌렸고, 38단계 모두 통과했습니다(114분, 테스트 재실행 95건 통과). 새 조건 3가지도 모두 지켜졌습니다. 다만 1회 확인이며, 5회 연속 기준의 재평가는 아닙니다.
+
+**v0.3.2:** README 명령으로 GitHub에서 설치한 두 플러그인을 실제 세션에서 확인했습니다. 그 과정에서 트랙 키워드가 없는 기능 추가 요청을 리팩토링으로 추천하는 문제를 찾아 고쳤습니다. 이제 레거시 프로젝트에서 키워드가 없으면 하나로 단정하지 않고, 세 트랙 중 고르라고 안내합니다.
 
 결과와 진단 이력은 `eval/RESULTS.md`에 있습니다. v0.2.0의 단계별 평가 도구(`eval/gen_legacy.py`, `eval/run_eval.py`)도 함께 남겨 두었습니다.
 

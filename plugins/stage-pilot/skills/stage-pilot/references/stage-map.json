@@ -32,7 +32,7 @@
   "profiles": {
     "greenfield": {
       "title": "신규 프로젝트 — 기획·설계·기술 선정·작업 계획부터 구현·커밋까지 (0~8단계)",
-      "doc": "docs/manual/stage-pilot-manual-v0.3.1.html",
+      "doc": "docs/manual/stage-pilot-manual-v0.3.2.html",
       "kind": "new",
       "keywords": ["새 프로젝트", "신규 프로젝트", "처음부터", "프로젝트를 시작", "새로 만들", "새로 시작", "greenfield"],
       "stages": [
@@ -144,9 +144,9 @@
     },
     "feature": {
       "title": "레거시 기능 추가 — 영향 분석부터 커밋까지 (0~6단계)",
-      "doc": "docs/manual/stage-pilot-manual-v0.3.1.html",
+      "doc": "docs/manual/stage-pilot-manual-v0.3.2.html",
       "kind": "legacy",
-      "keywords": ["기능 추가", "기능을 추가", "새 기능", "기능 개발", "feature"],
+      "keywords": ["기능 추가", "기능을 추가", "새 기능", "기능 개발", "기능 작업", "추가하는 기능", "기능을 넣", "기능을 만들", "api 추가", "엔드포인트 추가", "feature"],
       "stages": [
         {"id": "0", "title": "영향 분석", "anchor": "#ft-0",
          "primary": ["feature-dev", "pyright-lsp"], "assist": ["pr-review-toolkit"],
@@ -228,7 +228,7 @@
     },
     "enhance": {
       "title": "레거시 고도화 — 성능·안정성·운영성·버전 (0~8단계)",
-      "doc": "docs/manual/stage-pilot-manual-v0.3.1.html",
+      "doc": "docs/manual/stage-pilot-manual-v0.3.2.html",
       "kind": "legacy",
       "keywords": ["고도화", "성능 개선", "최적화", "업그레이드", "안정성", "운영성", "enhance"],
       "stages": [
