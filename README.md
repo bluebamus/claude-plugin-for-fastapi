@@ -107,23 +107,53 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 
 마켓플레이스 주소 뒤에 `#php`를 붙이면 기본 브랜치 대신 `php` 브랜치에서 플러그인을 받습니다.
 
+**기본판(`main`)을 이미 설치했다면 업데이트로는 바뀌지 않습니다.** 마켓플레이스는 등록할 때 정한 브랜치만 따라가므로, `#php` 없이 등록했다면 업데이트해도 계속 `main`(0.3.2)을 받습니다. 등록한 브랜치만 바꾸는 명령은 없고, 두 판은 마켓플레이스 이름(`claude-plugin-for-fastapi`)이 같아 함께 등록할 수도 없습니다. 그래서 **기존 마켓플레이스를 지우고 `#php`로 다시 등록한 뒤 설치**합니다. 마켓플레이스를 지우면 거기서 설치한 플러그인도 함께 제거되므로 플러그인을 따로 지울 필요는 없습니다. 처음 설치한다면 아래 각 방법의 `remove` 줄만 건너뜁니다.
+
+#### 방법 A. Claude Code 세션 안에서 (권장)
+
 ```
+/plugin marketplace remove claude-plugin-for-fastapi
 /plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
 /plugin install stage-pilot@claude-plugin-for-fastapi
 /plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
 ```
 
-**이미 기본판(`main`)을 설치했다면** 두 판은 마켓플레이스 이름(`claude-plugin-for-fastapi`)이 같아 함께 등록할 수 없습니다. 기존 등록을 지운 뒤 위 명령을 실행합니다. 마켓플레이스를 지우면 거기서 설치한 플러그인도 함께 제거되므로, 위의 `install` 두 줄로 다시 설치합니다.
+`install` 줄은 플러그인 정보 화면을 엽니다. 설치 범위(사용자·프로젝트·로컬)는 **예전과 같은 범위**를 고릅니다. 안내가 나오면 `/reload-plugins`를 실행합니다.
+
+#### 방법 B. 셸에서 (세션 밖, 스크립트용)
 
 ```
+claude plugin marketplace remove claude-plugin-for-fastapi
+claude plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
+claude plugin install stage-pilot@claude-plugin-for-fastapi
+claude plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
+```
+
+기본 범위는 사용자 범위입니다. 프로젝트 범위로 설치했었다면 `install` 줄에 `--scope project`를 붙입니다. 설치한 플러그인은 다음 세션부터, 또는 열린 세션에서 `/reload-plugins`를 실행한 뒤부터 적용됩니다.
+
+#### 방법 C. 로컬 클론으로 (판을 자주 바꿀 때)
+
+```
+git clone -b php https://github.com/bluebamus/claude-plugin-for-fastapi C:/work/claude-plugin-for-fastapi
 /plugin marketplace remove claude-plugin-for-fastapi
+/plugin marketplace add C:/work/claude-plugin-for-fastapi
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
 ```
 
-**설치 확인:** `/plugin`의 **Installed** 탭에서 stage-pilot이 `0.3.3`, legacy-onboarding-manual이 `0.1.1`이면 PHP 지원판입니다. 셸에서는 `claude plugin list`의 `Version` 줄로 확인합니다.
+로컬 경로로 등록한 마켓플레이스는 폴더의 파일을 바로 읽습니다. 그래서 이후에는 지우고 다시 설치할 필요 없이, 그 폴더에서 `git checkout php` 또는 `git checkout main`으로 판을 바꾸고 `/reload-plugins`만 하면 됩니다. 대신 GitHub의 새 버전은 자동으로 오지 않으므로 그 폴더에서 `git pull`로 받습니다.
 
-**기본판으로 돌아가려면** 같은 방법으로 마켓플레이스를 지우고 `#php` 없이 [방법 1](#방법-1-github-마켓플레이스로-설치-권장)로 다시 설치합니다.
+#### 바뀌었는지 확인
 
-PHP 프로젝트에서 무엇이 지원되고 무엇이 아직 Python 기준인지는 [주의](#주의)의 「PHP(CodeIgniter) 프로젝트」 항목에 있습니다.
+- `/plugin`의 **Installed** 탭이나 셸의 `claude plugin list`에서 stage-pilot이 `0.3.3`, legacy-onboarding-manual이 `0.1.1`이면 PHP 지원판입니다.
+- `/plugin`의 **Marketplaces** 탭에서 `claude-plugin-for-fastapi`의 출처가 `...#php`(방법 C는 로컬 경로)로 보여야 합니다.
+
+#### 참고
+
+- **작업 기록은 남습니다.** 마켓플레이스를 지워도 프로젝트의 `.claude/stage-pilot/state.json`과 `docs/`의 단계 문서는 그대로라, PHP 지원판으로 다시 설치한 뒤 하던 트랙을 이어갈 수 있습니다.
+- **프로젝트 범위 설정도 그대로 쓰입니다.** 프로젝트 범위로 설치해 `.claude/settings.json`에 기록되어 있었다면, 플러그인 이름이 같으므로 다시 설치한 뒤 그 기록이 그대로 적용됩니다.
+- **기본판으로 돌아가려면** 같은 방법으로 마켓플레이스를 지우고 `#php` 없이 [방법 1](#방법-1-github-마켓플레이스로-설치-권장)로 다시 설치합니다.
+- PHP 프로젝트에서 무엇이 지원되고 무엇이 아직 Python 기준인지는 [주의](#주의)의 「PHP(CodeIgniter) 프로젝트」 항목에 있습니다.
 
 ### 방법 1. GitHub 마켓플레이스로 설치 (권장)
 
@@ -149,11 +179,7 @@ git clone https://github.com/bluebamus/claude-plugin-for-fastapi
 /plugin install stage-pilot@claude-plugin-for-fastapi
 ```
 
-PHP 지원판은 `php` 브랜치를 받아 등록합니다. 이미 클론했다면 그 폴더에서 `git checkout php`로 바꾼 뒤 `/reload-plugins`를 실행합니다. 로컬 경로로 등록한 마켓플레이스는 폴더의 파일을 바로 읽으므로, 브랜치를 바꾸면 다음 세션부터 그 판이 쓰입니다.
-
-```
-git clone -b php https://github.com/bluebamus/claude-plugin-for-fastapi
-```
+PHP 지원판을 로컬 클론으로 쓰는 방법은 [PHP 지원판 설치](#php-지원판-설치-php-브랜치)의 방법 C에 있습니다.
 
 ### 방법 3. 설치 없이 한 번 써 보기
 
