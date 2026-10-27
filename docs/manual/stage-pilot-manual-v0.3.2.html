@@ -100,7 +100,13 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
   <ol>
     <li><a href="#about">1. stage-pilot이란</a></li>
     <li><a href="#concepts">2. 먼저 알아 둘 개념</a></li>
-    <li><a href="#install">3. 설치</a></li>
+    <li><a href="#install">3. 설치</a>
+      <ol>
+        <li><a href="#update">업데이트와 제거</a></li>
+        <li><a href="#multi-session">여러 세션에 적용하기</a></li>
+        <li><a href="#php-edition">PHP 지원판으로 바꾸기</a></li>
+      </ol>
+    </li>
     <li><a href="#quickstart">4. 10분 시작하기</a>
       <ol>
         <li><a href="#qs-new">새 프로젝트</a></li>
@@ -260,6 +266,44 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
   <li>Claude Code에서 <code>/stage-pilot:stage profiles</code>를 입력합니다.</li>
   <li><code>greenfield</code>, <code>feature</code>, <code>enhance</code>, <code>default</code> 네 줄이 나오면 설치된 것입니다.</li>
 </ol>
+<h3 id="update">업데이트와 제거</h3>
+<p>이 마켓플레이스는 자동 업데이트가 기본으로 꺼져 있습니다. 새 버전은 다음 중 하나로 받습니다.</p>
+<ul>
+  <li><strong>한 번에:</strong> <code>/plugin</code> → <strong>Marketplaces</strong> 탭 → <code>claude-plugin-for-fastapi</code> → <strong>Update marketplace</strong>. 목록을 새로 받고, 여기서 설치한 플러그인도 함께 업데이트합니다.</li>
+  <li><strong>플러그인 하나만:</strong> <code>/plugin</code> → <strong>Installed</strong> 탭 → 플러그인 → <strong>Update now</strong>, 또는 셸에서 <code>claude plugin update stage-pilot@claude-plugin-for-fastapi</code>.</li>
+  <li><strong>자동으로:</strong> <strong>Marketplaces</strong> 탭에서 이 마켓플레이스를 고르고 <strong>Enable auto-update</strong>를 켭니다.</li>
+</ul>
+<p>업데이트 뒤에는 <code>/reload-plugins</code>를 실행하거나 세션을 다시 엽니다.</p>
+<pre><code>/plugin marketplace update claude-plugin-for-fastapi        # 마켓플레이스 목록만 새로 받기 (설치된 플러그인은 그대로)
+/plugin uninstall stage-pilot@claude-plugin-for-fastapi     # 플러그인 제거
+/plugin marketplace remove claude-plugin-for-fastapi        # 마켓플레이스 등록 해제 (여기서 설치한 플러그인도 제거)</code></pre>
+<div class="callout note"><strong>마켓플레이스는 등록한 브랜치만 따라갑니다.</strong> <code>#php</code> 없이 등록했다면 업데이트해도 기본 브랜치 <code>main</code>을 받고, <code>#php</code>로 등록했다면 <code>php</code> 브랜치를 받습니다. 판을 바꾸려면 아래 「PHP 지원판」 절처럼 지우고 다시 등록합니다.</div>
+
+<h3 id="multi-session">여러 세션에 적용하기</h3>
+<p>같은 프로젝트에서 Claude Code 세션을 여러 개 띄워 두었다면, 한 세션에서 설치한 플러그인을 다른 세션에서 다시 설치할 필요는 없습니다. 설치 기록은 설정 파일에 남고 같은 컴퓨터의 모든 세션이 그 파일을 읽습니다. 다만 이미 실행 중인 세션은 시작할 때 불러온 플러그인을 계속 쓰므로, <strong>나머지 세션마다 다시 불러오기만</strong> 하면 됩니다.</p>
+<pre><code>/reload-plugins</code></pre>
+<ul>
+  <li>프롬프트 캐시가 무효화된다는 경고와 함께 적용이 보류되면 <code>/reload-plugins --force</code>를 실행합니다(캐시 없는 요청 1회 비용).</li>
+  <li>적용 확인: <code>/</code>를 입력해 <code>/stage-pilot:stage</code>가 보이거나, <code>/plugin</code>의 <strong>Installed</strong> 탭에 나오면 됩니다.</li>
+  <li>세션을 유지할 필요가 없다면 종료 후 다시 시작해도 같습니다.</li>
+</ul>
+<p><strong>적용되지 않으면 설치 범위를 확인합니다.</strong> 범위는 <code>/plugin</code>의 <strong>Installed</strong> 탭이나 셸의 <code>claude plugin list</code>에 나오는 <code>Scope</code> 줄에서 봅니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>설치 범위</th><th>기록 위치</th><th>보이는 세션</th></tr></thead>
+<tbody>
+<tr><td>사용자 (user)</td><td><code>~/.claude/settings.json</code></td><td>이 컴퓨터의 모든 프로젝트, 모든 세션</td></tr>
+<tr><td>프로젝트 (project)</td><td><code>&lt;프로젝트&gt;/.claude/settings.json</code></td><td>같은 폴더에서 실행한 세션</td></tr>
+<tr><td>로컬 (local)</td><td><code>&lt;프로젝트&gt;/.claude/settings.local.json</code></td><td>같은 폴더에서 실행한 세션</td></tr>
+</tbody></table></div>
+<p>일부 세션이 git worktree(예: <code>.claude/worktrees/...</code>)에서 돌고 있다면 그 세션의 작업 폴더는 원래 프로젝트와 다르므로, 프로젝트·로컬 범위로 설치한 플러그인이 보이지 않습니다. <code>/plugin</code>의 <strong>Installed</strong> 탭에서 지우고 <strong>Install for you (user scope)</strong>로 다시 설치하는 것이 가장 간단합니다. 프로젝트 범위를 유지하려면 바뀐 <code>.claude/settings.json</code>을 커밋해 각 worktree에도 들어가게 합니다.</p>
+
+<h3 id="php-edition">PHP 지원판으로 바꾸기</h3>
+<p>PHP·CodeIgniter 프로젝트를 다루려면 <code>php</code> 브랜치의 PHP 지원판(stage-pilot 0.3.3, legacy-onboarding-manual 0.1.1)을 씁니다. 이 매뉴얼(기본 브랜치 <code>main</code>)이 설명하는 판은 PHP를 지원하지 않습니다. 마켓플레이스는 등록한 브랜치만 따라가므로 업데이트로는 바뀌지 않고, 지우고 <code>#php</code>로 다시 등록해야 합니다. 마켓플레이스를 지우면 거기서 설치한 플러그인도 함께 제거됩니다.</p>
+<pre><code>/plugin marketplace remove claude-plugin-for-fastapi
+/plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi</code></pre>
+<p>셸 명령, 로컬 클론으로 판을 오가는 방법, PHP 프로젝트에서 쓰는 방법은 <code>php</code> 브랜치의 이 매뉴얼(3장 「PHP 지원판 설치」, 7장 「PHP·CodeIgniter 프로젝트에서 쓰기」)과 <a href="https://github.com/bluebamus/claude-plugin-for-fastapi/tree/php#php-지원판-설치-php-브랜치">php 브랜치 README</a>에 있습니다.</p>
 </section>
 
 <!-- ============ 4 ============ -->
