@@ -164,6 +164,29 @@ test('tests 추적은 최상위 tests/ 밖의 테스트 파일도 보고, legacy
   assert.ok(S.runCheck(cwd, st, c).ok);
 });
 
+test('PHP(CodeIgniter) 프로젝트: 레거시로 판별하고, *Test.php 로 ID 를 추적하며, phpunit 으로 테스트한다', () => {
+  const cwd = tmp();
+  put(cwd, 'application/controllers/Board.php', "<?php\nclass Board extends CI_Controller {}\n");
+  put(cwd, 'system/core/CodeIgniter.php', "<?php\ndefine('CI_VERSION', '3.1.13');\n");
+  put(cwd, 'vendor/phpunit/phpunit/tests/FooTest.php', '<?php // F-002\n');
+  const info = S.detect(cwd);
+  assert.strictEqual(info.kind, 'legacy');
+  assert.strictEqual(info.php, 2, 'vendor/ 의존성은 세지 않음');
+  assert.ok(info.codeigniter);
+  assert.match(hook('prompt', { cwd, prompt: '쿠폰 기능을 추가하려고 해' }), /레거시\(PHP 2개.*CodeIgniter 사용\).*추천 트랙: feature/s);
+  execFileSync('node', [SCRIPT, 'set', 'feature', '4', '--work', 'w', '--cwd', cwd]);
+  const st = JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'stage-pilot', 'state.json'), 'utf8'));
+  const c = map.profiles.feature.stages.find((s) => s.id === '4').checks.find((x) => x.trace && x.to[0] === 'tests');
+  put(cwd, S.sub(c.from, st), 'F-001 F-002\n');
+  put(cwd, 'application/tests/CouponTest.php', '<?php // F-001\n');
+  assert.match(S.runCheck(cwd, st, c).why, /tests:F-002/, 'vendor/ 안의 테스트는 추적에 쓰지 않음');
+  put(cwd, 'tests/unit/coupon_helper.php', '<?php // F-002\n');
+  assert.ok(S.runCheck(cwd, st, c).ok, 'tests/ 안의 .php 도 테스트로 봄');
+  assert.match(S.testCommand(cwd, {}), /pytest/, 'phpunit 이 없으면 기존 기본값');
+  put(cwd, 'vendor/bin/phpunit', '');
+  assert.strictEqual(S.testCommand(cwd, {}), 'php vendor/bin/phpunit');
+});
+
 test('check 의 pytest 는 분석 도구의 legacy/ 링크를 수집에서 뺀다', () => {
   const cwd = tmp();
   execFileSync('node', [SCRIPT, 'set', 'default', '4', '--cwd', cwd]);

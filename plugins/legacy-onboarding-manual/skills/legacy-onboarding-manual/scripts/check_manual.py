@@ -19,7 +19,7 @@ DIAGRAM_TYPES = ("flowchart", "graph", "sequenceDiagram", "erDiagram", "stateDia
 BLOCK_OPENERS = re.compile(r"^\s*(subgraph|alt|opt|loop|par|critical|break|rect)\b")
 BLOCK_END = re.compile(r"^\s*end\s*$")
 LOWER_END_NODE = re.compile(r"(^|-->|---|==>|-\.->)\s*end\s*[\[\(\{>]")
-CITATION = re.compile(r"[\w./-]+\.(py|js|ts|sql|html|toml|ini|cfg|yaml|yml|json|md|txt):\d+")
+CITATION = re.compile(r"[\w./-]+\.(py|php|js|ts|sql|html|toml|ini|cfg|yaml|yml|json|md|txt):\d+")
 MIN_CITATIONS = 10
 
 

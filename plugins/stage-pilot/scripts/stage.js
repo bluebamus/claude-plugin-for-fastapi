@@ -102,7 +102,7 @@ function matchStage(map, profile, prompt) {
   return best && best.s;
 }
 
-const SKIP_DIRS = new Set(['.git', '.venv', 'venv', 'node_modules', '__pycache__', '.claude', '.pytest_cache', 'docs']);
+const SKIP_DIRS = new Set(['.git', '.venv', 'venv', 'node_modules', '__pycache__', '.claude', '.pytest_cache', 'docs', 'vendor']);
 function* walk(dir) {
   let ents = [];
   try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
@@ -114,14 +114,19 @@ function* walk(dir) {
 
 // 빈 프로젝트(신규)인지, 코드가 있는 레거시인지 판별한다.
 function detect(cwd) {
-  let py = 0, fastapi = false, tests = 0;
+  let py = 0, php = 0, fastapi = false, codeigniter = false, tests = 0;
   for (const f of walk(cwd)) {
-    if (!f.endsWith('.py')) continue;
-    py++;
-    if (/[\\/]tests?[\\/]|test_[^\\/]*\.py$/.test(f)) tests++;
-    if (!fastapi) { try { fastapi = /\bfastapi\b/.test(fs.readFileSync(f, 'utf8')); } catch { /* 읽기 실패는 무시 */ } }
+    if (f.endsWith('.py')) {
+      py++;
+      if (/[\\/]tests?[\\/]|test_[^\\/]*\.py$/.test(f)) tests++;
+      if (!fastapi) { try { fastapi = /\bfastapi\b/.test(fs.readFileSync(f, 'utf8')); } catch { /* 읽기 실패는 무시 */ } }
+    } else if (f.endsWith('.php')) {
+      php++;
+      if (/[\\/]tests?[\\/]|Test\.php$/.test(f)) tests++;
+      if (!codeigniter) { try { codeigniter = /\bCodeIgniter\b|\bCI_(Controller|Model|VERSION)\b/.test(fs.readFileSync(f, 'utf8')); } catch { /* 읽기 실패는 무시 */ } }
+    }
   }
-  return { kind: py ? 'legacy' : 'new', py, tests, fastapi };
+  return { kind: py || php ? 'legacy' : 'new', py, php, tests, fastapi, codeigniter };
 }
 
 // 요청 의도와 프로젝트 상태로 트랙(프로필)을 추천한다. 키워드가 없으면 null.
@@ -152,7 +157,9 @@ function intakeText(map, prompt, cwd) {
   const r = intake(map, prompt, info);
   if (!r) return '';
   const p = map.profiles[r.profile];
-  const state = info.kind === 'new' ? '빈 프로젝트(파이썬 파일 0개)' : `레거시(파이썬 ${info.py}개, 테스트 ${info.tests}개, FastAPI ${info.fastapi ? '사용' : '미확인'})`;
+  const state = info.kind === 'new' ? '빈 프로젝트(코드 파일 0개)'
+    : info.php > info.py ? `레거시(PHP ${info.php}개, 테스트 ${info.tests}개, CodeIgniter ${info.codeigniter ? '사용' : '미확인'})`
+    : `레거시(파이썬 ${info.py}개, 테스트 ${info.tests}개, FastAPI ${info.fastapi ? '사용' : '미확인'})`;
   if (!r.profile) {
     const opts = ['feature', 'default', 'enhance'].map((n) => `${n}(${map.profiles[n].title.split(' — ')[0]}, 첫 단계 ${map.profiles[n].stages[0].id})`).join(', ');
     return `[stage-pilot] 프로젝트 상태: ${state}. 요청에서 트랙을 정하지 못함 — 레거시 트랙 중 요청 내용에 맞는 것을 고를 것: ${opts}. ` +
@@ -228,7 +235,7 @@ function testText(cwd) {
   const walk = (dir, inTests) => {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
       const p = path.join(dir, e.name);
-      if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name) && e.name !== 'legacy') walk(p, inTests || e.name === 'tests'); } else if (/\.py$/.test(e.name) && (inTests || /^test_|_test\.py$/.test(e.name))) out.push(fs.readFileSync(p, 'utf8'));
+      if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name) && e.name !== 'legacy') walk(p, inTests || e.name === 'tests'); } else if (/\.(py|php)$/.test(e.name) && (inTests || /^test_|_test\.py$|Test\.php$/.test(e.name))) out.push(fs.readFileSync(p, 'utf8'));
     }
   };
   walk(cwd, false);
@@ -244,6 +251,7 @@ function* walkAll(dir) {
 function testCommand(cwd, st) {
   if (st.test_cmd) return st.test_cmd;
   if (fs.existsSync(path.join(cwd, 'uv.lock'))) return 'uv run pytest -q';
+  if (fs.existsSync(path.join(cwd, 'vendor/bin/phpunit'))) return 'php vendor/bin/phpunit';
   for (const py of ['.venv/Scripts/python.exe', '.venv/bin/python', 'venv/Scripts/python.exe', 'venv/bin/python']) {
     if (fs.existsSync(path.join(cwd, py))) return `"${path.join(cwd, py)}" -m pytest -q`;
   }

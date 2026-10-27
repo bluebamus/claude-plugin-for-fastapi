@@ -21,7 +21,7 @@ description: FastAPI 프로젝트를 워크플로 단계로 이끄는 지휘자.
 상태 파일이 없는 프로젝트에서 새 프로젝트·기능 추가·리팩토링·고도화 요청이 오면, 훅이 `[stage-pilot] 프로젝트 상태 … 추천 트랙 …`을 넣는다(직접 확인: `stage.js detect`).
 
 1. 프로젝트 상태(빈 폴더 / 코드 있음)와 요청 의도를 함께 본다. 둘이 어긋나면(코드가 있는데 "새 프로젝트") 그 사실을 먼저 알린다.
-2. `set <profile> <첫 단계> [--auto] [--work <짧은-영문-이름>] [--test "<테스트 명령>"]`으로 시작한다. 완료 확인의 테스트는 `--test`로 준 명령, 없으면 `uv.lock`이 있을 때 `uv run pytest -q`, `.venv`가 있으면 그 python, 그 밖에는 `python -m pytest -q`로 돈다. 프로젝트 문서(README·CONTRIBUTING·CI 설정)에 정해진 실행법(마커 제외·환경 변수·테스트 DB)이 있으면 그것을 `--test`로 준다. 사용자가 자동 승인을 요청했을 때만 `--auto`를 붙인다. `feature`·`enhance`는 작업 이름을 붙여 문서가 `docs/work/<이름>/`에 모이게 한다.
+2. `set <profile> <첫 단계> [--auto] [--work <짧은-영문-이름>] [--test "<테스트 명령>"]`으로 시작한다. 완료 확인의 테스트는 `--test`로 준 명령, 없으면 `uv.lock`이 있을 때 `uv run pytest -q`, `vendor/bin/phpunit`이 있으면(PHP 프로젝트) `php vendor/bin/phpunit`, `.venv`가 있으면 그 python, 그 밖에는 `python -m pytest -q`로 돈다. 프로젝트 문서(README·CONTRIBUTING·CI 설정)에 정해진 실행법(마커 제외·환경 변수·테스트 DB)이 있으면 그것을 `--test`로 준다. 사용자가 자동 승인을 요청했을 때만 `--auto`를 붙인다. `feature`·`enhance`는 작업 이름을 붙여 문서가 `docs/work/<이름>/`에 모이게 한다.
 3. 한 트랙을 마치면(`next`가 "마지막 단계까지 완료"를 알림) 다음 작업은 새 트랙으로 `set` 한다. 결정 기록과 이력은 상태 파일에 이어서 쌓인다.
 
 ## 상태와 스크립트
