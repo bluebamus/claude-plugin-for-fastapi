@@ -192,6 +192,19 @@ stage-pilot의 **수행 모드**는 단계마다 다른 플러그인을 호출�
 /plugin marketplace remove claude-plugin-for-fastapi        # 마켓플레이스 등록 해제 (여기서 설치한 플러그인도 제거)
 ```
 
+### PHP 지원판으로 바꾸기
+
+PHP·CodeIgniter 프로젝트를 다루려면 `php` 브랜치의 PHP 지원판(stage-pilot 0.3.3, legacy-onboarding-manual 0.1.1)을 씁니다. 마켓플레이스는 등록한 브랜치만 따라가므로 업데이트로는 바뀌지 않고, 지우고 `#php`로 다시 등록해야 합니다.
+
+```
+/plugin marketplace remove claude-plugin-for-fastapi
+/plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
+```
+
+셸 명령, 로컬 클론으로 판을 오가는 방법, 확인 방법은 [php 브랜치 README의 「PHP 지원판 설치」](https://github.com/bluebamus/claude-plugin-for-fastapi/tree/php#php-지원판-설치-php-브랜치)에 있습니다.
+
 ## 빠른 시작
 
 ### stage-pilot
