@@ -233,6 +233,28 @@ stage-pilot의 **수행 모드**는 단계마다 다른 플러그인을 호출�
 - **stage-pilot:** `/stage-pilot:stage profiles`를 입력해 `greenfield`, `feature`, `enhance`, `default` 네 줄이 나오면 설치된 것입니다.
 - **legacy-onboarding-manual:** `/plugin`의 설치 목록에 나오면 됩니다. 별도 명령 없이, 온보딩·인수인계 문서를 요청하면 스킬이 쓰입니다.
 
+### 여러 세션에 적용하기
+
+같은 프로젝트에서 Claude Code 세션을 여러 개 띄워 두었다면, 한 세션에서 설치한 플러그인을 다른 세션에서 다시 설치할 필요는 없습니다. 설치 기록은 설정 파일에 남고 같은 컴퓨터의 모든 세션이 그 파일을 읽습니다. 다만 이미 실행 중인 세션은 시작할 때 불러온 플러그인을 계속 쓰므로, **나머지 세션마다 다시 불러오기만** 하면 됩니다.
+
+```
+/reload-plugins
+```
+
+- 다시 불러오면 프롬프트 캐시가 무효화된다는 경고와 함께 적용이 보류될 수 있습니다. 그때는 `/reload-plugins --force`를 실행합니다(캐시 없는 요청 1회 비용).
+- 적용 확인: `/`를 입력해 `/stage-pilot:stage`가 보이거나, `/plugin`의 **Installed** 탭에 나오면 됩니다.
+- 세션을 유지할 필요가 없다면 종료 후 다시 시작해도 같습니다.
+
+**적용되지 않으면 설치 범위를 확인합니다.** 범위에 따라 플러그인이 보이는 세션이 다릅니다. 범위는 `/plugin`의 **Installed** 탭이나 셸의 `claude plugin list`에 나오는 `Scope` 줄에서 확인합니다.
+
+| 설치 범위 | 기록 위치 | 보이는 세션 |
+|---|---|---|
+| 사용자 (user) | `~/.claude/settings.json` | 이 컴퓨터의 모든 프로젝트, 모든 세션 |
+| 프로젝트 (project) | `<프로젝트>/.claude/settings.json` | 같은 폴더에서 실행한 세션 |
+| 로컬 (local) | `<프로젝트>/.claude/settings.local.json` | 같은 폴더에서 실행한 세션 |
+
+일부 세션이 git worktree(예: `.claude/worktrees/...`)에서 돌고 있다면 그 세션의 작업 폴더는 원래 프로젝트와 다르므로, 프로젝트·로컬 범위로 설치한 플러그인이 보이지 않습니다. 가장 간단한 해결은 `/plugin`의 **Installed** 탭에서 지우고 **Install for you (user scope)**로 다시 설치하는 것입니다. 프로젝트 범위를 유지하려면 바뀐 `.claude/settings.json`을 커밋해 각 worktree에도 들어가게 합니다.
+
 ### 업데이트와 제거
 
 이 마켓플레이스는 자동 업데이트가 기본으로 꺼져 있습니다. 새 버전은 다음 중 하나로 받습니다.
