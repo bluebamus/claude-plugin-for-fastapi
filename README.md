@@ -178,10 +178,18 @@ stage-pilot의 **수행 모드**는 단계마다 다른 플러그인을 호출�
 
 ### 업데이트와 제거
 
+이 마켓플레이스는 자동 업데이트가 기본으로 꺼져 있습니다. 새 버전은 다음 중 하나로 받습니다.
+
+- **한 번에:** `/plugin` → **Marketplaces** 탭 → `claude-plugin-for-fastapi` → **Update marketplace**. 목록을 새로 받고, 여기서 설치한 플러그인도 함께 업데이트합니다.
+- **플러그인 하나만:** `/plugin` → **Installed** 탭 → 플러그인 → **Update now**, 또는 셸에서 `claude plugin update stage-pilot@claude-plugin-for-fastapi`.
+- **자동으로:** **Marketplaces** 탭에서 이 마켓플레이스를 고르고 **Enable auto-update**를 켭니다.
+
+업데이트 뒤에는 `/reload-plugins`를 실행하거나 세션을 다시 엽니다.
+
 ```
-/plugin marketplace update claude-plugin-for-fastapi        # 새 버전 받기
+/plugin marketplace update claude-plugin-for-fastapi        # 마켓플레이스 목록만 새로 받기 (설치된 플러그인은 그대로)
 /plugin uninstall stage-pilot@claude-plugin-for-fastapi     # 플러그인 제거
-/plugin marketplace remove claude-plugin-for-fastapi        # 마켓플레이스 등록 해제
+/plugin marketplace remove claude-plugin-for-fastapi        # 마켓플레이스 등록 해제 (여기서 설치한 플러그인도 제거)
 ```
 
 ## 빠른 시작
