@@ -50,13 +50,40 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 
 ## 설치
 
+이 저장소는 루트의 `.claude-plugin/marketplace.json`으로 마켓플레이스 역할을 합니다. 마켓플레이스 이름은 `claude-plugin-for-fastapi`입니다. stage-pilot이 호출할 플러그인의 설치 명령은 매뉴얼 3장에 있습니다.
+
+### 마켓플레이스로 설치 (영구 설치)
+
+Claude Code 세션에서 마켓플레이스를 등록한 뒤 플러그인을 설치합니다. 설치 후에는 세션을 다시 시작해야 스킬과 후크가 로드됩니다.
+
 ```
-/plugin marketplace add bluebamus/claude-plugin-for-fastapi
+# 등록: 셋 중 하나
+/plugin marketplace add bluebamus/claude-plugin-for-fastapi                                    # GitHub 기본 브랜치
+/plugin marketplace add https://github.com/bluebamus/claude-plugin-for-fastapi.git#stage-pilot-v0.3  # 특정 브랜치
+/plugin marketplace add C:/path/to/claude-plugin-for-fastapi                                   # 클론한 로컬 경로
+
+# 설치
 /plugin install stage-pilot@claude-plugin-for-fastapi
 /plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
 ```
 
-클론한 로컬 경로로 `/plugin marketplace add <경로>`를 해도 됩니다. stage-pilot이 호출할 플러그인의 설치 명령은 매뉴얼 3장에 있습니다.
+`/plugin`만 입력하면 메뉴에서 골라 설치할 수도 있습니다.
+
+### 마켓플레이스 없이 GitHub에서 바로 쓰기 (세션 단위)
+
+클론한 뒤 `--plugin-dir`로 플러그인 폴더를 지정해 실행합니다. 설치가 아니라 그 세션에서만 로드하는 방식이라 매번 옵션을 붙여야 하고, `/plugin` 설치 목록에는 나타나지 않습니다.
+
+```bash
+git clone -b stage-pilot-v0.3 https://github.com/bluebamus/claude-plugin-for-fastapi.git
+cd <플러그인을 쓸 프로젝트>
+claude --plugin-dir <클론 경로>/plugins/stage-pilot \
+       --plugin-dir <클론 경로>/plugins/legacy-onboarding-manual   # 필요한 것만 지정
+```
+
+### 갱신
+
+- 마켓플레이스 설치: `/plugin marketplace update claude-plugin-for-fastapi`를 실행합니다. 플러그인 `version`이 그대로이면 갱신이 반영되지 않을 수 있으므로, 플러그인을 고칠 때는 `marketplace.json`의 `version`도 올립니다.
+- `--plugin-dir` 사용: 클론 폴더에서 `git pull`을 한 뒤 세션을 다시 시작합니다.
 
 ## 빠른 시작
 
