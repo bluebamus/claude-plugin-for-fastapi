@@ -100,7 +100,13 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
   <ol>
     <li><a href="#about">1. stage-pilot이란</a></li>
     <li><a href="#concepts">2. 먼저 알아 둘 개념</a></li>
-    <li><a href="#install">3. 설치</a></li>
+    <li><a href="#install">3. 설치</a>
+      <ol>
+        <li><a href="#update">업데이트와 제거</a></li>
+        <li><a href="#multi-session">여러 세션에 적용하기</a></li>
+        <li><a href="#php-edition">PHP 지원판 설치</a></li>
+      </ol>
+    </li>
     <li><a href="#quickstart">4. 10분 시작하기</a>
       <ol>
         <li><a href="#qs-new">새 프로젝트</a></li>
@@ -114,6 +120,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
         <li><a href="#feature">기능 추가</a></li>
         <li><a href="#refactor">리팩토링</a></li>
         <li><a href="#enhance">고도화</a></li>
+        <li><a href="#php">PHP·CodeIgniter</a></li>
       </ol>
     </li>
     <li><a href="#commands">8. 명령 레퍼런스</a></li>
@@ -140,7 +147,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
 
 <main>
 <header class="hero">
-  <div class="eyebrow"><span class="chip">버전 0.3.2</span><span class="chip">2026-10-22</span><span>Claude Code 플러그인 · FastAPI 신규 개발과 레거시 고도화</span></div>
+  <div class="eyebrow"><span class="chip">버전 0.3.3 · php 브랜치</span><span class="chip">2026-10-27</span><span>Claude Code 플러그인 · FastAPI 신규 개발과 레거시 고도화 · PHP·CodeIgniter 레거시 지원</span></div>
   <h1>stage-pilot 사용 매뉴얼</h1>
   <p class="lead">stage-pilot은 FastAPI 프로젝트를 <strong>단계별 워크플로</strong>로 이끄는 Claude Code 플러그인입니다. 빈 폴더에서 새 프로젝트를 시작할 때도, 이미 돌아가는 레거시 프로젝트에 기능을 더하거나 구조를 고치거나 성능을 끌어올릴 때도, <strong>"지금 단계에서 어떤 플러그인을 어떤 순서로 쓰고, 어디서 멈춰 확인받고, 무엇으로 끝났다고 판단하는가"</strong>를 알려 주고, 원하면 <strong>그 플러그인을 직접 호출해 단계를 수행</strong>합니다.</p>
   <p class="lead">이 문서는 처음 쓰는 사람이 설치부터 자동 수행까지 혼자 따라 할 수 있도록 썼습니다. 개념 → 설치 → 빠른 시작 → 트랙별 단계 설명 → 명령·모드 → 전체 단계 표 → 검증 결과 → 문제 해결 순서로 읽으면 됩니다.</p>
@@ -260,6 +267,72 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
   <li>Claude Code에서 <code>/stage-pilot:stage profiles</code>를 입력합니다.</li>
   <li><code>greenfield</code>, <code>feature</code>, <code>enhance</code>, <code>default</code> 네 줄이 나오면 설치된 것입니다.</li>
 </ol>
+<h3 id="update">업데이트와 제거</h3>
+<p>이 마켓플레이스는 자동 업데이트가 기본으로 꺼져 있습니다. 새 버전은 다음 중 하나로 받습니다.</p>
+<ul>
+  <li><strong>한 번에:</strong> <code>/plugin</code> → <strong>Marketplaces</strong> 탭 → <code>claude-plugin-for-fastapi</code> → <strong>Update marketplace</strong>. 목록을 새로 받고, 여기서 설치한 플러그인도 함께 업데이트합니다.</li>
+  <li><strong>플러그인 하나만:</strong> <code>/plugin</code> → <strong>Installed</strong> 탭 → 플러그인 → <strong>Update now</strong>, 또는 셸에서 <code>claude plugin update stage-pilot@claude-plugin-for-fastapi</code>.</li>
+  <li><strong>자동으로:</strong> <strong>Marketplaces</strong> 탭에서 이 마켓플레이스를 고르고 <strong>Enable auto-update</strong>를 켭니다.</li>
+</ul>
+<p>업데이트 뒤에는 <code>/reload-plugins</code>를 실행하거나 세션을 다시 엽니다.</p>
+<pre><code>/plugin marketplace update claude-plugin-for-fastapi        # 마켓플레이스 목록만 새로 받기 (설치된 플러그인은 그대로)
+/plugin uninstall stage-pilot@claude-plugin-for-fastapi     # 플러그인 제거
+/plugin marketplace remove claude-plugin-for-fastapi        # 마켓플레이스 등록 해제 (여기서 설치한 플러그인도 제거)</code></pre>
+<div class="callout note"><strong>마켓플레이스는 등록한 브랜치만 따라갑니다.</strong> <code>#php</code> 없이 등록했다면 업데이트해도 기본 브랜치 <code>main</code>을 받고, <code>#php</code>로 등록했다면 <code>php</code> 브랜치를 받습니다. 판을 바꾸려면 아래 「PHP 지원판」 절처럼 지우고 다시 등록합니다.</div>
+
+<h3 id="multi-session">여러 세션에 적용하기</h3>
+<p>같은 프로젝트에서 Claude Code 세션을 여러 개 띄워 두었다면, 한 세션에서 설치한 플러그인을 다른 세션에서 다시 설치할 필요는 없습니다. 설치 기록은 설정 파일에 남고 같은 컴퓨터의 모든 세션이 그 파일을 읽습니다. 다만 이미 실행 중인 세션은 시작할 때 불러온 플러그인을 계속 쓰므로, <strong>나머지 세션마다 다시 불러오기만</strong> 하면 됩니다.</p>
+<pre><code>/reload-plugins</code></pre>
+<ul>
+  <li>프롬프트 캐시가 무효화된다는 경고와 함께 적용이 보류되면 <code>/reload-plugins --force</code>를 실행합니다(캐시 없는 요청 1회 비용).</li>
+  <li>적용 확인: <code>/</code>를 입력해 <code>/stage-pilot:stage</code>가 보이거나, <code>/plugin</code>의 <strong>Installed</strong> 탭에 나오면 됩니다.</li>
+  <li>세션을 유지할 필요가 없다면 종료 후 다시 시작해도 같습니다.</li>
+</ul>
+<p><strong>적용되지 않으면 설치 범위를 확인합니다.</strong> 범위는 <code>/plugin</code>의 <strong>Installed</strong> 탭이나 셸의 <code>claude plugin list</code>에 나오는 <code>Scope</code> 줄에서 봅니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>설치 범위</th><th>기록 위치</th><th>보이는 세션</th></tr></thead>
+<tbody>
+<tr><td>사용자 (user)</td><td><code>~/.claude/settings.json</code></td><td>이 컴퓨터의 모든 프로젝트, 모든 세션</td></tr>
+<tr><td>프로젝트 (project)</td><td><code>&lt;프로젝트&gt;/.claude/settings.json</code></td><td>같은 폴더에서 실행한 세션</td></tr>
+<tr><td>로컬 (local)</td><td><code>&lt;프로젝트&gt;/.claude/settings.local.json</code></td><td>같은 폴더에서 실행한 세션</td></tr>
+</tbody></table></div>
+<p>일부 세션이 git worktree(예: <code>.claude/worktrees/...</code>)에서 돌고 있다면 그 세션의 작업 폴더는 원래 프로젝트와 다르므로, 프로젝트·로컬 범위로 설치한 플러그인이 보이지 않습니다. <code>/plugin</code>의 <strong>Installed</strong> 탭에서 지우고 <strong>Install for you (user scope)</strong>로 다시 설치하는 것이 가장 간단합니다. 프로젝트 범위를 유지하려면 바뀐 <code>.claude/settings.json</code>을 커밋해 각 worktree에도 들어가게 합니다.</p>
+
+<h3 id="php-edition">PHP 지원판 설치 (<code>php</code> 브랜치)</h3>
+<p>이 매뉴얼은 <code>php</code> 브랜치의 PHP 지원판(stage-pilot 0.3.3, legacy-onboarding-manual 0.1.1)을 설명합니다. 마켓플레이스 주소 뒤에 <code>#php</code>를 붙이면 기본 브랜치 대신 <code>php</code> 브랜치에서 플러그인을 받습니다. 위의 「마켓플레이스로 설치」 명령은 기본 브랜치 <code>main</code>(PHP 미지원판)을 설치합니다.</p>
+<p>PHP 프로젝트를 다룰 때는 준비물에 <strong>PHP, Composer, PHPUnit</strong>이 더해집니다. 완료 확인이 <code>vendor/bin/phpunit</code>을 찾으므로 <code>composer require --dev phpunit/phpunit</code>으로 설치해 둡니다.</p>
+<div class="callout note"><strong>기본판을 이미 설치했다면 업데이트로는 바뀌지 않습니다.</strong> 마켓플레이스는 등록할 때 정한 브랜치만 따라가고, 등록한 브랜치만 바꾸는 명령은 없습니다. 두 판은 마켓플레이스 이름(<code>claude-plugin-for-fastapi</code>)이 같아 함께 등록할 수도 없습니다. 그래서 기존 마켓플레이스를 지우고 <code>#php</code>로 다시 등록한 뒤 설치합니다. 마켓플레이스를 지우면 거기서 설치한 플러그인도 함께 제거됩니다. 처음 설치한다면 아래 각 방법의 <code>remove</code> 줄만 건너뜁니다.</div>
+<h4>방법 A. Claude Code 세션 안에서 (권장)</h4>
+<pre><code>/plugin marketplace remove claude-plugin-for-fastapi
+/plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi</code></pre>
+<p><code>install</code> 줄은 플러그인 정보 화면을 엽니다. 설치 범위(사용자·프로젝트·로컬)는 예전과 같은 범위를 고릅니다. 안내가 나오면 <code>/reload-plugins</code>를 실행합니다.</p>
+<h4>방법 B. 셸에서 (세션 밖, 스크립트용)</h4>
+<pre><code>claude plugin marketplace remove claude-plugin-for-fastapi
+claude plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
+claude plugin install stage-pilot@claude-plugin-for-fastapi
+claude plugin install legacy-onboarding-manual@claude-plugin-for-fastapi</code></pre>
+<p>기본 범위는 사용자 범위입니다. 프로젝트 범위로 설치했었다면 <code>install</code> 줄에 <code>--scope project</code>를 붙입니다. 다음 세션부터, 또는 열린 세션에서 <code>/reload-plugins</code>를 실행한 뒤부터 적용됩니다.</p>
+<h4>방법 C. 로컬 클론으로 (판을 자주 바꿀 때)</h4>
+<pre><code>git clone -b php https://github.com/bluebamus/claude-plugin-for-fastapi C:/work/claude-plugin-for-fastapi
+/plugin marketplace remove claude-plugin-for-fastapi
+/plugin marketplace add C:/work/claude-plugin-for-fastapi
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi</code></pre>
+<p>로컬 경로로 등록한 마켓플레이스는 폴더의 파일을 바로 읽습니다. 이후에는 지우고 다시 설치할 필요 없이, 그 폴더에서 <code>git checkout php</code> 또는 <code>git checkout main</code>으로 판을 바꾸고 <code>/reload-plugins</code>만 하면 됩니다. GitHub의 새 버전은 그 폴더에서 <code>git pull</code>로 받습니다.</p>
+<h4>바뀌었는지 확인</h4>
+<ol class="steps">
+  <li><code>/plugin</code>의 <strong>Installed</strong> 탭이나 셸의 <code>claude plugin list</code>에서 stage-pilot이 <code>0.3.3</code>, legacy-onboarding-manual이 <code>0.1.1</code>이면 PHP 지원판입니다.</li>
+  <li><code>/plugin</code>의 <strong>Marketplaces</strong> 탭에서 <code>claude-plugin-for-fastapi</code>의 출처가 <code>...#php</code>(방법 C는 로컬 경로)로 보여야 합니다.</li>
+</ol>
+<h4>참고</h4>
+<ul>
+  <li><strong>작업 기록은 남습니다.</strong> 마켓플레이스를 지워도 프로젝트의 <code>.claude/stage-pilot/state.json</code>과 <code>docs/</code>의 단계 문서는 그대로라, 다시 설치한 뒤 하던 트랙을 이어갈 수 있습니다.</li>
+  <li><strong>프로젝트 범위 설정도 그대로 쓰입니다.</strong> <code>.claude/settings.json</code>에 기록된 플러그인 이름이 같으므로 다시 설치한 뒤 그대로 적용됩니다.</li>
+  <li><strong>기본판으로 돌아가려면</strong> 같은 방법으로 마켓플레이스를 지우고 <code>#php</code> 없이 다시 등록해 설치합니다.</li>
+  <li>PHP 프로젝트에서 쓰는 방법은 <a href="#php">7장 「PHP·CodeIgniter 프로젝트에서 쓰기」</a>에 있습니다.</li>
+</ul>
 </section>
 
 <!-- ============ 4 ============ -->
@@ -283,7 +356,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
 <pre><code>이 프로젝트에 쿠폰 기능을 추가하려고 해.          → feature 트랙
 이 프로젝트를 리팩토링하려고 해. 동작은 그대로.   → default(리팩토링) 트랙
 목록 API가 느려서 고도화하려고 해.               → enhance 트랙</code></pre>
-  훅이 "레거시(파이썬 파일 N개, FastAPI 사용), 추천 트랙"을 알립니다. 기능 추가와 고도화는 작업 이름(<code>--work coupon</code>)을 붙여 문서가 <code>docs/work/coupon/</code>에 모이게 합니다.</li>
+  훅이 "레거시(파이썬 파일 N개, FastAPI 사용), 추천 트랙"을 알립니다. PHP 프로젝트는 "레거시(PHP N개, 테스트 M개, CodeIgniter 사용)"로 알립니다(<a href="#php">7장 PHP</a>). 기능 추가와 고도화는 작업 이름(<code>--work coupon</code>)을 붙여 문서가 <code>docs/work/coupon/</code>에 모이게 합니다.</li>
   <li><strong>카드 확인과 수행</strong> — <code>/stage-pilot:stage</code>로 카드를 보고, <code>/stage-pilot:stage run</code>으로 수행합니다. 진행 방식은 A와 같습니다.</li>
   <li><strong>다음 작업으로</strong> — 한 트랙을 마치면 <code>next</code>가 "마지막 단계까지 완료"를 알립니다. 다른 작업은 새 트랙으로 시작합니다. 결정 기록과 이력은 같은 상태 파일에 이어서 쌓입니다.</li>
 </ol>
@@ -315,7 +388,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
 <h3>stage-pilot이 트랙을 추천하는 방법</h3>
 <p>상태 파일이 없는 프로젝트에서 요청이 오면, 훅이 두 가지를 봅니다.</p>
 <ol>
-  <li><strong>프로젝트 상태</strong> — <code>.git</code>, <code>.venv</code>, <code>docs</code> 등을 뺀 폴더에서 파이썬 파일을 셉니다. 0개면 "빈 프로젝트", 있으면 "레거시"입니다. 테스트 파일 수와 FastAPI 사용 여부도 함께 봅니다. 직접 확인하려면 <code>/stage-pilot:stage detect</code>를 입력합니다.</li>
+  <li><strong>프로젝트 상태</strong> — <code>.git</code>, <code>.venv</code>, <code>docs</code> 등을 뺀 폴더에서 파이썬·PHP 파일을 셉니다(<code>vendor/</code>도 뺌). 0개면 "빈 프로젝트", 있으면 "레거시"입니다. 테스트 파일 수와 FastAPI·CodeIgniter 사용 여부도 함께 봅니다. 직접 확인하려면 <code>/stage-pilot:stage detect</code>를 입력합니다.</li>
   <li><strong>요청 의도</strong> — 요청 문장의 표현을 각 트랙의 키워드와 대조합니다. "새 프로젝트", "처음부터" → greenfield, "기능 추가", "새 기능" → feature, "리팩토링", "구조 개선" → default, "고도화", "성능 개선", "업그레이드" → enhance.</li>
 </ol>
 <p>둘이 어긋나면(예: 코드가 있는 폴더에서 "새 프로젝트") 그 사실을 먼저 알립니다. 요청에 "자동 승인"이 있으면 <code>--auto</code>를 붙여 시작하라고 안내합니다. 관계없는 요청("오늘 날씨")에는 아무것도 넣지 않습니다.</p>
@@ -453,6 +526,31 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
 <tr id="en-7"><td class="stage">7<br><small>보안·리뷰</small></td><td><code>claude-security:claude-security</code>(고도화 전 커밋 이후), <code>pr-review-toolkit:code-reviewer</code>, <code>code-simplifier:code-simplifier</code>, <code>superpowers:receiving-code-review</code></td><td>테스트 통과</td></tr>
 <tr id="en-8"><td class="stage">8<br><small>커밋</small></td><td><code>commit-commands:commit</code>, <code>claude-md-management:revise-claude-md</code></td><td>테스트 통과, 작업 트리 정리</td></tr>
 </tbody></table></div>
+
+<h3 id="php">PHP·CodeIgniter 프로젝트에서 쓰기 <span class="tag">0.3.3</span></h3>
+<p>PHP 지원판(<a href="#php-edition">3장 「PHP 지원판 설치」</a>)은 PHP·CodeIgniter 레거시에서도 기능 추가·리팩토링·고도화 트랙을 끝까지 진행할 수 있게, 프로젝트 판별·ID 추적·테스트 실행을 PHP에 맞춥니다.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>항목</th><th>PHP 프로젝트에서 하는 일</th></tr></thead>
+<tbody>
+<tr><td>프로젝트 판별 (<code>detect</code>)</td><td><code>.php</code> 파일이 있으면 레거시로 봅니다. <code>vendor/</code>(Composer 의존성)는 세지 않습니다. PHP 파일이 파이썬 파일보다 많으면 훅이 "레거시(PHP N개, 테스트 M개, CodeIgniter 사용/미확인)"로 알립니다. CodeIgniter는 <code>CodeIgniter</code>, <code>CI_Controller</code>, <code>CI_Model</code>, <code>CI_VERSION</code>으로 알아봅니다</td></tr>
+<tr><td>테스트 실행 (<code>check</code>)</td><td><code>--test</code>로 준 명령이 없고 <code>vendor/bin/phpunit</code>이 있으면 <code>php vendor/bin/phpunit</code>을 씁니다. 다른 명령(예: CodeIgniter 4의 <code>composer test</code>, 특정 설정 파일)은 <code>init … --test "&lt;명령&gt;"</code>으로 줍니다</td></tr>
+<tr><td>ID 추적</td><td>요구사항 ID(<code>R-</code>·<code>F-</code>·<code>E-</code>)가 테스트까지 이어지는지 볼 때 <code>*Test.php</code> 파일과 <code>tests/</code> 폴더 안의 <code>.php</code> 파일을 읽습니다. 테스트 메서드 이름이나 주석·docblock에 ID를 적습니다</td></tr>
+<tr><td>온보딩 매뉴얼</td><td>legacy-onboarding-manual 0.1.1의 검사 스크립트가 <code>application/controllers/Board.php:42</code> 같은 <code>.php:줄</code> 근거를 셉니다</td></tr>
+</tbody></table></div>
+<h4>시작하기</h4>
+<pre><code># 프로젝트 폴더에서 (예: CodeIgniter 3)
+이 프로젝트에 쿠폰 기능을 추가하려고 해.                     ← 훅이 "레거시(PHP N개 …, CodeIgniter 사용)"와 feature 를 추천
+/stage-pilot:stage init feature --work coupon                 # phpunit 이 vendor/bin 에 있으면 그대로
+/stage-pilot:stage init feature --work coupon --test "php vendor/bin/phpunit -c application/tests/phpunit.xml"   # 설정이 다르면 직접 지정</code></pre>
+<p>테스트에는 이렇게 ID를 남깁니다.</p>
+<pre><code>&lt;?php
+// application/tests/CouponTest.php
+class CouponTest extends TestCase
+{
+    /** F-001 쿠폰 발급 */
+    public function test_issue_coupon(): void { /* ... */ }
+}</code></pre>
+<div class="callout note"><strong>아직 Python·FastAPI 기준인 부분.</strong> 기술 선정 원칙(FastAPI + Pydantic + SQLAlchemy + pytest)과 일부 추천 플러그인(<code>pyright-lsp</code>, <code>pydantic</code>)은 그대로입니다. PHP 프로젝트에서는 Claude가 해당 항목을 건너뛰거나 같은 목적을 직접 수행하고, 단계 보고서에 <code>fallback</code>으로 기록합니다. 카드에 이 플러그인이 "미설치"로 보여도 PHP 작업에는 설치하지 않아도 됩니다. 단위 테스트로 확인한 지원이며, 실제 CodeIgniter 저장소로 하는 실전 평가는 아직 하지 않았습니다.</div>
 </section>
 
 <!-- ============ 8 ============ -->
@@ -842,7 +940,7 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
 <thead><tr><th>증상</th><th>원인</th><th>해결</th></tr></thead>
 <tbody>
 <tr><td>훅이 아무것도 알려 주지 않음</td><td>상태 파일이 없고, 요청에 트랙 키워드도 없음</td><td><code>/stage-pilot:stage detect</code>로 확인한 뒤 <code>init &lt;트랙&gt;</code>으로 시작</td></tr>
-<tr><td>코드가 있는데 신규 트랙을 추천함 / 그 반대</td><td>파이썬 파일이 <code>docs/</code>나 <code>.venv/</code> 안에만 있거나, 요청 표현이 다른 트랙 키워드에 걸림</td><td>추천은 참고용입니다. 원하는 트랙으로 <code>init</code>하면 됩니다</td></tr>
+<tr><td>코드가 있는데 신규 트랙을 추천함 / 그 반대</td><td>파이썬·PHP 파일이 <code>docs/</code>·<code>.venv/</code>·<code>vendor/</code> 안에만 있거나, 요청 표현이 다른 트랙 키워드에 걸림</td><td>추천은 참고용입니다. 원하는 트랙으로 <code>init</code>하면 됩니다</td></tr>
 <tr><td><code>next</code>가 넘어가지 않음</td><td>완료 확인이 실패함 (의도된 차단)</td><td><code>check</code>로 실패 항목과 이유를 보고 채움. 사람이 판단해 넘기려면 <code>next --force</code></td></tr>
 <tr><td>추적 확인에서 ID가 빠졌다고 나옴</td><td>뒤 문서나 테스트가 그 ID를 인용하지 않음</td><td>계획에 작업을 추가하거나, 테스트 이름·docstring에 ID를 적음. 범위에서 뺀 요구사항이면 요구사항 문서에서도 "범위 밖"으로 옮김</td></tr>
 <tr><td>테스트 확인이 실패하는데 직접 돌리면 통과함</td><td>다른 파이썬으로 실행됨</td><td>프로젝트 안 <code>.venv</code>를 쓰거나 상태 파일의 <code>test_cmd</code>를 지정</td></tr>
@@ -858,6 +956,8 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
 <tr><td>테스트 확인이 <code>import file mismatch</code>로 실패함</td><td>분석 도구가 만든 <code>legacy/&lt;system&gt;</code> 링크가 프로젝트 자신을 가리켜 같은 테스트가 두 경로에서 수집됨</td><td><code>check</code>는 <code>--ignore=legacy</code>를 자동으로 붙입니다. 직접 돌릴 때도 같은 옵션을 붙이고, 트랙이 끝나면 링크만 지움(재귀 삭제 금지)</td></tr>
 <tr><td>트랙을 끝낸 뒤 새 요청을 stage-pilot 없이 처리함</td><td>0.3.0 이전 판은 끝난 트랙을 진행 중인 카드로 보여 줌</td><td>0.3.0은 "트랙 완료"를 알리고 새 트랙을 추천합니다. 판을 올린 뒤 세션을 다시 엶</td></tr>
 <tr><td>기능 추가·리팩토링 요청을 했는데 stage-pilot 대신 다른 절차로 처리함</td><td>모든 작업 요청을 자기 절차로 처리하라고 지시하는 다른 워크플로 플러그인(예: 사내 워크플로 플러그인)이 함께 켜져 있으면, 그 지시가 stage-pilot 훅의 트랙 추천보다 앞설 수 있음</td><td>요청에 "stage-pilot으로"를 넣으면 함께 켜져 있어도 트랙으로 진행합니다. stage-pilot만 쓰려면 그 프로젝트의 <code>.claude/settings.json</code> <code>enabledPlugins</code>에서 다른 워크플로 플러그인을 <code>false</code>로 둡니다</td></tr>
+<tr><td>PHP 프로젝트에서 테스트 확인이 <code>pytest</code>로 돌아 실패함</td><td><code>vendor/bin/phpunit</code>이 없음(PHPUnit 미설치, 또는 다른 테스트 도구 사용)</td><td><code>composer require --dev phpunit/phpunit</code>으로 설치하거나, <code>init … --test "&lt;명령&gt;"</code>으로 테스트 명령을 지정</td></tr>
+<tr><td>PHP 프로젝트에서 ID 추적이 테스트의 ID를 못 찾음</td><td>테스트 파일 이름이 <code>*Test.php</code>가 아니고 <code>tests/</code> 폴더 밖에 있음</td><td>테스트 파일을 <code>*Test.php</code>로 짓거나 <code>tests/</code>(예: <code>application/tests/</code>) 안에 둠</td></tr>
 <tr><td>요청한 단계를 다르게 알아봄</td><td>키워드 대조는 근사치</td><td>상태 파일의 단계가 기준입니다. 자주 틀리면 <code>keywords</code>를 보강</td></tr>
 </tbody></table></div>
 </section>
@@ -869,7 +969,8 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
   <li><strong>호출은 지시로만 합니다.</strong> 다른 플러그인은 Claude가 Skill·Agent 도구로 부르도록 지시하는 방식으로 실행합니다. 훅이 직접 실행하지는 않습니다.</li>
   <li><strong>완료 확인은 형식을 봅니다.</strong> 문서에 필요한 항목과 ID가 있는지, 테스트가 통과하는지는 확인하지만, 설계가 좋은지·요구사항 해석이 맞는지는 판단하지 않습니다. 승인 지점과 결정 기록을 사람이 보는 이유입니다.</li>
   <li><strong>다른 워크플로 플러그인과 함께 쓸 때.</strong> 트랙 추천은 훅이 넣는 안내라서, 같은 요청을 자기 절차로 처리하라고 강하게 지시하는 플러그인이 함께 켜져 있으면 밀릴 수 있습니다. 요청에 "stage-pilot으로"를 넣거나 프로젝트 단위로 하나만 켭니다.</li>
-  <li><strong>트랙 추천은 근사치입니다.</strong> 파이썬 파일 수와 키워드로 판단하므로 애매한 요청은 사람이 고릅니다. 레거시 프로젝트에서 트랙 키워드가 없으면 하나로 단정하지 않고 기능 추가·리팩토링·고도화 중 고르라고 안내합니다.</li>
+  <li><strong>트랙 추천은 근사치입니다.</strong> 파이썬·PHP 파일 수와 키워드로 판단하므로 애매한 요청은 사람이 고릅니다. 레거시 프로젝트에서 트랙 키워드가 없으면 하나로 단정하지 않고 기능 추가·리팩토링·고도화 중 고르라고 안내합니다.</li>
+  <li><strong>PHP 지원 범위.</strong> 판별·ID 추적·테스트 실행은 PHP를 지원하지만, 기술 선정 원칙과 일부 추천 플러그인(<code>pyright-lsp</code>, <code>pydantic</code>)은 Python·FastAPI 기준이라 PHP 프로젝트에서는 <code>fallback</code> 기록이 남습니다. 실제 CodeIgniter 저장소 실전 평가는 아직 하지 않았습니다.</li>
   <li><strong>설치 여부만 봅니다.</strong> 카드의 "미설치"는 설치 목록 기준이며, 설치했지만 꺼 둔 플러그인은 구분하지 않습니다.</li>
   <li><strong>자동 승인은 기본 원칙을 따릅니다.</strong> 팀의 판단이 기본안과 다른 결정(예: 기능 추가와 함께 기존 API를 바꾸기)은 자동 모드에서 하지 않으므로, 결정 기록을 보고 사람이 이어서 처리합니다.</li>
   <li><strong>무거운 단계는 오래 걸립니다.</strong> <code>code-modernization</code>의 assess·map·extract-rules·harden, <code>claude-security</code>, <code>subagent-driven-development</code>는 여러 에이전트를 돌려 수십 분이 걸릴 수 있습니다.</li>
@@ -883,6 +984,7 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
 <div class="table-wrap"><table>
 <thead><tr><th>버전</th><th>날짜</th><th>내용</th></tr></thead>
 <tbody>
+<tr><td>0.3.3</td><td>2026-10-27</td><td><code>php</code> 브랜치 전용 판. PHP·CodeIgniter 레거시 지원: <code>.php</code> 파일로 레거시 판별(<code>vendor/</code> 제외)과 CodeIgniter 표시, <code>*Test.php</code>·<code>tests/</code> 안의 <code>.php</code>로 ID 추적, <code>vendor/bin/phpunit</code>이 있으면 <code>php vendor/bin/phpunit</code>을 기본 테스트 명령으로 사용. legacy-onboarding-manual 0.1.1은 <code>.php:줄</code> 근거를 셈. 설치 장에 업데이트 절차·여러 세션 적용·PHP 지원판 설치(<code>#php</code>) 추가. 단위 테스트 19개</td></tr>
 <tr><td>0.3.2</td><td>2026-10-22</td><td>트랙 추천 수정. 레거시 프로젝트에서 요청에 트랙 키워드가 없으면 리팩토링으로 단정하지 않고 기능 추가·리팩토링·고도화 중 요청에 맞는 것을 고르라고 안내(GitHub 설치 검증에서 "…추가하는 기능 작업" 요청을 리팩토링으로 추천한 사례). 기능 추가 키워드 보강("기능 작업", "추가하는 기능", "API 추가" 등). GitHub 설치본(README 명령)으로 stage-pilot·legacy-onboarding-manual 실제 세션 동작 확인</td></tr>
 <tr><td>0.3.1</td><td>2026-10-21</td><td>생성 코드 품질 검토(사람 리뷰어 관점) 결과를 규칙으로 반영. 리뷰 단계에 <code>shortcut:</code> 재검토(보고서 절 확인)와 테스트의 <code>docs/work/</code> 참조 금지(<code>testsAvoid</code>), 레거시 커밋 단계에 릴리스 노트의 "배포 영향" 확인. Windows에서 hookify 전제(<code>python3</code>·<code>PYTHONUTF8=1</code>) 안내. GitHub 원격 설치 검증. 단위 테스트 18개. 변경 회귀 확인: 실전 2회차(연쇄형 g6, 4트랙) 38/38 통과, 새 조건 3가지 모두 지켜짐</td></tr>
 <tr><td>0.3.0</td><td>2026-10-20</td><td>범용화 — 특정 프로젝트 전용 프로필(<code>fastapi-default</code>·<code>g6</code>)을 없애고 두 시나리오 문서는 실전 평가에만 쓴다. 테스트 명령 지정(<code>set … --test</code>, <code>uv.lock</code> 감지). 트랙 4종: 신규 프로젝트(<code>greenfield</code>, 빈 폴더에서 기획 → 설계 → 기술 선정 → 작업 계획 → 구현 → 리뷰 → 보안 → 마무리), 레거시 기능 추가(<code>feature</code>), 리팩토링(<code>default</code>), 고도화(<code>enhance</code>). 빈 폴더/레거시 판별과 트랙 추천(<code>detect</code>), 작업 이름별 문서 위치(<code>--work</code>), 단계 완료 확인(<code>check</code>: 산출물·추적 ID·테스트·작업 트리), 확인을 통과해야 넘어가는 <code>next</code>, 단계 보고서, 항목별 기록 명령(<code>skip</code>·<code>fallback</code>·<code>reuse</code>), 비용 승인 원문 기록(<code>consent</code>), <code>.claude</code> 쓰기 거부 시 승인 대기 초안, context7 허용 판정(파일:행 근거)과 미연결 대체. 실제 Claude Code(<code>claude -p</code>)로 빈 저장소에서 4트랙 38단계를 회차마다 다른 시나리오·난이도로 수행하는 평가 하네스(<code>eval/run_tracks.py</code>) — 실제 저장소 2종(g6, fastapi-default-project-structure — 검증 전용)으로 실레거시·연쇄형 6회차를 돌리는 실전 평가 하네스(<code>eval/real/</code>)와, 실전 평가로 찾은 결함 수정(메인 세션 호출, 끝난 트랙 안내, <code>legacy/</code> 링크 처리와 <code>--ignore=legacy</code>, 조건부 항목 보정, 프로젝트 전체 테스트 추적, 결과 대기). 최종본 6회차 통과(1~5회차 5회 연속)</td></tr>
@@ -893,7 +995,7 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
 </section>
 
 <footer>
-stage-pilot 0.3.2 · 근거 문서: <a href="../default/fastapi-claude-plugins-guide.html">통합 가이드</a> · 실전 평가 시나리오(검증 전용): <a href="../scenario-plugin-guide/g6-refactoring-guide.html">g6</a>, <a href="../scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html">fastapi-default-project-structure</a> · 이전 판: <a href="stage-pilot-manual-v0.2.0.html">v0.2.0</a>
+stage-pilot 0.3.3 (php 브랜치) · 근거 문서: <a href="../default/fastapi-claude-plugins-guide.html">통합 가이드</a> · 실전 평가 시나리오(검증 전용): <a href="../scenario-plugin-guide/g6-refactoring-guide.html">g6</a>, <a href="../scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html">fastapi-default-project-structure</a> · 이전 판: <a href="stage-pilot-manual-v0.2.0.html">v0.2.0</a>
 </footer>
 </main>
 </div>
