@@ -92,9 +92,12 @@ def check(path, render=False):
     cites = len(CITATION.findall(html))
     if cites < MIN_CITATIONS:
         warns.append(f"file:line 근거가 {cites}개 — {MIN_CITATIONS}개 이상 권장")
-    if "확인" not in html or "추정" not in html:
+    # 목차·제목의 "12. 확인된 것과 추정"만으로 통과하지 않게 본문에서만 찾는다
+    body = re.sub(r"<nav\b.*?</nav>|<h[1-6]\b.*?</h[1-6]>", "", html, flags=re.S)
+    if "확인" not in body or "추정" not in body:
         fails.append("확인/추정 표시가 없음")
-    todos = len(re.findall(r"TODO", html))
+    # 템플릿 자리표시자 형태(TODO: · TODO< · TODO/)만 센다 — 본문의 "TODO 주석" 설명은 정당하다
+    todos = len(re.findall(r"TODO(?=[:</])", html))
     if todos:
         fails.append(f"템플릿 자리표시자 TODO {todos}개 남음")
 
@@ -128,6 +131,9 @@ def render_check(blocks):
 
 
 if __name__ == "__main__":
+    # 한국어 Windows 콘솔(cp949)은 '—' 같은 문자를 못 써서 결과 대신 UnicodeEncodeError 로 멈춘다
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
         sys.exit(__doc__)

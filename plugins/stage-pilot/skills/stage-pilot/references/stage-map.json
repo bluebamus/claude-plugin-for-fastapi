@@ -54,7 +54,7 @@
            {"type": "skill", "ref": "superpowers:brainstorming", "note": "의뢰서(BRIEF 등)에서 목적·사용자·기능·제약을 끌어냄. 문서는 docs/project/01-requirements.md 에 저장"}],
          "approval": "요구사항 범위(넣을 것·뺄 것), 모호한 조건의 해석",
          "done": "요구사항 ID(R-)와 수용 기준, 비기능 요구(NFR-), 범위 밖, 가정·미결 사항",
-         "checks": [{"file": "docs/project/01-requirements.md", "has": ["R-\\d+", "NFR-\\d+", "수용 기준", "범위 밖", "가정"]}],
+         "checks": [{"file": "docs/project/01-requirements.md", "has": ["\\bR-\\d+", "NFR-\\d+", "수용 기준", "범위 밖", "가정"]}],
          "keywords": ["기획", "요구사항", "요건", "기능 정의", "범위", "requirements"]},
         {"id": "2", "title": "설계 — 아키텍처·도메인 모델·API", "anchor": "#gf-2",
          "primary": ["feature-dev", "code-modernization"], "assist": ["pydantic"],
