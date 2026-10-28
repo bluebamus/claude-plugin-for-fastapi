@@ -277,3 +277,16 @@ test('레거시 커밋 단계: 릴리스 노트에 배포 영향이 있어야 �
   put(cwd, 'docs/work/w/release-notes.md', '## 배포 영향\n없음\n');
   assert.ok(S.runCheck(cwd, { profile: 'feature', work: 'w' }, c).ok);
 });
+
+test('레거시 0단계 근거: .py:줄 과 .php:줄 모두 통과하고, 근거가 없으면 실패한다', () => {
+  // PHP 프로젝트에서 01-impact.md·01-diagnosis.md 가 .py 근거만 요구해 통과할 수 없던 결함
+  for (const [p, file, extra] of [['feature', '01-impact.md', '위험'], ['enhance', '01-diagnosis.md', 'E-1']]) {
+    const c = S.findStage(map, p, '0').s.checks.find((x) => x.file && x.file.endsWith(file));
+    const st = { profile: p, work: 'w' };
+    for (const [evidence, ok] of [['application/controllers/Board.php:42', true], ['app/main.py:3', true], ['근거 없음', false]]) {
+      const cwd = tmp();
+      put(cwd, `docs/work/w/${file}`, `${extra}\n${evidence}\n`);
+      assert.strictEqual(S.runCheck(cwd, st, c).ok, ok, `${p} ${evidence}`);
+    }
+  }
+});
