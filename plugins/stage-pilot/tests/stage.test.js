@@ -290,3 +290,46 @@ test('레거시 0단계 근거: .py:줄 과 .php:줄 모두 통과하고, 근거
     }
   }
 });
+
+test('훅 오탐: 영어 단어 속 auto·일반 단어 "단계"로 자동 승인·트랙 안내를 넣지 않는다', () => {
+  const legacy = { kind: 'legacy' };
+  assert.strictEqual(S.intake(map, 'autocomplete 엔드포인트 기능을 추가하려고 해', legacy).auto, false);
+  assert.strictEqual(S.intake(map, '기능 추가를 자동 승인으로 진행해줘', legacy).auto, true);
+  assert.strictEqual(S.intake(map, '기능 추가, auto 모드로', legacy).auto, true);
+  const cwd = tmp();
+  put(cwd, 'app/main.py', 'x = 1\n');
+  assert.strictEqual(hook('prompt', { cwd, prompt: '이 함수 처리 단계를 설명해줘' }), '', '"단계"만으로는 개입하지 않음');
+  assert.match(hook('prompt', { cwd, prompt: '3단계부터 진행해줘' }), /트랙을 정하지 못함/);
+});
+
+test('detect: 가상환경·빌드·캐시 폴더의 파이썬 파일은 세지 않는다', () => {
+  const cwd = tmp();
+  for (const d of ['env/lib/site.py', 'build/lib/a.py', 'dist/b.py', '.tox/py/c.py', '.mypy_cache/d.py']) put(cwd, d, 'x = 1\n');
+  assert.strictEqual(S.detect(cwd).kind, 'new');
+});
+
+test('clean: 하위 폴더 프로젝트는 그 폴더의 변경만 보고, 저장소가 아니면 이유를 알린다', () => {
+  const root = tmp();
+  const vcs = (...a) => execFileSync('git', ['-c', 'user.email=t@t', '-c', 'user.name=t', ...a], { cwd: root, stdio: 'pipe' });
+  vcs('init', '-q');
+  put(root, 'services/api/app.py', 'x = 1\n');
+  vcs('add', '-A'); vcs('commit', '-q', '-m', 'x');
+  const cwd = path.join(root, 'services', 'api');
+  put(cwd, '.claude/stage-pilot/state.json', '{}');
+  put(root, 'other/notes.txt', '다른 프로젝트의 변경\n');
+  assert.ok(S.runCheck(cwd, {}, { clean: true }).ok, '상태 파일·다른 폴더 변경은 정리 판정 밖');
+  put(cwd, 'new.py', 'y = 2\n');
+  assert.match(S.runCheck(cwd, {}, { clean: true }).why, /new\.py/);
+  const r = S.runCheck(tmp(), {}, { clean: true });
+  assert.strictEqual(r.ok, false);
+  assert.match(r.why, /저장소/);
+});
+
+test('신규 1단계: NFR- 만 있고 R- 가 없으면 통과하지 않는다', () => {
+  const c = S.findStage(map, 'greenfield', '1').s.checks[0];
+  const cwd = tmp();
+  put(cwd, 'docs/project/01-requirements.md', 'NFR-1 응답 1초\n수용 기준\n범위 밖\n가정\n');
+  assert.strictEqual(S.runCheck(cwd, { profile: 'greenfield' }, c).ok, false);
+  put(cwd, 'docs/project/01-requirements.md', 'R-1 목록\nNFR-1 응답 1초\n수용 기준\n범위 밖\n가정\n');
+  assert.ok(S.runCheck(cwd, { profile: 'greenfield' }, c).ok);
+});

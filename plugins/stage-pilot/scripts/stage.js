@@ -102,7 +102,8 @@ function matchStage(map, profile, prompt) {
   return best && best.s;
 }
 
-const SKIP_DIRS = new Set(['.git', '.venv', 'venv', 'node_modules', '__pycache__', '.claude', '.pytest_cache', 'docs', 'vendor']);
+const SKIP_DIRS = new Set(['.git', '.venv', 'venv', 'env', 'node_modules', '__pycache__', '.claude', '.pytest_cache', 'docs', 'vendor',
+  '.tox', '.nox', '.mypy_cache', '.ruff_cache', 'build', 'dist', 'site-packages']);
 function* walk(dir) {
   let ents = [];
   try { ents = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
@@ -129,14 +130,24 @@ function detect(cwd) {
   return { kind: py || php ? 'legacy' : 'new', py, php, tests, fastapi, codeigniter };
 }
 
-// 요청 의도와 프로젝트 상태로 트랙(프로필)을 추천한다. 키워드가 없으면 null.
-function intake(map, prompt, info) {
+// 요청에서 트랙 키워드를 찾는다. 키워드도 stage-pilot 언급도 없으면 null — 이때는 폴더를 훑지 않는다.
+function intent(map, prompt) {
   const text = prompt.toLowerCase();
   const hit = Object.entries(map.profiles)
     .map(([name, p]) => ({ name, p, hits: (p.keywords || []).filter((k) => text.includes(k.toLowerCase())).length }))
     .filter((x) => x.hits).sort((a, b) => b.hits - a.hits)[0];
-  if (!hit && !/stage-pilot|단계|워크플로/.test(text)) return null;
-  const auto = /자동 ?승인|자동으로|auto/.test(text);
+  // "처리 단계" 같은 일반 단어에는 개입하지 않는다 — 단계 번호("3단계")나 stage-pilot·워크플로 언급만 인정
+  if (!hit && !/stage-pilot|워크플로|\d+\s*단계/.test(text)) return null;
+  return { hit, text };
+}
+
+// 요청 의도와 프로젝트 상태로 트랙(프로필)을 추천한다. 키워드가 없으면 null.
+function intake(map, prompt, info) {
+  const i = intent(map, prompt);
+  if (!i) return null;
+  const { hit, text } = i;
+  // autocomplete·automation 같은 단어 속 auto 는 자동 승인 요청이 아니다
+  const auto = /자동 ?승인|자동으로|(?<![\w-])auto(?![\w-])/.test(text);
   // 키워드가 없으면 레거시 트랙을 짐작하지 않는다 — 기능 추가 요청을 리팩토링으로 안내한 사례가 있었다
   if (!hit && info.kind !== 'new') return { profile: null, auto };
   const name = hit ? hit.name : 'greenfield';
@@ -153,6 +164,8 @@ function hookOut(event, text) {
 }
 
 function intakeText(map, prompt, cwd) {
+  // 관계없는 요청마다 폴더 전체를 훑으면 큰 저장소에서 훅 제한 시간(5초)을 넘긴다
+  if (!intent(map, prompt)) return '';
   const info = detect(cwd);
   const r = intake(map, prompt, info);
   if (!r) return '';
@@ -271,9 +284,11 @@ function runCheck(cwd, st, c) {
     return { ok: r.status === 0, why: `${cmd} → 종료 코드 ${r.status} (${last.slice(0, 120)})${dup}` };
   }
   if (c.clean) {
-    const r = spawnSync('git', ['status', '--porcelain'], { cwd, encoding: 'utf8' });
-    const left = (r.stdout || '').split(/\r?\n/).filter((l) => l.trim() && !/\s\.claude\//.test(l));
-    return { ok: r.status === 0 && !left.length, why: left.length ? `커밋 안 된 변경 ${left.length}개: ${left.slice(0, 3).join(', ')}` : '' };
+    // 모노레포 하위 폴더 프로젝트도 있으므로 이 폴더 안의 변경만 보고, 상태 파일이 있는 .claude/ 는 뺀다
+    const r = spawnSync('git', ['status', '--porcelain', '--', '.', ':(exclude).claude'], { cwd, encoding: 'utf8' });
+    if (r.status !== 0) return { ok: false, why: `git 저장소가 아니거나 git status 실패: ${(r.stderr || r.error?.message || '').trim().split(/\r?\n/)[0]}` };
+    const left = (r.stdout || '').split(/\r?\n/).filter((l) => l.trim());
+    return { ok: !left.length, why: left.length ? `커밋 안 된 변경 ${left.length}개: ${left.slice(0, 3).join(', ')}` : '' };
   }
   if (c.testsAvoid) {
     // 작업 문서(docs/work)는 정리될 수 있으므로 테스트 기준값을 거기서 읽으면 나중에 깨진다
