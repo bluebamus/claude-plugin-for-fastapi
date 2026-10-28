@@ -18,8 +18,8 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 
 | 플러그인 | 버전 | 언제 쓰나 | 결과물 |
 |---|---|---|---|
-| `stage-pilot` | 0.3.4 | 신규 FastAPI 프로젝트를 만들거나, 레거시에 기능 추가·리팩토링·고도화를 할 때 | 단계별 문서(`docs/`), 단계 보고서, 완료 확인을 통과한 코드와 커밋 |
-| `legacy-onboarding-manual` | 0.1.1 | 레거시 프로젝트를 처음 맡아 코드를 만지기 전에 구조와 동작을 파악할 때 | `docs/onboarding/<이름>-onboarding-manual.html` 한 파일 |
+| `stage-pilot` | 0.3.6 | 신규 FastAPI 프로젝트를 만들거나, 레거시에 기능 추가·리팩토링·고도화를 할 때 | 단계별 문서(`docs/`), 단계 보고서, 완료 확인을 통과한 코드와 커밋 |
+| `legacy-onboarding-manual` | 0.1.3 | 레거시 프로젝트를 처음 맡아 코드를 만지기 전에 구조와 동작을 파악할 때 | `docs/onboarding/<이름>-onboarding-manual.html` 한 파일 |
 
 두 플러그인은 독립적입니다. 하나만 설치해도 되고, 레거시를 맡았다면 온보딩 매뉴얼로 먼저 파악한 뒤 stage-pilot 레거시 트랙으로 작업하는 순서를 권합니다.
 
@@ -145,7 +145,8 @@ git clone -b php https://github.com/bluebamus/claude-plugin-for-fastapi C:/work/
 
 #### 바뀌었는지 확인
 
-- `/plugin`의 **Installed** 탭이나 셸의 `claude plugin list`에서 stage-pilot이 `0.3.3` 이상, legacy-onboarding-manual이 `0.1.1`이면 PHP 지원판입니다.
+- 어느 판인지는 버전 번호가 아니라 `/plugin`의 **Marketplaces** 탭에 보이는 등록 출처로 구분합니다(`...#php`면 PHP 지원판). 두 판은 버전을 각자 올리므로 버전 번호로는 구분하지 않습니다.
+- 설치된 버전은 `/plugin`의 **Installed** 탭이나 셸의 `claude plugin list`에서 봅니다.
 - `/plugin`의 **Marketplaces** 탭에서 `claude-plugin-for-fastapi`의 출처가 `...#php`(방법 C는 로컬 경로)로 보여야 합니다.
 
 #### 참고
@@ -323,7 +324,7 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 - **다른 워크플로 플러그인과 함께 쓸 때.** 모든 작업 요청을 자기 절차로 처리하라고 지시하는 플러그인이 함께 켜져 있으면, stage-pilot의 트랙 추천이 밀릴 수 있습니다. 요청에 "stage-pilot으로"를 넣거나, 그 프로젝트에서는 플러그인을 하나만 켭니다([매뉴얼 19장](docs/manual/stage-pilot-manual-v0.3.2.html#limits)).
 - **사용자 전용 명령.** `/plugin`, `/mcp`, `claude mcp add`는 Claude가 대신 실행할 수 없습니다. 단계 카드가 안내하면 직접 입력합니다.
 - **완료 확인의 범위.** 완료 확인은 형식(문서 항목, ID 연결, 테스트)을 봅니다. 설계의 좋고 나쁨은 승인 지점에서 사람이 판단합니다.
-- **PHP(CodeIgniter) 프로젝트.** v0.3.3부터 레거시 판별, ID 추적(`*Test.php`, `tests/` 안의 `.php`), 테스트 실행(`vendor/bin/phpunit`이 있으면 `php vendor/bin/phpunit`)이 PHP를 지원합니다. 다른 테스트 명령은 `--test`로 줍니다. 다만 기술 선정 원칙과 추천 플러그인(`pyright-lsp`, `pydantic` 등)은 Python·FastAPI 기준이라, PHP에서는 해당 항목을 건너뛰거나 대신 수행한 기록(`fallback`)이 남습니다. v0.3.4부터 기능 추가·고도화 0단계의 완료 확인도 `.php:줄` 근거를 인정합니다. 온보딩 매뉴얼 검사도 `.php` 근거를 인식합니다.
+- **PHP(CodeIgniter) 프로젝트.** v0.3.3부터 레거시 판별, ID 추적(`*Test.php`, `tests/` 안의 `.php`), 테스트 실행(`vendor/bin/phpunit`이 있으면 `php vendor/bin/phpunit`)이 PHP를 지원합니다. 다른 테스트 명령은 `--test`로 줍니다. 다만 기술 선정 원칙과 추천 플러그인(`pyright-lsp`, `pydantic` 등)은 Python·FastAPI 기준이라, PHP에서는 해당 항목을 건너뛰거나 대신 수행한 기록(`fallback`)이 남습니다. v0.3.4부터 기능 추가·고도화 0단계의 완료 확인도 `.php:줄` 근거를 인정하고, v0.3.6부터 리팩토링 트랙 안내(종료 전 테스트 규칙, 소스 폴더)가 언어 중립입니다. **신규(`greenfield`) 트랙은 FastAPI 전용**입니다(`.venv`·`fastapi` 의존성을 요구). PHP 프로젝트는 기능 추가·리팩토링·고도화 트랙을 씁니다. 온보딩 매뉴얼 검사도 `.php` 근거를 인식합니다.
 - **온보딩 매뉴얼의 `추정`.** 실행 권한을 주지 않으면 동작 설명이 모두 `추정`으로 남습니다. 12장 「확인된 것과 추정」을 먼저 보고 신뢰도를 판단합니다.
 
 ## 검증과 평가
@@ -333,6 +334,7 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 ```
 node --test plugins/stage-pilot/tests/stage.test.js     # 단계 데이터·문서 앵커·훅·트랙 추천·완료 확인
 claude plugin validate .                                # 마켓플레이스·플러그인 매니페스트
+python -m unittest discover -s plugins/legacy-onboarding-manual/tests   # 온보딩 매뉴얼 검사기
 python plugins/legacy-onboarding-manual/skills/legacy-onboarding-manual/scripts/check_manual.py <manual.html> [--render]
 ```
 
@@ -362,6 +364,7 @@ v0.2.0의 단계별 평가 도구(`eval/gen_legacy.py`, `eval/run_eval.py`)도 �
 | v0.3.0 | 최종본(판 L)으로 실전 6회차를 모두 통과했습니다(1~5회차 5회 연속, 6회차는 환경 손상을 바로잡은 뒤 재판정). 난이도는 중·상·최상이고, 회차마다 29~38단계를 진행했으며 테스트 재실행 결과는 82~1,237건 통과입니다. 평가 중 찾은 결함 6건은 플러그인에서 고쳤습니다. |
 | v0.3.1 | 평가에서 생성된 코드를 사람 리뷰어 관점으로 검토해, 약점을 완료 조건으로 바꿨습니다. 리뷰 단계는 남긴 `shortcut:`을 다시 보고 테스트가 `docs/work/`를 읽지 않게 하며, 레거시 커밋 단계는 릴리스 노트에 "배포 영향"을 적습니다. 바뀐 단계 7곳을 모두 지나는 실전 2회차(연쇄형 g6)를 다시 돌려 38단계 모두 통과했습니다(114분, 테스트 재실행 95건 통과). 다만 1회 확인이며 5회 연속 기준의 재평가는 아닙니다. |
 | v0.3.2 | README 명령으로 GitHub에서 설치한 두 플러그인을 실제 세션에서 확인했습니다. 그 과정에서 트랙 키워드가 없는 기능 추가 요청을 리팩토링으로 추천하는 문제를 찾아 고쳤습니다. |
+| v0.3.6 | 기본판 0.3.5의 공통 결함 수정(영어 단어 속 `auto` 오인, 관계없는 요청에도 폴더 전체 탐색, 모노레포 하위 폴더의 작업 트리 정리 확인, 일반 단어 "단계" 개입, 신규 1단계 `NFR-` 통과, 온보딩 검사기의 cp949 멈춤·목차 통과·TODO 오인)을 반영하고, PHP 전용으로: `composer.json`이 있는데 phpunit이 없으면 pytest로 넘어가지 않고 설치·지정 방법을 알림, 상위 폴더 이름과 무관하게 테스트 파일을 세고 `test/`·`Tests/`·`*_test.php`도 테스트로 봄, 리팩토링 트랙 안내를 언어 중립으로, 설명문에 PHP·CodeIgniter 명시. 단위 테스트 26개 + 검사기 테스트 4개. |
 | v0.3.4 | 기능 추가·고도화 0단계 완료 확인이 근거를 `.py:줄`로만 인정해 PHP 프로젝트에서 통과할 수 없던 결함을 고쳤습니다(`\.(py|php):\d+`). 실제 PHP 프로젝트 사용 리포트로 찾았습니다. 단위 테스트 20개. |
 | v0.3.3 | PHP·CodeIgniter 레거시 지원: `.php` 파일로 레거시를 판별하고(`vendor/` 제외), PHP 테스트로 ID를 추적하며, phpunit을 기본 테스트 명령으로 씁니다. legacy-onboarding-manual 0.1.1은 `.php:줄` 근거를 셉니다. 단위 테스트로 확인했고 실제 CodeIgniter 저장소 실전 평가는 아직 하지 않았습니다. |
 

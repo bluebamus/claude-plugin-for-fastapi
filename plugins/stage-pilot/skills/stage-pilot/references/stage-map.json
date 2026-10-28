@@ -341,7 +341,7 @@
          "primary": ["code-modernization", "feature-dev", "pyright-lsp"], "assist": ["explanatory-output-style"],
          "conditional": [{"plugin": "lumen", "when": "이름이 제각각인 코드를 찾아야 할 만큼 클 때"}],
          "run": [
-           {"type": "command", "ref": "code-modernization:modernize-preflight", "args": "<system> --source ./app"},
+           {"type": "command", "ref": "code-modernization:modernize-preflight", "args": "<system> --source <소스 폴더>(FastAPI·CodeIgniter 4: ./app, CodeIgniter 3: ./application)"},
            {"type": "command", "ref": "code-modernization:modernize-assess"},
            {"type": "command", "ref": "code-modernization:modernize-map"},
            {"type": "command", "ref": "code-modernization:modernize-extract-rules"},
@@ -355,8 +355,8 @@
          "conditional": [{"plugin": "plugin-dev", "when": "정규식으로 못 잡는 의미 기반 규칙이 필요할 때"}],
          "run": [
            {"type": "skill", "ref": "claude-code-setup:claude-automation-recommender", "note": "읽기 전용 추천"},
-           {"type": "command", "ref": "hookify:hookify", "args": "block-remote-git, require-pytest-before-stop, 라우터 DB 직접 접근 금지"},
-           {"type": "command", "ref": "code-modernization:modernize-preflight", "args": "<system> --source ./app"},
+           {"type": "command", "ref": "hookify:hookify", "args": "block-remote-git, require-tests-before-stop(stage check 와 같은 테스트 명령 통과 후 종료 — Python 은 pytest, PHP 는 phpunit), 라우터·컨트롤러의 DB 직접 접근 금지"},
+           {"type": "command", "ref": "code-modernization:modernize-preflight", "args": "<system> --source <소스 폴더>(FastAPI·CodeIgniter 4: ./app, CodeIgniter 3: ./application)"},
            {"type": "shell", "ref": "printf \"legacy/\\nanalysis/\\n\" >> .git/info/exclude"},
            {"type": "user", "ref": "/plugin marketplace add pydantic/skills && /plugin install pydantic@pydantic-skills"}],
          "approval": "추천받은 자동화 중 실제로 켤 것, CLAUDE.md 문구",
@@ -387,7 +387,7 @@
          "conditional": [{"plugin": "sonarqube", "when": "조직 표준이거나 로컬 Community Build가 있을 때"}],
          "run": [
            {"type": "agent", "ref": "pr-review-toolkit:pr-test-analyzer"},
-           {"type": "command", "ref": "ponytail:ponytail-audit", "args": "app/", "note": "군더더기 항목만 참고"}],
+           {"type": "command", "ref": "ponytail:ponytail-audit", "args": "<소스 폴더>(app/ 또는 application/)", "note": "군더더기 항목만 참고"}],
          "approval": "리팩토링 순서 확정, 손대지 않을 엔드포인트 제외",
          "done": "위험도 표(엔드포인트 | 커버리지 | 위험 | 순서)",
          "keywords": ["위험도", "커버리지", "테스트 공백", "우선순위", "risk"]},
@@ -467,7 +467,7 @@
            {"type": "skill", "ref": "superpowers:verification-before-completion"},
            {"type": "command", "ref": "claude-md-management:revise-claude-md"}],
          "approval": "남은 이슈를 지금 고칠지 미룰지, CLAUDE.md 반영 항목",
-         "done": "pytest·ruff·pyright 통과, 리뷰 이슈 표, shortcut 재검토(남은 shortcut: 마다 이 변경에서 적은 비용으로 고칠 수 있으면 고치고, 남기면 이유)",
+         "done": "테스트·린트·타입 검사 통과(Python: pytest·ruff·pyright, PHP: phpunit 와 프로젝트의 린트), 리뷰 이슈 표, shortcut 재검토(남은 shortcut: 마다 이 변경에서 적은 비용으로 고칠 수 있으면 고치고, 남기면 이유)",
          "checks": [{"test": true}, {"testsAvoid": "docs/work/"}],
          "report": ["shortcut 재검토"],
          "keywords": ["단순화", "리뷰", "정리", "검증", "simplify", "review", "과설계"]},

@@ -117,13 +117,15 @@ function* walk(dir) {
 function detect(cwd) {
   let py = 0, php = 0, fastapi = false, codeigniter = false, tests = 0;
   for (const f of walk(cwd)) {
+    // 상위 폴더 이름(예: C:\work\test\myapp)에 끌려가지 않게 프로젝트 안 경로로 본다
+    const rel = path.relative(cwd, f);
     if (f.endsWith('.py')) {
       py++;
-      if (/[\\/]tests?[\\/]|test_[^\\/]*\.py$/.test(f)) tests++;
+      if (/(^|[\\/])tests?[\\/]|test_[^\\/]*\.py$/i.test(rel)) tests++;
       if (!fastapi) { try { fastapi = /\bfastapi\b/.test(fs.readFileSync(f, 'utf8')); } catch { /* 읽기 실패는 무시 */ } }
     } else if (f.endsWith('.php')) {
       php++;
-      if (/[\\/]tests?[\\/]|Test\.php$/.test(f)) tests++;
+      if (/(^|[\\/])tests?[\\/]|Test\.php$|_test\.php$/i.test(rel)) tests++;
       if (!codeigniter) { try { codeigniter = /\bCodeIgniter\b|\bCI_(Controller|Model|VERSION)\b/.test(fs.readFileSync(f, 'utf8')); } catch { /* 읽기 실패는 무시 */ } }
     }
   }
@@ -248,7 +250,7 @@ function testText(cwd) {
   const walk = (dir, inTests) => {
     for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
       const p = path.join(dir, e.name);
-      if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name) && e.name !== 'legacy') walk(p, inTests || e.name === 'tests'); } else if (/\.(py|php)$/.test(e.name) && (inTests || /^test_|_test\.py$|Test\.php$/.test(e.name))) out.push(fs.readFileSync(p, 'utf8'));
+      if (e.isDirectory()) { if (!SKIP_DIRS.has(e.name) && e.name !== 'legacy') walk(p, inTests || /^tests?$/i.test(e.name)); } else if (/\.(py|php)$/.test(e.name) && (inTests || /^test_|_test\.(py|php)$|Test\.php$/.test(e.name))) out.push(fs.readFileSync(p, 'utf8'));
     }
   };
   walk(cwd, false);
@@ -273,6 +275,10 @@ function testCommand(cwd, st) {
 
 function runCheck(cwd, st, c) {
   if (c.test) {
+    // PHP 프로젝트에서 phpunit 이 없으면 pytest 로 넘어가 엉뚱한 Python 오류로 실패한다
+    if (!st.test_cmd && fs.existsSync(path.join(cwd, 'composer.json')) && !fs.existsSync(path.join(cwd, 'vendor/bin/phpunit'))) {
+      return { ok: false, why: 'PHP 프로젝트(composer.json)인데 vendor/bin/phpunit 이 없음 — composer install(또는 composer require --dev phpunit/phpunit) 후 다시 확인하거나, init … --test "<테스트 명령>"으로 지정' };
+    }
     // modernize-* 의 legacy/<system> 링크는 트랙 동안 유지된다 — 프로젝트 자신을 가리키면 같은 테스트가 두 번 수집되므로 뺀다
     const base = testCommand(cwd, st);
     const cmd = /pytest/.test(base) && fs.existsSync(path.join(cwd, 'legacy')) && !/--ignore=legacy/.test(base) ? `${base} --ignore=legacy` : base;

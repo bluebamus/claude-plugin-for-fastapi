@@ -333,3 +333,26 @@ test('신규 1단계: NFR- 만 있고 R- 가 없으면 통과하지 않는다', 
   put(cwd, 'docs/project/01-requirements.md', 'R-1 목록\nNFR-1 응답 1초\n수용 기준\n범위 밖\n가정\n');
   assert.ok(S.runCheck(cwd, { profile: 'greenfield' }, c).ok);
 });
+
+test('PHP 테스트 규칙: 상위 폴더 이름과 무관하고, test/·Tests/ 폴더와 *_test.php 도 테스트로 본다', () => {
+  const parent = path.join(tmp(), 'test');
+  const cwd = path.join(parent, 'ci3');
+  put(cwd, 'application/controllers/Welcome.php', '<?php class Welcome extends CI_Controller {}\n');
+  put(cwd, 'application/test/Welcome_test.php', '<?php // F-2\n');
+  put(cwd, 'Tests/CouponTest.php', '<?php // F-1\n');
+  assert.strictEqual(S.detect(cwd).tests, 2, '상위 폴더 이름 test 때문에 컨트롤러를 테스트로 세지 않음');
+  execFileSync('node', [SCRIPT, 'set', 'feature', '4', '--work', 'w', '--cwd', cwd]);
+  const st = JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'stage-pilot', 'state.json'), 'utf8'));
+  const c = map.profiles.feature.stages.find((s) => s.id === '4').checks.find((x) => x.trace && x.to[0] === 'tests');
+  put(cwd, S.sub(c.from, st), 'F-1 F-2\n');
+  assert.ok(S.runCheck(cwd, st, c).ok, S.runCheck(cwd, st, c).why);
+});
+
+test('PHP 프로젝트에 phpunit 이 없으면 pytest 로 넘어가지 않고 설치·지정 방법을 알린다', () => {
+  const cwd = tmp();
+  put(cwd, 'composer.json', '{}');
+  const r = S.runCheck(cwd, {}, { test: true });
+  assert.strictEqual(r.ok, false);
+  assert.match(r.why, /phpunit.*composer install.*--test/s);
+  assert.doesNotMatch(r.why, /pytest/);
+});
