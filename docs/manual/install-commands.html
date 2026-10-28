@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>설치 명령 모음</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#ffffff; --bg-soft:#f6f7f9; --bg-code:#f3f4f6; --ink:#1a1d23; --ink-2:#4b5361; --ink-3:#7a8291;
+  --line:#e3e6eb; --accent:#2f6fde; --accent-soft:#e8f0fd; --warn:#b4650a; --warn-soft:#fdf3e4;
+  --ok:#1f8a5b; --ok-soft:#e6f5ee; --bad:#c23b3b; --bad-soft:#fbeaea; --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14161a; --bg-soft:#1b1e23; --bg-code:#20242a; --ink:#e7e9ee; --ink-2:#b4bac5; --ink-3:#868d99;
+    --line:#2c3138; --accent:#6ea1ff; --accent-soft:#1d2a42; --warn:#f0b35a; --warn-soft:#33281a;
+    --ok:#5fcf9a; --ok-soft:#18302a; --bad:#ff8a8a; --bad-soft:#3a1f22;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14161a; --bg-soft:#1b1e23; --bg-code:#20242a; --ink:#e7e9ee; --ink-2:#b4bac5; --ink-3:#868d99;
+  --line:#2c3138; --accent:#6ea1ff; --accent-soft:#1d2a42; --warn:#f0b35a; --warn-soft:#33281a;
+  --ok:#5fcf9a; --ok-soft:#18302a; --bad:#ff8a8a; --bad-soft:#3a1f22;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:16px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:anywhere}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);max-width:1240px;margin:0 auto;gap:48px;padding:0 24px}
+nav.toc{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;padding:32px 0;font-size:14px}
+nav.toc .toc-title{font-weight:700;color:var(--ink-3);font-size:12px;letter-spacing:.06em;margin-bottom:10px}
+nav.toc ol{list-style:none;margin:0;padding:0}
+nav.toc li{margin:2px 0}
+nav.toc a{display:block;padding:4px 10px;border-radius:6px;color:var(--ink-2)}
+nav.toc a:hover{background:var(--bg-soft);text-decoration:none}
+nav.toc ol ol a{padding-left:22px;font-size:13px;color:var(--ink-3)}
+main{padding:40px 0 96px;min-width:0}
+header.hero{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
+.eyebrow{font-size:13px;color:var(--ink-3);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.eyebrow .chip{background:var(--bg-soft);border:1px solid var(--line);border-radius:999px;padding:1px 10px}
+h1{font-size:32px;line-height:1.3;margin:10px 0 12px;letter-spacing:-.02em}
+h2{font-size:24px;line-height:1.35;margin:60px 0 14px;padding-top:8px;letter-spacing:-.01em;border-top:1px solid var(--line);padding-top:28px}
+h3{font-size:19px;line-height:1.4;margin:34px 0 10px}
+h4{font-size:15px;margin:20px 0 6px;color:var(--ink-2)}
+p{margin:10px 0}
+.lead{font-size:17px;color:var(--ink-2)}
+ul,ol{padding-left:22px;margin:8px 0}
+li{margin:4px 0}
+code{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:var(--bg-code);padding:1px 6px;border-radius:5px}
+pre{background:var(--bg-code);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;overflow:auto;font-size:13.5px;line-height:1.6;margin:10px 0 16px}
+pre code{background:none;padding:0;font-size:inherit}
+.table-wrap{overflow-x:auto;margin:12px 0 18px;border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:560px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{background:var(--bg-soft);font-weight:650;color:var(--ink-2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td.stage{white-space:nowrap;font-weight:650}
+td.stage small{font-weight:500;color:var(--ink-3);white-space:normal}
+ol.runs{margin:0;padding-left:18px;font-size:13.5px}
+.rt{display:inline-block;font-size:11px;font-weight:700;color:var(--ink-3);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.callout{border-radius:var(--radius);padding:12px 16px;margin:14px 0;font-size:15px;border:1px solid var(--line);background:var(--bg-soft)}
+.callout.warn{background:var(--warn-soft);border-color:transparent}
+.callout.note{background:var(--accent-soft);border-color:transparent}
+.callout.ok{background:var(--ok-soft);border-color:transparent}
+.tag{display:inline-block;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:1px 10px;margin-left:4px;vertical-align:middle}
+.tag.opt{color:var(--warn);background:var(--warn-soft)}
+.tag.ok{color:var(--ok);background:var(--ok-soft)}
+.tag.bad{color:var(--bad);background:var(--bad-soft)}
+.steps{counter-reset:s;list-style:none;padding:0}
+.steps>li{counter-increment:s;position:relative;padding:4px 0 10px 44px;margin:6px 0}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:4px;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.card{border:1px solid var(--line);border-radius:12px;padding:6px 18px 12px}
+.card h4{margin-top:12px;color:var(--ink)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.flow .box{border:1px solid var(--line);background:var(--bg-soft);border-radius:8px;padding:8px 12px;font-size:14px}
+.flow .box.hl{border-color:var(--accent);background:var(--accent-soft)}
+.flow .arr{color:var(--ink-3)}
+dl.terms dt{font-weight:700;margin-top:12px}
+dl.terms dd{margin:2px 0 0 0;color:var(--ink-2)}
+.theme-toggle{position:fixed;right:16px;bottom:16px;border:1px solid var(--line);background:var(--bg);color:var(--ink-2);border-radius:999px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-3)}
+@media (max-width:960px){
+  .layout{grid-template-columns:1fr;gap:0;padding:0 16px}
+  nav.toc{position:static;max-height:none;padding:20px 0 0;border-bottom:1px solid var(--line)}
+  nav.toc ol ol{display:none}
+  h1{font-size:26px} h2{font-size:21px}
+  .grid2{grid-template-columns:1fr}
+}
+@media print{nav.toc,.theme-toggle{display:none}.layout{display:block}a{color:inherit}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="목차">
+  <div class="toc-title">목차</div>
+  <ol>
+    <li><a href="#editions">0. 두 가지 판</a></li>
+    <li><a href="#main">1. 기본판 설치</a></li>
+    <li><a href="#php">2. PHP 지원판 설치</a></li>
+    <li><a href="#switch">3. 판 바꾸기</a></li>
+    <li><a href="#shell">4. 셸에서 설치</a></li>
+    <li><a href="#local">5. 로컬 클론으로 설치</a></li>
+    <li><a href="#try">6. 설치 없이 써 보기</a></li>
+    <li><a href="#update">7. 업데이트</a></li>
+    <li><a href="#sessions">8. 여러 세션에 적용</a></li>
+    <li><a href="#remove">9. 제거</a></li>
+    <li><a href="#verify">10. 설치 확인</a></li>
+    <li><a href="#companions">11. 함께 쓸 플러그인</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow"><span class="chip">설치 명령 모음</span><span class="chip">2026-10-28</span><span>claude-plugin-for-fastapi · stage-pilot · legacy-onboarding-manual</span></div>
+  <h1>설치 명령 모음</h1>
+  <p class="lead">이 저장소의 플러그인 2종을 설치·전환·업데이트·제거하는 명령을 한곳에 모았습니다. 각 블록은 그대로 복사해 입력하면 됩니다. 별도 표시가 없는 명령은 Claude Code 세션 안에서 입력합니다.</p>
+</header>
+
+<section id="editions">
+<h2>0. 두 가지 판</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>판</th><th>브랜치</th><th>stage-pilot</th><th>legacy-onboarding-manual</th><th>쓰는 경우</th></tr></thead>
+<tbody>
+<tr><td>기본판</td><td><code>main</code></td><td>0.3.2</td><td>0.1.0</td><td>Python·FastAPI 프로젝트</td></tr>
+<tr><td>PHP 지원판</td><td><code>php</code></td><td>0.3.3</td><td>0.1.1</td><td>PHP·CodeIgniter 레거시도 다룰 때</td></tr>
+</tbody></table></div>
+<div class="callout note"><strong>두 판은 동시에 등록할 수 없습니다.</strong> 마켓플레이스 이름(<code>claude-plugin-for-fastapi</code>)이 같기 때문입니다. 마켓플레이스는 등록할 때 정한 브랜치만 따라가므로, 업데이트로는 판이 바뀌지 않습니다. 판을 바꾸려면 <a href="#switch">3. 판 바꾸기</a>처럼 지우고 다시 등록합니다.</div>
+</section>
+
+<section id="main">
+<h2>1. 기본판 설치 (<code>main</code>)</h2>
+<pre><code>/plugin marketplace add bluebamus/claude-plugin-for-fastapi
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
+/reload-plugins</code></pre>
+<p><code>install</code> 줄은 플러그인 정보 화면을 엽니다. 설치 범위(사용자·프로젝트·로컬)를 고르면 설치됩니다. 필요한 플러그인만 골라 설치해도 됩니다.</p>
+</section>
+
+<section id="php">
+<h2>2. PHP 지원판 설치 (<code>php</code>)</h2>
+<p>처음 설치할 때 입력합니다. 주소 끝의 <code>#php</code>가 <code>php</code> 브랜치를 고릅니다.</p>
+<pre><code>/plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
+/reload-plugins</code></pre>
+<p>PHP 프로젝트에는 PHP, Composer, PHPUnit이 필요합니다. 완료 확인이 <code>vendor/bin/phpunit</code>을 찾으므로 프로젝트에서 다음을 실행해 둡니다.</p>
+<pre><code>composer require --dev phpunit/phpunit</code></pre>
+</section>
+
+<section id="switch">
+<h2>3. 판 바꾸기</h2>
+<h3>기본판 → PHP 지원판</h3>
+<pre><code>/plugin marketplace remove claude-plugin-for-fastapi
+/plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
+/reload-plugins</code></pre>
+<h3>PHP 지원판 → 기본판</h3>
+<pre><code>/plugin marketplace remove claude-plugin-for-fastapi
+/plugin marketplace add bluebamus/claude-plugin-for-fastapi
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
+/reload-plugins</code></pre>
+<ul>
+  <li>마켓플레이스를 지우면 거기서 설치한 플러그인도 함께 제거되므로, 플러그인을 따로 지울 필요가 없습니다.</li>
+  <li>설치 범위는 예전과 같은 범위를 고릅니다.</li>
+  <li>프로젝트의 <code>.claude/stage-pilot/state.json</code>과 <code>docs/</code>의 단계 문서는 그대로 남습니다. 다시 설치한 뒤 하던 트랙을 이어갈 수 있습니다.</li>
+</ul>
+</section>
+
+<section id="shell">
+<h2>4. 셸에서 설치 (세션 밖, 스크립트용)</h2>
+<p>PHP 지원판 예시입니다. 기본판은 <code>#php</code>를 빼면 됩니다. 처음 설치라면 첫 줄은 빼도 됩니다.</p>
+<pre><code>claude plugin marketplace remove claude-plugin-for-fastapi
+claude plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
+claude plugin install stage-pilot@claude-plugin-for-fastapi
+claude plugin install legacy-onboarding-manual@claude-plugin-for-fastapi</code></pre>
+<ul>
+  <li>기본 설치 범위는 사용자 범위입니다. 프로젝트 범위로 설치하려면 <code>install</code> 줄 끝에 <code>--scope project</code>를 붙입니다.</li>
+  <li>설치한 플러그인은 다음 세션부터, 또는 열린 세션에서 <code>/reload-plugins</code>를 실행한 뒤부터 적용됩니다.</li>
+</ul>
+</section>
+
+<section id="local">
+<h2>5. 로컬 클론으로 설치 (판을 자주 바꿀 때)</h2>
+<pre><code>git clone -b php https://github.com/bluebamus/claude-plugin-for-fastapi C:/work/claude-plugin-for-fastapi
+/plugin marketplace remove claude-plugin-for-fastapi
+/plugin marketplace add C:/work/claude-plugin-for-fastapi
+/plugin install stage-pilot@claude-plugin-for-fastapi
+/plugin install legacy-onboarding-manual@claude-plugin-for-fastapi</code></pre>
+<p>첫 줄은 셸에서, 나머지는 세션에서 입력합니다. 로컬 경로로 등록한 마켓플레이스는 폴더의 파일을 바로 읽습니다. 그래서 이후에는 다시 설치할 필요 없이, 그 폴더에서 브랜치를 바꾸고 다시 불러오기만 하면 됩니다.</p>
+<pre><code>git checkout php        # 또는 git checkout main
+/reload-plugins</code></pre>
+<p>GitHub의 새 버전은 자동으로 오지 않으므로 그 폴더에서 <code>git pull</code>로 받습니다.</p>
+</section>
+
+<section id="try">
+<h2>6. 설치 없이 한 번만 써 보기</h2>
+<p>전역 설정을 바꾸지 않고 이번 실행에만 불러옵니다. 셸에서 입력합니다.</p>
+<pre><code>claude --plugin-dir C:/work/claude-plugin-for-fastapi/plugins/stage-pilot</code></pre>
+</section>
+
+<section id="update">
+<h2>7. 업데이트</h2>
+<p>이 마켓플레이스는 자동 업데이트가 기본으로 꺼져 있습니다. 다음 중 하나로 새 버전을 받습니다.</p>
+<ul>
+  <li><strong>한 번에:</strong> <code>/plugin</code> → <strong>Marketplaces</strong> 탭 → <code>claude-plugin-for-fastapi</code> → <strong>Update marketplace</strong></li>
+  <li><strong>플러그인 하나만:</strong> <code>/plugin</code> → <strong>Installed</strong> 탭 → 플러그인 → <strong>Update now</strong>, 또는 셸에서 아래 명령</li>
+  <li><strong>자동으로:</strong> <strong>Marketplaces</strong> 탭에서 이 마켓플레이스를 고르고 <strong>Enable auto-update</strong>를 켭니다</li>
+</ul>
+<pre><code>claude plugin update stage-pilot@claude-plugin-for-fastapi
+claude plugin update legacy-onboarding-manual@claude-plugin-for-fastapi</code></pre>
+<p>업데이트 뒤에는 <code>/reload-plugins</code>를 실행하거나 세션을 다시 엽니다.</p>
+<div class="callout warn"><strong><code>/plugin marketplace update claude-plugin-for-fastapi</code>는 목록만 새로 받습니다.</strong> 설치된 플러그인은 그대로이므로, 이 명령만으로는 새 버전이 적용되지 않습니다.</div>
+</section>
+
+<section id="sessions">
+<h2>8. 여러 세션에 적용</h2>
+<p>같은 프로젝트에 세션을 여러 개 띄워 두었다면, 한 세션에서 설치한 뒤 나머지 세션에서 각각 다시 불러오기만 하면 됩니다. 다시 설치할 필요는 없습니다.</p>
+<pre><code>/reload-plugins</code></pre>
+<ul>
+  <li>프롬프트 캐시 경고와 함께 적용이 보류되면 <code>/reload-plugins --force</code>를 실행합니다.</li>
+  <li>git worktree에서 도는 세션에 적용되지 않으면, 프로젝트·로컬 범위 설치가 그 폴더에 보이지 않는 것입니다. <code>/plugin</code>의 <strong>Installed</strong> 탭에서 지우고 <strong>Install for you (user scope)</strong>로 다시 설치합니다.</li>
+</ul>
+<div class="table-wrap"><table>
+<thead><tr><th>설치 범위</th><th>기록 위치</th><th>보이는 세션</th></tr></thead>
+<tbody>
+<tr><td>사용자 (user)</td><td><code>~/.claude/settings.json</code></td><td>이 컴퓨터의 모든 프로젝트, 모든 세션</td></tr>
+<tr><td>프로젝트 (project)</td><td><code>&lt;프로젝트&gt;/.claude/settings.json</code></td><td>같은 폴더에서 실행한 세션</td></tr>
+<tr><td>로컬 (local)</td><td><code>&lt;프로젝트&gt;/.claude/settings.local.json</code></td><td>같은 폴더에서 실행한 세션</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="remove">
+<h2>9. 제거</h2>
+<pre><code>/plugin uninstall stage-pilot@claude-plugin-for-fastapi
+/plugin uninstall legacy-onboarding-manual@claude-plugin-for-fastapi
+/plugin marketplace remove claude-plugin-for-fastapi</code></pre>
+<p>마지막 줄은 마켓플레이스 등록을 해제합니다. 거기서 설치한 플러그인도 함께 제거되므로, 이 줄만 실행해도 됩니다.</p>
+</section>
+
+<section id="verify">
+<h2>10. 설치 확인</h2>
+<pre><code>/stage-pilot:stage profiles</code></pre>
+<ol class="steps">
+  <li><code>greenfield</code>, <code>feature</code>, <code>enhance</code>, <code>default</code> 네 줄이 나오면 stage-pilot이 설치된 것입니다.</li>
+  <li><code>/plugin</code>의 <strong>Installed</strong> 탭이나 셸의 <code>claude plugin list</code>에 나오는 버전으로 판을 구분합니다. 기본판은 0.3.2 / 0.1.0, PHP 지원판은 0.3.3 / 0.1.1입니다.</li>
+  <li><code>/plugin</code>의 <strong>Marketplaces</strong> 탭에서 출처를 확인합니다. PHP 지원판은 <code>...#php</code>로 보입니다(로컬 클론은 로컬 경로).</li>
+</ol>
+</section>
+
+<section id="companions">
+<h2>11. 함께 쓸 플러그인 (stage-pilot 수행 모드용, 선택)</h2>
+<p>stage-pilot의 수행 모드는 단계마다 다른 플러그인을 호출합니다. 설치되지 않았어도 제안 모드는 동작하고, 단계 카드에 설치 명령이 나옵니다. 자주 쓰는 세 가지는 다음과 같습니다.</p>
+<pre><code>/plugin install superpowers@claude-plugins-official
+/plugin install feature-dev@claude-plugins-official
+/plugin install code-modernization@claude-plugins-official</code></pre>
+<p>전체 목록과 각 플러그인의 쓰임은 <a href="stage-pilot-manual-v0.3.2.html#install">stage-pilot 사용 매뉴얼 3장</a>에 있습니다. 설치만 하고 꺼 둔 플러그인은 Claude가 쓸 수 없으니 <code>/plugin</code>에서 켜져 있는지 확인합니다.</p>
+</section>
+
+<footer>
+claude-plugin-for-fastapi 설치 명령 모음 · 자세한 사용법: <a href="stage-pilot-manual-v0.3.2.html">stage-pilot 사용 매뉴얼</a> · 저장소: <a href="https://github.com/bluebamus/claude-plugin-for-fastapi">bluebamus/claude-plugin-for-fastapi</a>
+</footer>
+</main>
+</div>
+<button class="theme-toggle" type="button" onclick="(function(){var r=document.documentElement;var d=r.getAttribute('data-theme')==='dark'||(!r.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);r.setAttribute('data-theme',d?'light':'dark');})()">테마 전환</button>
+</body>
+</html>
