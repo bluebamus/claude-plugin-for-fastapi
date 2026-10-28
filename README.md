@@ -267,6 +267,7 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 | `plugins/stage-pilot/` | 단계별 플러그인 제안·수행 플러그인(스킬, `/stage-pilot:stage` 명령, 훅, 테스트) |
 | `plugins/legacy-onboarding-manual/` | 온보딩 매뉴얼 스킬, HTML 템플릿, 도식 작성 가이드, 검사 스크립트 |
 | `docs/manual/stage-pilot-manual-v0.3.2.html` | stage-pilot 사용 매뉴얼(트랙별 단계 설명, 모드, 완료 확인, 단계 전체 표, 검증 결과, 문제 해결) |
+| `docs/manual/install-commands.html` | 설치 명령 모음: 기본판·PHP 지원판 설치, 판 바꾸기, 셸·로컬 클론 설치, 업데이트, 여러 세션 적용, 제거, 설치 확인 |
 | `docs/default/fastapi-claude-plugins-guide.html` | 통합 가이드: 플러그인 선정, 상세, 확장 검토, 역할 경계, 진입 전 매뉴얼, 0~11단계 워크플로 |
 | `docs/scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html` | 실전 평가 시나리오(검증 전용): 계층 구조가 이미 있는 FastAPI 저장소 개선. 플러그인은 이 문서에 의존하지 않습니다 |
 | `docs/scenario-plugin-guide/g6-refactoring-guide.html` | 실전 평가 시나리오(검증 전용): 테스트 없는 레거시(g6)의 슬라이스 단위 리팩토링 |
