@@ -1,6 +1,6 @@
 {
   "name": "legacy-onboarding-manual",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "레거시 프로젝트를 분석해 12장 구성의 HTML 온보딩 매뉴얼(Mermaid 도식, file:line 근거, 확인/추정 표시)을 만들고 검사 스크립트로 검증한다.",
   "author": { "name": "bluebamus" }
 }

@@ -123,10 +123,10 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
 <section id="editions">
 <h2>0. 두 가지 판</h2>
 <div class="table-wrap"><table>
-<thead><tr><th>판</th><th>브랜치</th><th>stage-pilot</th><th>legacy-onboarding-manual</th><th>쓰는 경우</th></tr></thead>
+<thead><tr><th>판</th><th>브랜치</th><th>마켓플레이스 등록 주소</th><th>쓰는 경우</th></tr></thead>
 <tbody>
-<tr><td>기본판</td><td><code>main</code></td><td>0.3.2</td><td>0.1.0</td><td>Python·FastAPI 프로젝트</td></tr>
-<tr><td>PHP 지원판</td><td><code>php</code></td><td>0.3.3</td><td>0.1.1</td><td>PHP·CodeIgniter 레거시도 다룰 때</td></tr>
+<tr><td>기본판</td><td><code>main</code></td><td><code>bluebamus/claude-plugin-for-fastapi</code></td><td>Python·FastAPI 프로젝트</td></tr>
+<tr><td>PHP 지원판</td><td><code>php</code></td><td><code>bluebamus/claude-plugin-for-fastapi#php</code></td><td>PHP·CodeIgniter 레거시도 다룰 때</td></tr>
 </tbody></table></div>
 <div class="callout note"><strong>두 판은 동시에 등록할 수 없습니다.</strong> 마켓플레이스 이름(<code>claude-plugin-for-fastapi</code>)이 같기 때문입니다. 마켓플레이스는 등록할 때 정한 브랜치만 따라가므로, 업데이트로는 판이 바뀌지 않습니다. 판을 바꾸려면 <a href="#switch">3. 판 바꾸기</a>처럼 지우고 다시 등록합니다.</div>
 </section>
@@ -248,8 +248,8 @@ claude plugin update legacy-onboarding-manual@claude-plugin-for-fastapi</code></
 <pre><code>/stage-pilot:stage profiles</code></pre>
 <ol class="steps">
   <li><code>greenfield</code>, <code>feature</code>, <code>enhance</code>, <code>default</code> 네 줄이 나오면 stage-pilot이 설치된 것입니다.</li>
-  <li><code>/plugin</code>의 <strong>Installed</strong> 탭이나 셸의 <code>claude plugin list</code>에 나오는 버전으로 판을 구분합니다. 기본판은 0.3.2 / 0.1.0, PHP 지원판은 0.3.3 / 0.1.1입니다.</li>
-  <li><code>/plugin</code>의 <strong>Marketplaces</strong> 탭에서 출처를 확인합니다. PHP 지원판은 <code>...#php</code>로 보입니다(로컬 클론은 로컬 경로).</li>
+  <li>판은 <code>/plugin</code>의 <strong>Marketplaces</strong> 탭에서 <code>claude-plugin-for-fastapi</code>의 출처로 구분합니다. <code>...#php</code>면 PHP 지원판, 없으면 기본판입니다(로컬 클론은 그 폴더에서 체크아웃한 브랜치). 두 판은 버전을 각자 올리므로 버전 번호로는 구분하지 않습니다.</li>
+  <li>설치된 버전은 <code>/plugin</code>의 <strong>Installed</strong> 탭이나 셸의 <code>claude plugin list</code>에서 봅니다. 업데이트 후 버전이 올라갔는지 확인할 때 씁니다.</li>
 </ol>
 </section>
 

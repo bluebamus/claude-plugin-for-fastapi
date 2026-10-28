@@ -7,13 +7,13 @@
       "name": "stage-pilot",
       "source": "./plugins/stage-pilot",
       "description": "신규·레거시(기능 추가·리팩토링·고도화) 워크플로 단계별 플러그인 제안·수행, 완료 확인, 자동 승인 모드",
-      "version": "0.3.2"
+      "version": "0.3.5"
     },
     {
       "name": "legacy-onboarding-manual",
       "source": "./plugins/legacy-onboarding-manual",
       "description": "레거시 프로젝트를 분석해 Mermaid 도식이 들어간 HTML 온보딩 매뉴얼을 만드는 스킬",
-      "version": "0.1.0"
+      "version": "0.1.2"
     }
   ]
 }

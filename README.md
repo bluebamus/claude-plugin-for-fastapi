@@ -16,8 +16,8 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 
 | 플러그인 | 버전 | 언제 쓰나 | 결과물 |
 |---|---|---|---|
-| `stage-pilot` | 0.3.2 | 신규 FastAPI 프로젝트를 만들거나, 레거시에 기능 추가·리팩토링·고도화를 할 때 | 단계별 문서(`docs/`), 단계 보고서, 완료 확인을 통과한 코드와 커밋 |
-| `legacy-onboarding-manual` | 0.1.0 | 레거시 프로젝트를 처음 맡아 코드를 만지기 전에 구조와 동작을 파악할 때 | `docs/onboarding/<이름>-onboarding-manual.html` 한 파일 |
+| `stage-pilot` | 0.3.5 | 신규 FastAPI 프로젝트를 만들거나, 레거시에 기능 추가·리팩토링·고도화를 할 때 | 단계별 문서(`docs/`), 단계 보고서, 완료 확인을 통과한 코드와 커밋 |
+| `legacy-onboarding-manual` | 0.1.2 | 레거시 프로젝트를 처음 맡아 코드를 만지기 전에 구조와 동작을 파악할 때 | `docs/onboarding/<이름>-onboarding-manual.html` 한 파일 |
 
 두 플러그인은 독립적입니다. 하나만 설치해도 되고, 레거시를 맡았다면 온보딩 매뉴얼로 먼저 파악한 뒤 stage-pilot 레거시 트랙으로 작업하는 순서를 권합니다.
 
@@ -216,7 +216,7 @@ stage-pilot의 **수행 모드**는 단계마다 다른 플러그인을 호출�
 
 ### PHP 지원판으로 바꾸기
 
-PHP·CodeIgniter 프로젝트를 다루려면 `php` 브랜치의 PHP 지원판(stage-pilot 0.3.3, legacy-onboarding-manual 0.1.1)을 씁니다. 마켓플레이스는 등록한 브랜치만 따라가므로 업데이트로는 바뀌지 않고, 지우고 `#php`로 다시 등록해야 합니다.
+PHP·CodeIgniter 프로젝트를 다루려면 `php` 브랜치의 PHP 지원판을 씁니다. 어느 판인지는 버전 번호가 아니라 `/plugin`의 **Marketplaces** 탭에 보이는 등록 출처로 구분합니다(`...#php`면 PHP 지원판). 마켓플레이스는 등록한 브랜치만 따라가므로 업데이트로는 바뀌지 않고, 지우고 `#php`로 다시 등록해야 합니다.
 
 ```
 /plugin marketplace remove claude-plugin-for-fastapi
@@ -288,6 +288,7 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 ```
 node --test plugins/stage-pilot/tests/stage.test.js     # 단계 데이터·문서 앵커·훅·트랙 추천·완료 확인
 claude plugin validate .                                # 마켓플레이스·플러그인 매니페스트
+python -m unittest discover -s plugins/legacy-onboarding-manual/tests   # 온보딩 매뉴얼 검사기
 python plugins/legacy-onboarding-manual/skills/legacy-onboarding-manual/scripts/check_manual.py <manual.html> [--render]
 ```
 
@@ -316,6 +317,7 @@ v0.2.0의 단계별 평가 도구(`eval/gen_legacy.py`, `eval/run_eval.py`)도 �
 |---|---|
 | v0.3.0 | 최종본(판 L)으로 실전 6회차를 모두 통과했습니다(1~5회차 5회 연속, 6회차는 환경 손상을 바로잡은 뒤 재판정). 난이도는 중·상·최상이고, 회차마다 29~38단계를 진행했으며 테스트 재실행 결과는 82~1,237건 통과입니다. 평가 중 찾은 결함 6건은 플러그인에서 고쳤습니다. |
 | v0.3.1 | 평가에서 생성된 코드를 사람 리뷰어 관점으로 검토해, 약점을 완료 조건으로 바꿨습니다. 리뷰 단계는 남긴 `shortcut:`을 다시 보고 테스트가 `docs/work/`를 읽지 않게 하며, 레거시 커밋 단계는 릴리스 노트에 "배포 영향"을 적습니다. 바뀐 단계 7곳을 모두 지나는 실전 2회차(연쇄형 g6)를 다시 돌려 38단계 모두 통과했습니다(114분, 테스트 재실행 95건 통과). 다만 1회 확인이며 5회 연속 기준의 재평가는 아닙니다. |
+| v0.3.5 | 독립 검수로 찾은 결함 수정: 영어 단어 속 `auto`(예: autocomplete)를 자동 승인 요청으로 오인, 관계없는 요청에도 매번 폴더 전체를 훑어 큰 저장소에서 훅이 느려짐(`env/`·`build/` 등 제외 추가), 모노레포 하위 폴더에서 작업 트리 정리 확인이 항상 실패하고 git 저장소가 아니면 이유 없이 실패, "처리 단계" 같은 일반 단어에 트랙 안내가 끼어듦, 신규 1단계가 `NFR-`만으로 통과. legacy-onboarding-manual 0.1.2: 한국어 Windows 콘솔에서 검사기가 멈춤, 목차만으로 확인/추정 검사 통과, 본문의 "TODO" 설명을 자리표시자로 셈. 단위 테스트 22개 + 검사기 테스트 4개. |
 | v0.3.2 | README 명령으로 GitHub에서 설치한 두 플러그인을 실제 세션에서 확인했습니다. 그 과정에서 트랙 키워드가 없는 기능 추가 요청을 리팩토링으로 추천하는 문제를 찾아 고쳤습니다. |
 
 결과와 진단 이력은 [`eval/RESULTS.md`](eval/RESULTS.md)에 있습니다.

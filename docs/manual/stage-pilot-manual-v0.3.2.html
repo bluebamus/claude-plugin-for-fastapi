@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>stage-pilot 사용 매뉴얼 v0.3.2</title>
+<title>stage-pilot 사용 매뉴얼 v0.3.5</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
@@ -146,7 +146,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
 
 <main>
 <header class="hero">
-  <div class="eyebrow"><span class="chip">버전 0.3.2</span><span class="chip">2026-10-22</span><span>Claude Code 플러그인 · FastAPI 신규 개발과 레거시 고도화</span></div>
+  <div class="eyebrow"><span class="chip">버전 0.3.5</span><span class="chip">2026-10-28</span><span>Claude Code 플러그인 · FastAPI 신규 개발과 레거시 고도화</span></div>
   <h1>stage-pilot 사용 매뉴얼</h1>
   <p class="lead">stage-pilot은 FastAPI 프로젝트를 <strong>단계별 워크플로</strong>로 이끄는 Claude Code 플러그인입니다. 빈 폴더에서 새 프로젝트를 시작할 때도, 이미 돌아가는 레거시 프로젝트에 기능을 더하거나 구조를 고치거나 성능을 끌어올릴 때도, <strong>"지금 단계에서 어떤 플러그인을 어떤 순서로 쓰고, 어디서 멈춰 확인받고, 무엇으로 끝났다고 판단하는가"</strong>를 알려 주고, 원하면 <strong>그 플러그인을 직접 호출해 단계를 수행</strong>합니다.</p>
   <p class="lead">이 문서는 처음 쓰는 사람이 설치부터 자동 수행까지 혼자 따라 할 수 있도록 썼습니다. 개념 → 설치 → 빠른 시작 → 트랙별 단계 설명 → 명령·모드 → 전체 단계 표 → 검증 결과 → 문제 해결 순서로 읽으면 됩니다.</p>
@@ -298,7 +298,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
 <p>일부 세션이 git worktree(예: <code>.claude/worktrees/...</code>)에서 돌고 있다면 그 세션의 작업 폴더는 원래 프로젝트와 다르므로, 프로젝트·로컬 범위로 설치한 플러그인이 보이지 않습니다. <code>/plugin</code>의 <strong>Installed</strong> 탭에서 지우고 <strong>Install for you (user scope)</strong>로 다시 설치하는 것이 가장 간단합니다. 프로젝트 범위를 유지하려면 바뀐 <code>.claude/settings.json</code>을 커밋해 각 worktree에도 들어가게 합니다.</p>
 
 <h3 id="php-edition">PHP 지원판으로 바꾸기</h3>
-<p>PHP·CodeIgniter 프로젝트를 다루려면 <code>php</code> 브랜치의 PHP 지원판(stage-pilot 0.3.3, legacy-onboarding-manual 0.1.1)을 씁니다. 이 매뉴얼(기본 브랜치 <code>main</code>)이 설명하는 판은 PHP를 지원하지 않습니다. 마켓플레이스는 등록한 브랜치만 따라가므로 업데이트로는 바뀌지 않고, 지우고 <code>#php</code>로 다시 등록해야 합니다. 마켓플레이스를 지우면 거기서 설치한 플러그인도 함께 제거됩니다.</p>
+<p>PHP·CodeIgniter 프로젝트를 다루려면 <code>php</code> 브랜치의 PHP 지원판을 씁니다. 어느 판인지는 버전 번호가 아니라 <code>/plugin</code>의 <strong>Marketplaces</strong> 탭에 보이는 등록 출처로 구분합니다(<code>...#php</code>면 PHP 지원판). 이 매뉴얼(기본 브랜치 <code>main</code>)이 설명하는 판은 PHP를 지원하지 않습니다. 마켓플레이스는 등록한 브랜치만 따라가므로 업데이트로는 바뀌지 않고, 지우고 <code>#php</code>로 다시 등록해야 합니다. 마켓플레이스를 지우면 거기서 설치한 플러그인도 함께 제거됩니다.</p>
 <pre><code>/plugin marketplace remove claude-plugin-for-fastapi
 /plugin marketplace add bluebamus/claude-plugin-for-fastapi#php
 /plugin install stage-pilot@claude-plugin-for-fastapi
@@ -927,6 +927,7 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
 <div class="table-wrap"><table>
 <thead><tr><th>버전</th><th>날짜</th><th>내용</th></tr></thead>
 <tbody>
+<tr><td>0.3.5</td><td>2026-10-28</td><td>독립 검수로 찾은 결함 수정. 영어 단어 속 <code>auto</code>(autocomplete 등)를 자동 승인 요청으로 보지 않음. 트랙 키워드·단계 번호·stage-pilot 언급이 있을 때만 폴더를 훑고, <code>env/</code>·<code>build/</code>·<code>dist/</code>·<code>.tox/</code> 등을 판별에서 뺌(훅 제한 시간 초과·venv만 있는 폴더의 레거시 오판 방지). "처리 단계" 같은 일반 단어에는 개입하지 않음. 작업 트리 정리 확인은 프로젝트 폴더 안의 변경만 보고(모노레포 하위 폴더), git 저장소가 아니면 이유를 알림. 신규 1단계 요구사항 ID 확인에 단어 경계(<code>NFR-</code>만으로 통과하지 않음). <code>init</code> 도움말에 <code>--test</code>. legacy-onboarding-manual 0.1.2: 한국어 Windows 콘솔(cp949)에서 검사기가 멈추던 문제, 목차·제목만으로 확인/추정 검사가 통과하던 문제, 본문의 "TODO" 설명을 자리표시자로 세던 문제 수정. 단위 테스트 22개 + 검사기 테스트 4개</td></tr>
 <tr><td>0.3.2</td><td>2026-10-22</td><td>트랙 추천 수정. 레거시 프로젝트에서 요청에 트랙 키워드가 없으면 리팩토링으로 단정하지 않고 기능 추가·리팩토링·고도화 중 요청에 맞는 것을 고르라고 안내(GitHub 설치 검증에서 "…추가하는 기능 작업" 요청을 리팩토링으로 추천한 사례). 기능 추가 키워드 보강("기능 작업", "추가하는 기능", "API 추가" 등). GitHub 설치본(README 명령)으로 stage-pilot·legacy-onboarding-manual 실제 세션 동작 확인</td></tr>
 <tr><td>0.3.1</td><td>2026-10-21</td><td>생성 코드 품질 검토(사람 리뷰어 관점) 결과를 규칙으로 반영. 리뷰 단계에 <code>shortcut:</code> 재검토(보고서 절 확인)와 테스트의 <code>docs/work/</code> 참조 금지(<code>testsAvoid</code>), 레거시 커밋 단계에 릴리스 노트의 "배포 영향" 확인. Windows에서 hookify 전제(<code>python3</code>·<code>PYTHONUTF8=1</code>) 안내. GitHub 원격 설치 검증. 단위 테스트 18개. 변경 회귀 확인: 실전 2회차(연쇄형 g6, 4트랙) 38/38 통과, 새 조건 3가지 모두 지켜짐</td></tr>
 <tr><td>0.3.0</td><td>2026-10-20</td><td>범용화 — 특정 프로젝트 전용 프로필(<code>fastapi-default</code>·<code>g6</code>)을 없애고 두 시나리오 문서는 실전 평가에만 쓴다. 테스트 명령 지정(<code>set … --test</code>, <code>uv.lock</code> 감지). 트랙 4종: 신규 프로젝트(<code>greenfield</code>, 빈 폴더에서 기획 → 설계 → 기술 선정 → 작업 계획 → 구현 → 리뷰 → 보안 → 마무리), 레거시 기능 추가(<code>feature</code>), 리팩토링(<code>default</code>), 고도화(<code>enhance</code>). 빈 폴더/레거시 판별과 트랙 추천(<code>detect</code>), 작업 이름별 문서 위치(<code>--work</code>), 단계 완료 확인(<code>check</code>: 산출물·추적 ID·테스트·작업 트리), 확인을 통과해야 넘어가는 <code>next</code>, 단계 보고서, 항목별 기록 명령(<code>skip</code>·<code>fallback</code>·<code>reuse</code>), 비용 승인 원문 기록(<code>consent</code>), <code>.claude</code> 쓰기 거부 시 승인 대기 초안, context7 허용 판정(파일:행 근거)과 미연결 대체. 실제 Claude Code(<code>claude -p</code>)로 빈 저장소에서 4트랙 38단계를 회차마다 다른 시나리오·난이도로 수행하는 평가 하네스(<code>eval/run_tracks.py</code>) — 실제 저장소 2종(g6, fastapi-default-project-structure — 검증 전용)으로 실레거시·연쇄형 6회차를 돌리는 실전 평가 하네스(<code>eval/real/</code>)와, 실전 평가로 찾은 결함 수정(메인 세션 호출, 끝난 트랙 안내, <code>legacy/</code> 링크 처리와 <code>--ignore=legacy</code>, 조건부 항목 보정, 프로젝트 전체 테스트 추적, 결과 대기). 최종본 6회차 통과(1~5회차 5회 연속)</td></tr>
@@ -937,7 +938,7 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
 </section>
 
 <footer>
-stage-pilot 0.3.2 · 근거 문서: <a href="../default/fastapi-claude-plugins-guide.html">통합 가이드</a> · 실전 평가 시나리오(검증 전용): <a href="../scenario-plugin-guide/g6-refactoring-guide.html">g6</a>, <a href="../scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html">fastapi-default-project-structure</a> · 이전 판: <a href="stage-pilot-manual-v0.2.0.html">v0.2.0</a>
+stage-pilot 0.3.5 · 근거 문서: <a href="../default/fastapi-claude-plugins-guide.html">통합 가이드</a> · 실전 평가 시나리오(검증 전용): <a href="../scenario-plugin-guide/g6-refactoring-guide.html">g6</a>, <a href="../scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html">fastapi-default-project-structure</a> · 이전 판: <a href="stage-pilot-manual-v0.2.0.html">v0.2.0</a>
 </footer>
 </main>
 </div>
