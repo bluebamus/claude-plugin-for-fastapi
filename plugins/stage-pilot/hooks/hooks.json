@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/stage.js\" session; exit 0",
-            "timeout": 5,
+            "timeout": 15,
             "statusMessage": "stage-pilot: 현재 단계 확인..."
           }
         ]
@@ -19,7 +19,7 @@
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/stage.js\" prompt; exit 0",
-            "timeout": 5
+            "timeout": 15
           }
         ]
       }
