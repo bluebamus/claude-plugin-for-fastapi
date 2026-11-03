@@ -9,6 +9,6 @@
 - [x] run-log·residual-risk 갱신
 
 ## php — 2026-11-03
-- [ ] main 커밋 cherry-pick + PHP 항목(B: CodeIgniter 마이그레이션 검사·spark 차단, C: php -l, stage-map 조건·Serena 문구)
-- [ ] php 판 테스트·독립 검수
-- [ ] C-4: 원격 main·php 만, 로컬 = 원격
+- [x] main 커밋 cherry-pick(충돌 6파일 — php 고유 내용 유지) + PHP 항목(B: CodeIgniter 마이그레이션 검사·spark 차단·CI4 왕복, C: php -l, stage-map 조건·Serena 문구)
+- [x] php 판 테스트·독립 검수(F-028~F-032, F-028·F-032 는 main 에도)
+- [x] C-4: 원격 main·php 만, 로컬 = 원격 (push 후 동기화로 확인)

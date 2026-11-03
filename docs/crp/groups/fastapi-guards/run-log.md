@@ -22,3 +22,11 @@
 | 5 | 0 | 3 | 0 | 0 | 3 | NOT CONVERGED |
 | 6 | 0 | 1 | 0 | 0 | 1 | NOT CONVERGED |
 | 7 | 0 | 0 | 0 | 1 | 0 | CONVERGED |
+
+### php — 2026-11-03 (base SHA: `f03eeb2`)
+- **반영:** fc2847e(훅 timeout) + 가드 커밋 cherry-pick, 충돌 6파일 해결(php 설명·onboarding 0.1.3·phpunit 처리 유지, 버전 0.3.7)
+- **PHP 항목:** CodeIgniter 4·3 마이그레이션 검사(raw SQL 포함), `php spark migrate*` 후크(.env·Database.php default 그룹), CI4 왕복, `php -l`, Serena PHP 조건
+- **Round 1:** 충돌 해결 누락 없음. HIGH 2 · MED 1 → F-029~F-031, 형제 결함 F-032(alembic raw SQL), 예외 통과 F-028
+- **Round 2:** 확인 검수 — 현실적 HIGH 없음. 사소한 cmd.exe `set database.*=` 경우도 확인 요청으로 막음
+- **수렴 판정:** `CONVERGED` — Open Fix 0
+- **결정적 게이트:** node(stage-pilot 36·perf 6·guard·codeigniter·gate) 전부 통과, python 11·4, `claude plugin validate` 통과

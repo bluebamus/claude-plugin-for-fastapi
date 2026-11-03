@@ -1,7 +1,7 @@
 {
   "name": "alembic-migration-guard",
   "version": "0.1.0",
-  "description": "Alembic 마이그레이션 안전 검사(이름 변경 의심·파괴적 연산·NOT NULL 기본값·downgrade 누락), 로컬 DB 왕복 테스트, 원격 DB 대상 upgrade·downgrade 차단 후크",
+  "description": "Alembic·CodeIgniter 마이그레이션 안전 검사(이름 변경 의심·파괴적 연산·NOT NULL 기본값·down 누락), 로컬 DB 왕복 테스트, 원격 DB 대상 alembic upgrade·downgrade·php spark migrate 차단 후크",
   "author": { "name": "bluebamus" },
   "license": "UNLICENSED"
 }

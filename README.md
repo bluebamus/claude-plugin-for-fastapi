@@ -101,8 +101,8 @@ stage-pilot 의 단계 완료 확인에 도구 실행 결과를 더하는 작은
 | 플러그인 | 하는 일 | stage-pilot 연결 |
 |---|---|---|
 | `api-contract-guard` | `snapshot --app app.main:app` 로 `app.openapi()` 를 저장, `check` 로 비교해 operation·스키마의 삭제·변경은 실패(추가는 통과). `authz` 는 인증 의존성·OpenAPI security 가 없는 엔드포인트를 보고(이름 기준 추정) | 보호 테스트 단계에서 스냅샷 제안, 스냅샷이 있으면 리팩토링 5·7·10, 기능 추가 5, 고도화 7 단계 완료 확인에서 비교 |
-| `alembic-migration-guard` | `scan`: 같은 테이블 drop_column+add_column(이름 변경 의심), drop_table·drop_column, server_default 없는 NOT NULL, 빈 downgrade. 사람이 판단했으면 `# guard: destructive-ok`·`# guard: irreversible` 표시. `roundtrip`: 로컬 DB 에서만 upgrade→downgrade→upgrade. 후크: 원격 DB 대상 `alembic upgrade·downgrade·stamp` 거부, 대상을 모르면 확인 요청 | `alembic.ini` 가 있으면 신규 5, 기능 추가 4, 고도화 5, 리팩토링 6 단계 완료 확인에서 `scan --changed`(이번에 바뀐 리비전만 — 레거시 이력은 막지 않음) |
-| `fastapi-quality-gates` | `.py` 편집 직후 `ruff check` 결과를 Claude 에게 보고. 포맷·자동 수정·차단 없음, ruff 가 없으면 아무것도 안 함 | 신규·리팩토링 0단계(준비)에서 제안 |
+| `alembic-migration-guard` | `scan`: 같은 테이블 drop_column+add_column(이름 변경 의심), drop_table·drop_column, server_default 없는 NOT NULL, 빈 downgrade. 사람이 판단했으면 `# guard: destructive-ok`·`# guard: irreversible` 표시. `roundtrip`: 로컬 DB 에서만 upgrade→downgrade→upgrade. 후크: 원격 DB 대상 `alembic upgrade·downgrade·stamp` 거부, 대상을 모르면 확인 요청. **php 판:** CodeIgniter 4·3 마이그레이션(`dropTable`·`dropColumn`·`'null' => false` 기본값 없음·빈 `down()`) 검사, `php spark migrate*` 도 같은 방식으로 차단(`.env`·`app/Config/Database.php` 의 default 그룹) | `alembic.ini`·`app/Database/Migrations`·`application/migrations` 가 있으면 신규 5, 기능 추가 4, 고도화 5, 리팩토링 6 단계 완료 확인에서 `scan --changed`(이번에 바뀐 리비전만 — 레거시 이력은 막지 않음) |
+| `fastapi-quality-gates` | `.py` 편집 직후 `ruff check`, `.php` 편집 직후 `php -l`(구문 오류만) 결과를 Claude 에게 보고. 포맷·자동 수정·차단 없음, 도구가 없으면 아무것도 안 함 | 신규·리팩토링 0단계(준비)에서 제안 |
 
 고도화 트랙의 기준선·재측정은 stage-pilot 에 들어 있는 `scripts/perf.js`(로컬 주소만, p50·p95·처리량·오류 기록과 전후 비교표)로 합니다.
 
@@ -354,7 +354,7 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 ```
 node --test plugins/stage-pilot/tests/stage.test.js     # 단계 데이터·문서 앵커·훅·트랙 추천·완료 확인
 node --test plugins/stage-pilot/tests/perf.test.js      # 기준선 측정·비교
-node --test plugins/alembic-migration-guard/tests/guard.test.js plugins/fastapi-quality-gates/tests/gate.test.js
+node --test plugins/alembic-migration-guard/tests/guard.test.js plugins/alembic-migration-guard/tests/codeigniter.test.js plugins/fastapi-quality-gates/tests/gate.test.js
 python -m unittest discover -s plugins/api-contract-guard/tests
 claude plugin validate .                                # 마켓플레이스·플러그인 매니페스트
 python -m unittest discover -s plugins/legacy-onboarding-manual/tests   # 온보딩 매뉴얼 검사기
@@ -386,7 +386,7 @@ v0.2.0의 단계별 평가 도구(`eval/gen_legacy.py`, `eval/run_eval.py`)도 �
 |---|---|
 | v0.3.0 | 최종본(판 L)으로 실전 6회차를 모두 통과했습니다(1~5회차 5회 연속, 6회차는 환경 손상을 바로잡은 뒤 재판정). 난이도는 중·상·최상이고, 회차마다 29~38단계를 진행했으며 테스트 재실행 결과는 82~1,237건 통과입니다. 평가 중 찾은 결함 6건은 플러그인에서 고쳤습니다. |
 | v0.3.1 | 평가에서 생성된 코드를 사람 리뷰어 관점으로 검토해, 약점을 완료 조건으로 바꿨습니다. 리뷰 단계는 남긴 `shortcut:`을 다시 보고 테스트가 `docs/work/`를 읽지 않게 하며, 레거시 커밋 단계는 릴리스 노트에 "배포 영향"을 적습니다. 바뀐 단계 7곳을 모두 지나는 실전 2회차(연쇄형 g6)를 다시 돌려 38단계 모두 통과했습니다(114분, 테스트 재실행 95건 통과). 다만 1회 확인이며 5회 연속 기준의 재평가는 아닙니다. |
-| v0.3.7 | 완료 확인에 도구 명령(`cmd`)·조건부(`if`) 확인과 `{python}`·`{plugin:이름}`·`{base}`(트랙 시작 커밋) 토큰을 추가하고, 가드 플러그인 3개(api-contract-guard·alembic-migration-guard·fastapi-quality-gates)와 기준선 측정 스크립트(`perf.js`)를 단계에 연결. 훅 timeout 5→15초(Windows 고부하 시 출력 유실 방지). 단위 테스트: stage-pilot 32 + perf 6, 가드 32 + 11 + 5. 독립 검수 7회, 결함 27건 반영(원격 DB 를 로컬로 오판하던 경로 포함). 실전 회차 재평가는 하지 않았습니다. |
+| v0.3.7 | 완료 확인에 도구 명령(`cmd`)·조건부(`if`) 확인과 `{python}`·`{plugin:이름}`·`{base}`(트랙 시작 커밋) 토큰을 추가하고, 가드 플러그인 3개(api-contract-guard·alembic-migration-guard·fastapi-quality-gates)와 기준선 측정 스크립트(`perf.js`)를 단계에 연결. 훅 timeout 5→15초(Windows 고부하 시 출력 유실 방지). php 판 추가: CodeIgniter 4·3 마이그레이션 검사·`php spark migrate*` 차단·CI4 왕복, `.php` 편집 직후 `php -l`, Serena 조건에 PHP 참조 추적. 단위 테스트: stage-pilot 36 + perf 6, 가드 32 + CodeIgniter 11 + api-contract 11 + 품질 6. 독립 검수 결과 반영(원격 DB 를 로컬로 오판하던 경로 포함). 실전 회차 재평가는 하지 않았습니다. |
 | v0.3.2 | README 명령으로 GitHub에서 설치한 두 플러그인을 실제 세션에서 확인했습니다. 그 과정에서 트랙 키워드가 없는 기능 추가 요청을 리팩토링으로 추천하는 문제를 찾아 고쳤습니다. |
 | v0.3.6 | 기본판 0.3.5의 공통 결함 수정(영어 단어 속 `auto` 오인, 관계없는 요청에도 폴더 전체 탐색, 모노레포 하위 폴더의 작업 트리 정리 확인, 일반 단어 "단계" 개입, 신규 1단계 `NFR-` 통과, 온보딩 검사기의 cp949 멈춤·목차 통과·TODO 오인)을 반영하고, PHP 전용으로: `composer.json`이 있는데 phpunit이 없으면 pytest로 넘어가지 않고 설치·지정 방법을 알림, 상위 폴더 이름과 무관하게 테스트 파일을 세고 `test/`·`Tests/`·`*_test.php`도 테스트로 봄, 리팩토링 트랙 안내를 언어 중립으로, 설명문에 PHP·CodeIgniter 명시. 단위 테스트 26개 + 검사기 테스트 4개. |
 | v0.3.4 | 기능 추가·고도화 0단계 완료 확인이 근거를 `.py:줄`로만 인정해 PHP 프로젝트에서 통과할 수 없던 결함을 고쳤습니다(`\.(py|php):\d+`). 실제 PHP 프로젝트 사용 리포트로 찾았습니다. 단위 테스트 20개. |

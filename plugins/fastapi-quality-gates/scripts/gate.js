@@ -17,8 +17,15 @@ function ruffPath(cwd) {
 // 레거시 파일은 원래 위반이 많다 — 전부 고치면 diff 가 커져 리뷰·커밋 분리가 망가지므로 바꾼 줄만 고치게 한다
 function gate(input, runner = run) {
   const file = input.tool_input && input.tool_input.file_path;
-  if (!file || !/\.py$/.test(file)) return null;
   const cwd = input.cwd || process.cwd();
+  if (file && /\.php$/.test(file)) {
+    // 구문 오류만 본다 — 결과가 결정적이고 레거시라도 오탐이 없다
+    const r = runner('php', ['-l', file], cwd);
+    if (r.error || r.status === 0) return null;
+    const err = `${r.stdout || ''}${r.stderr || ''}`.split(/\r?\n/).find((l) => /error/i.test(l)) || '';
+    return `PHP 구문 오류: ${file} — ${err.trim().slice(0, 300)}`;
+  }
+  if (!file || !/\.py$/.test(file)) return null;
   const r = runner(ruffPath(cwd), ['check', '--output-format', 'concise', file], cwd);
   if (r.error || r.status !== 1) return null; // 없음(ENOENT)·통과(0)·설정 오류(2)는 조용히 넘어간다
   const lines = (r.stdout || '').split(/\r?\n/).filter((l) => /:\d+:\d+: /.test(l));

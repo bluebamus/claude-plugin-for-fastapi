@@ -45,6 +45,16 @@ test('프로젝트 .venv 의 ruff 를 먼저 쓴다', () => {
   assert.strictEqual(run.calls[0][0], path.join(cwd, bin));
 });
 
+test('PHP 파일은 php -l 구문 오류만 보고한다(php 판)', () => {
+  const run = fake(255, "PHP Parse error:  syntax error, unexpected token \"}\" in app/X.php on line 12\nErrors parsing app/X.php\n");
+  const msg = Q.gate(input('app/X.php'), run);
+  assert.deepStrictEqual(run.calls[0], ['php', '-l', 'app/X.php']);
+  assert.match(msg, /PHP 구문 오류/);
+  assert.match(msg, /line 12/);
+  assert.strictEqual(Q.gate(input('app/X.php'), fake(0, 'No syntax errors detected')), null);
+  assert.strictEqual(Q.gate(input('app/X.php'), fake(null, '', { code: 'ENOENT' })), null, 'php 가 없으면 조용히');
+});
+
 test('hook CLI: 말할 것이 없으면 출력 없이 종료 코드 0, 입력이 깨져도 0', () => {
   assert.strictEqual(execFileSync('node', [SCRIPT], { input: JSON.stringify(input('README.md')) }).toString(), '');
   assert.strictEqual(execFileSync('node', [SCRIPT], { input: 'not json' }).toString(), '');

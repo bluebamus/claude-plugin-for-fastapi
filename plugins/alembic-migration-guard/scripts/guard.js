@@ -51,6 +51,7 @@ function scanAlembic(text) {
       const table = inBatch ? batch && batch[1] : (args.match(/^\s*['"]([^'"]+)['"]/) || [])[1];
       return { name: m[2], args, line: lineAt(text, at), ok: /guard:\s*destructive-ok/.test(span), table };
     });
+    found.push(...rawSqlDrops(text, up.body, up.start));
     const added = new Set(calls.filter((c) => c.name === 'add_column').map((c) => c.table));
     for (const c of calls) {
       if (c.ok) continue;
@@ -64,6 +65,65 @@ function scanAlembic(text) {
   if (!/\S/.test(rest) && !/guard:\s*irreversible/.test(text)) found.push({ line: down ? down.line : 1, code: 'no-downgrade', msg: 'downgrade 가 비어 있음 — 되돌리는 코드를 쓰거나, 되돌릴 수 없으면 "# guard: irreversible <이유>"' });
   return found;
 }
+
+// raw SQL(op.execute·$this->db->query 문자열)의 DROP TABLE·DROP COLUMN·TRUNCATE — 표시는 그 줄에
+function rawSqlDrops(text, body, start) {
+  return [...body.matchAll(/\b(DROP\s+(?:TABLE|COLUMN)|TRUNCATE)\b/gi)].flatMap((m) => {
+    const at = start + m.index;
+    const lineText = text.slice(text.lastIndexOf('\n', at) + 1, (text.indexOf('\n', at) + 1 || text.length + 1) - 1);
+    const prev = text.slice(text.lastIndexOf('\n', text.lastIndexOf('\n', at) - 1) + 1, text.lastIndexOf('\n', at));
+    if (/guard:\s*destructive-ok/.test(lineText) || /guard:\s*destructive-ok/.test(prev)) return [];
+    return [{ line: lineAt(text, at), code: 'destructive', msg: `raw SQL ${m[1].toUpperCase().replace(/\s+/, ' ')} — 데이터 삭제. 의도했으면 그 줄 끝에 guard: destructive-ok <이유> 표시` }];
+  });
+}
+
+// CodeIgniter(4: $this->forge->dropTable, 3: $this->dbforge->drop_table) 마이그레이션의 up()·down()
+function phpMethod(text, name) {
+  const m = text.match(new RegExp(`function\\s+${name}\\s*\\([^)]*\\)[^{]*\\{`));
+  if (!m) return null;
+  const open = m.index + m[0].length - 1;
+  let depth = 0;
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}' && --depth === 0) return { start: open + 1, body: text.slice(open + 1, i), line: lineAt(text, m.index) };
+  }
+  return { start: open + 1, body: text.slice(open + 1), line: lineAt(text, m.index) };
+}
+
+function scanCodeIgniter(text) {
+  const found = [];
+  const up = phpMethod(text, 'up');
+  if (up) {
+    const calls = [...up.body.matchAll(/->\s*(dropTable|drop_table|dropColumn|drop_column|addColumn|add_column|modifyColumn|modify_column)\s*\(/g)].map((m) => {
+      const open = m.index + m[0].length - 1;
+      const close = callEnd(up.body, open);
+      const at = up.start + m.index;
+      const lineEnd = text.indexOf('\n', up.start + close);
+      const span = text.slice(text.lastIndexOf('\n', at) + 1, lineEnd === -1 ? text.length : lineEnd);
+      const args = up.body.slice(open + 1, close);
+      return { name: m[1].replace(/_(\w)/g, (_, c) => c.toUpperCase()), args, line: lineAt(text, at), ok: /guard:\s*destructive-ok/.test(span), table: (args.match(/^\s*['"]([^'"]+)['"]/) || [])[1] };
+    });
+    found.push(...rawSqlDrops(text, up.body, up.start));
+    const added = new Set(calls.filter((c) => c.name === 'addColumn').map((c) => c.table));
+    // 필드 배열을 변수로 미리 만들면 호출 인자에 없으므로 up() 전체에서 'null' => false 를 본다
+    const notNull = (c) => /['"]null['"]\s*=>\s*false/i.test(c.args) || (/^\s*['"][^'"]+['"]\s*,\s*\$\w+\s*$/.test(c.args) && /['"]null['"]\s*=>\s*false/i.test(up.body));
+    const hasDefault = (c) => /['"]default['"]\s*=>/i.test(c.args) || (!/['"]null['"]/i.test(c.args) && /['"]default['"]\s*=>/i.test(up.body));
+    for (const c of calls) {
+      if (c.ok) continue;
+      if (c.name === 'dropColumn' && added.has(c.table)) found.push({ line: c.line, code: 'rename-suspect', msg: `${c.table}: 같은 마이그레이션에서 dropColumn + addColumn — 이름 변경이면 데이터가 사라짐. modifyColumn 의 'name' 으로 바꿀 것` });
+      if (c.name === 'dropTable' || c.name === 'dropColumn') found.push({ line: c.line, code: 'destructive', msg: `${c.name}(${c.table || '?'}) — 데이터 삭제. 의도했으면 줄 끝에 "// guard: destructive-ok <이유>"` });
+      if ((c.name === 'addColumn' || c.name === 'modifyColumn') && notNull(c) && !hasDefault(c)) found.push({ line: c.line, code: 'not-null-no-default', msg: `${c.name}(${c.table || '?'}) 'null' => false 에 'default' 없음 — 기존 행이 있으면 실패하거나 잠금. 기본값을 주거나 expand→backfill→contract 로 나눌 것` });
+    }
+  }
+  const down = phpMethod(text, 'down');
+  const rest = down ? down.body.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(\/\/|#).*$/gm, '') : '';
+  if (!/\S/.test(rest) && !/guard:\s*irreversible/.test(text)) found.push({ line: down ? down.line : 1, code: 'no-downgrade', msg: 'down() 이 비어 있음 — 되돌리는 코드를 쓰거나, 되돌릴 수 없으면 "// guard: irreversible <이유>"' });
+  return found;
+}
+
+const CI_DIRS = ['app/Database/Migrations', 'application/migrations'];
+const isCiMigration = (f) => f.endsWith('.php') && /function\s+up\s*\(/.test(fs.readFileSync(f, 'utf8'));
+const scanFile = (f) => (f.endsWith('.php') ? scanCodeIgniter : scanAlembic)(fs.readFileSync(f, 'utf8'));
 
 // ini 의 한 섹션(alembic 은 기본 [alembic], -n/--name 으로 바꿈). 파일이 없으면 null, 섹션이 없으면 undefined
 function iniSection(cwd, ini = 'alembic.ini', section = 'alembic') {
@@ -113,7 +173,7 @@ const commandUrls = (command) => (command || '').match(DB_URL) || [];
 function dotenvMap(cwd) {
   const p = path.join(cwd, '.env');
   const out = {};
-  if (fs.existsSync(p)) for (const m of fs.readFileSync(p, 'utf8').matchAll(/^\s*(?:export\s+)?([A-Za-z_]\w*)\s*=\s*(.*?)\s*$/gm)) out[m[1]] = unquote(m[2]);
+  if (fs.existsSync(p)) for (const m of fs.readFileSync(p, 'utf8').matchAll(/^\s*(?:export\s+)?([A-Za-z_][\w.]*)\s*=\s*(.*?)\s*$/gm)) out[m[1]] = unquote(m[2]); // CodeIgniter 는 database.default.hostname 처럼 점이 든 키
   return out;
 }
 
@@ -207,19 +267,20 @@ function changedFiles(cwd, since = 'HEAD') {
 }
 
 function scan(cwd, dir, changedOnly, since) {
-  const d = dir ? path.resolve(cwd, dir) : versionsDir(cwd);
+  const d = dir ? path.resolve(cwd, dir) : versionsDir(cwd) || CI_DIRS.map((c) => path.join(cwd, c)).find((p) => fs.existsSync(p));
   let files;
   const changed = changedOnly ? changedFiles(cwd, since) : null;
   if (changed) {
-    files = changed.filter((f) => f.endsWith('.py') && /^def\s+upgrade\s*\(/m.test(fs.readFileSync(f, 'utf8')) && /\balembic\b/.test(fs.readFileSync(f, 'utf8')));
+    const isAlembic = (f) => f.endsWith('.py') && /^def\s+upgrade\s*\(/m.test(fs.readFileSync(f, 'utf8')) && /\balembic\b/.test(fs.readFileSync(f, 'utf8'));
+    files = changed.filter((f) => isAlembic(f) || isCiMigration(f));
     if (!files.length) { console.log('마이그레이션 검사: 바뀐 리비전 없음'); return 0; }
   } else {
-    if (!d || !fs.existsSync(d)) { console.log('마이그레이션 폴더를 찾지 못함(alembic.ini 의 script_location, alembic/versions, migrations/versions) — 폴더를 인자로 줄 것'); return 2; }
-    files = fs.readdirSync(d).filter((x) => x.endsWith('.py')).sort().map((f) => path.join(d, f));
+    if (!d || !fs.existsSync(d)) { console.log('마이그레이션 폴더를 찾지 못함(alembic.ini 의 script_location, alembic/versions, migrations/versions, app/Database/Migrations, application/migrations) — 폴더를 인자로 줄 것'); return 2; }
+    files = fs.readdirSync(d).filter((x) => /\.(py|php)$/.test(x)).sort().map((f) => path.join(d, f));
   }
   let n = 0;
   for (const f of files) {
-    for (const x of scanAlembic(fs.readFileSync(f, 'utf8'))) {
+    for (const x of scanFile(f)) {
       console.log(`${path.relative(cwd, f).replace(/\\/g, '/')}:${x.line} [${x.code}] ${x.msg}`);
       n++;
     }
@@ -229,13 +290,21 @@ function scan(cwd, dir, changedOnly, since) {
 }
 
 function roundtrip(cwd) {
+  if (!fs.existsSync(path.join(cwd, 'alembic.ini')) && fs.existsSync(path.join(cwd, 'spark'))) {
+    const s = sparkVerdict(cwd, 'php spark migrate', process.env);
+    if (s.decision !== 'allow') { console.log(`로컬 DB 가 아님(${s.remote ? s.remote.join(', ') : '대상 호스트 모름'}) — php spark 왕복 테스트를 실행하지 않음. .env 의 database.default.* 를 로컬·테스트 DB 로 주고 다시 실행`); return 2; }
+    return runSteps(cwd, 'php spark', ['migrate', 'migrate:rollback', 'migrate']);
+  }
   const v = verdict(targets(cwd, 'alembic upgrade head', process.env));
   if (v.decision !== 'allow') { console.log(`로컬 DB 가 아님(${v.remote ? v.remote.map(mask).join(', ') : '대상 주소 모름'}) — 왕복 테스트를 실행하지 않음. env.py 가 읽는 곳에 로컬·테스트 DB 주소를 주고 다시 실행`); return 2; }
-  const alembic = fs.existsSync(path.join(cwd, 'uv.lock')) ? 'uv run alembic' : 'alembic';
-  for (const step of ['upgrade head', 'downgrade -1', 'upgrade head']) {
-    const r = spawnSync(`${alembic} ${step}`, { cwd, shell: true, encoding: 'utf8' });
+  return runSteps(cwd, fs.existsSync(path.join(cwd, 'uv.lock')) ? 'uv run alembic' : 'alembic', ['upgrade head', 'downgrade -1', 'upgrade head']);
+}
+
+function runSteps(cwd, tool, steps) {
+  for (const step of steps) {
+    const r = spawnSync(`${tool} ${step}`, { cwd, shell: true, encoding: 'utf8' });
     const last = `${r.stdout || ''}${r.stderr || ''}`.trim().split(/\r?\n/).pop() || '';
-    console.log(`${r.status === 0 ? '✓' : '✗'} alembic ${step}${r.status === 0 ? '' : ` — ${last.slice(0, 200)}`}`);
+    console.log(`${r.status === 0 ? '✓' : '✗'} ${tool} ${step}${r.status === 0 ? '' : ` — ${last.slice(0, 200)}`}`);
     if (r.status !== 0) return 1;
   }
   console.log('마이그레이션 왕복 통과');
@@ -243,12 +312,45 @@ function roundtrip(cwd) {
 }
 
 const WRITE = /\balembic\b[^|;&\n]*?\b(upgrade|downgrade|stamp)\b/;
+// php spark migrate·migrate:rollback·migrate:refresh·migrate:reset (migrate:status 는 읽기)
+const SPARK_WRITE = /\bspark\b[^|;&\n]*?\bmigrate(?!:status)\b/;
+
+// CodeIgniter 4 대상 DB: .env(database.<그룹>.*)가 app/Config/Database.php 를 덮어쓴다 — 둘 다 후보로 본다
+function sparkVerdict(cwd, command, env) {
+  if (/(?:^|[;&|\n("'`]\s*)(?:cd|pushd|chdir|Set-Location|sl)\b/i.test(command)) return { decision: 'ask' };
+  if (/\bdatabase\.[\w.]+\s*=/i.test(command)) return { decision: 'ask' }; // cmd.exe set database.default.hostname=…
+  const g = command.match(/(?:^|\s)(?:-g|--group)(?:=|\s+)(\S+)/);
+  if (g && unquote(g[1]) !== 'default') return { decision: 'ask' };
+  const dot = dotenvMap(cwd);
+  const cfgPath = path.join(cwd, 'app', 'Config', 'Database.php');
+  const cfg = fs.existsSync(cfgPath) ? fs.readFileSync(cfgPath, 'utf8') : '';
+  // 쓰이는 그룹이 default 가 아니거나(설정·.env·testing 환경은 tests 그룹), 설정을 코드에서 환경으로 채우면 알 수 없다
+  const group = dot['database.defaultGroup'] || (cfg.match(/\$defaultGroup\s*=\s*['"](\w+)['"]/) || [])[1] || 'default';
+  if (group !== 'default' || /^testing$/i.test(dot.CI_ENVIRONMENT || env.CI_ENVIRONMENT || '')) return { decision: 'ask' };
+  if (/\bgetenv\s*\(|\benv\s*\(|\$_ENV\b|\$_SERVER\b/.test(cfg)) return { decision: 'ask' };
+  const block = (cfg.match(/\$default\s*=\s*\[([\s\S]*?)\];/) || [])[1];
+  const fromCfg = (k) => block && (block.match(new RegExp(`['"]${k}['"]\\s*=>\\s*['"]([^'"]*)['"]`)) || [])[1];
+  const driver = dot['database.default.DBDriver'] || env['database.default.DBDriver'] || fromCfg('DBDriver');
+  if (/sqlite/i.test(driver || '')) return { decision: 'allow' };
+  const hosts = [dot['database.default.hostname'], env['database.default.hostname'], fromCfg('hostname')].filter((h) => typeof h === 'string' && h !== '');
+  if (!hosts.length) return { decision: 'ask' };
+  const remote = hosts.filter((h) => !LOCAL.has(h) && !h.startsWith('/'));
+  return remote.length ? { decision: 'deny', remote } : { decision: 'allow' };
+}
+
 function hookDecision(input, env) {
   const command = (input.tool_input && input.tool_input.command) || '';
-  if (!WRITE.test(command)) return null;
+  const spark = SPARK_WRITE.test(command);
+  if (!WRITE.test(command) && !spark) return null;
   // 다른 머신·컨테이너에서 실행하면 대상은 그쪽 설정이다 — 이 폴더의 파일로 판정할 수 없다
-  if (/\b(?:ssh|kubectl|oc|heroku|fly|flyctl|gcloud|az|aws)\b/.test(command)) return { decision: 'deny', reason: '원격 머신·클러스터에서 alembic 쓰기 명령을 실행하려 함 — 운영·공유 환경의 마이그레이션은 사람이 직접 실행' };
-  if (/\b(?:docker|podman|nerdctl|vagrant)\b/.test(command)) return { decision: 'ask', reason: '컨테이너·VM 안에서 alembic 쓰기 명령 — 그 안의 DB 설정이 로컬·테스트 DB 인지 확인한 뒤 승인' };
+  if (/\b(?:ssh|kubectl|oc|heroku|fly|flyctl|gcloud|az|aws)\b/.test(command)) return { decision: 'deny', reason: '원격 머신·클러스터에서 마이그레이션 쓰기 명령을 실행하려 함 — 운영·공유 환경의 마이그레이션은 사람이 직접 실행' };
+  if (/\b(?:docker|podman|nerdctl|vagrant)\b/.test(command)) return { decision: 'ask', reason: '컨테이너·VM 안에서 마이그레이션 쓰기 명령 — 그 안의 DB 설정이 로컬·테스트 DB 인지 확인한 뒤 승인' };
+  if (spark) {
+    const s = sparkVerdict(input.cwd || process.cwd(), command, env);
+    if (s.decision === 'allow' && !WRITE.test(command)) return null;
+    if (s.decision === 'deny') return { decision: 'deny', reason: `php spark migrate 대상 호스트가 로컬이 아님(${s.remote.join(', ')}) — 운영·공유 DB 는 사람이 직접 실행. 테스트는 .env 의 database.default.* 를 로컬로` };
+    if (s.decision === 'ask') return { decision: 'ask', reason: 'php spark migrate 대상 DB 를 확정하지 못함(.env·app/Config/Database.php 의 default 그룹 호스트를 찾지 못했거나 다른 그룹·폴더) — 로컬·테스트 DB 인지 확인한 뒤 승인' };
+  }
   const v = verdict(targets(input.cwd || process.cwd(), command, env));
   if (v.decision === 'allow') return null;
   if (v.decision === 'ask') return { decision: 'ask', reason: 'alembic 대상 DB 를 확정하지 못함(env.py 가 읽는 출처에 주소가 없거나 알 수 없음) — 로컬·테스트 DB 인지 확인한 뒤 승인' };
@@ -267,7 +369,9 @@ function main(argv) {
   if (cmd === 'hook') {
     let input = {};
     try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return 0; }
-    const d = hookDecision(input, process.env);
+    let d;
+    // 판정 중 예외로 죽으면 후크가 아무 말 없이 통과시킨다 — 쓰기 명령이면 확인 요청으로 떨어뜨린다
+    try { d = hookDecision(input, process.env); } catch (e) { d = WRITE.test(JSON.stringify(input)) || SPARK_WRITE.test(JSON.stringify(input)) ? { decision: 'ask', reason: `마이그레이션 후크 판정 실패(${e.message}) — 대상 DB 를 확인한 뒤 승인` } : null; }
     if (d) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: d.decision, permissionDecisionReason: d.reason } }));
     return 0;
   }
@@ -276,4 +380,4 @@ function main(argv) {
 }
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2));
-module.exports = { scanAlembic, targets, verdict, isLocalUrl, hookDecision, versionsDir };
+module.exports = { scanAlembic, scanCodeIgniter, targets, verdict, sparkVerdict, isLocalUrl, hookDecision, versionsDir };

@@ -1,7 +1,7 @@
 {
   "name": "fastapi-quality-gates",
   "version": "0.1.0",
-  "description": "파이썬 파일 편집 직후 ruff check 결과를 Claude 에게 보고(바꾼 줄만 고치라는 안내). 고치지·막지·포맷하지 않으며 ruff 가 없으면 조용히 넘어간다",
+  "description": "파이썬 파일 편집 직후 ruff check, PHP 파일 편집 직후 php -l 결과를 Claude 에게 보고(바꾼 줄만 고치라는 안내). 고치지·막지·포맷하지 않으며 도구가 없으면 조용히 넘어간다",
   "author": { "name": "bluebamus" },
   "license": "UNLICENSED"
 }

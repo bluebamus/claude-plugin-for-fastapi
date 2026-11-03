@@ -20,7 +20,7 @@ node "<플러그인>/scripts/guard.js" scan [마이그레이션 폴더]
 | 코드 | 뜻 | 고치는 법 |
 |---|---|---|
 | `rename-suspect` | 같은 테이블에 drop_column + add_column — autogenerate 는 이름 변경을 이렇게 만든다 | `op.alter_column(t, old, new_column_name=new)` |
-| `destructive` | drop_table·drop_column | 의도했으면 그 줄 끝에 `# guard: destructive-ok <이유>`(백업·이관 근거) |
+| `destructive` | drop_table·drop_column, raw SQL(`op.execute`)의 `DROP TABLE`·`DROP COLUMN`·`TRUNCATE` | 의도했으면 그 줄 끝에 `# guard: destructive-ok <이유>`(백업·이관 근거) |
 | `not-null-no-default` | NOT NULL 컬럼 추가·변경에 `server_default` 없음 | 기본값을 주거나 아래 expand–contract 로 나눈다 |
 | `no-downgrade` | downgrade 가 비었거나 `pass` 뿐 | 되돌리는 코드를 쓰거나, 되돌릴 수 없으면 `# guard: irreversible <이유>` |
 
@@ -53,6 +53,12 @@ Bash 에서 `alembic upgrade|downgrade|stamp` 를 실행하려 하면, 실제 �
 이 판정은 `env.py` 를 정적으로 읽는 추정이다. 통과는 "보이는 근거가 모두 로컬"이라는 뜻이지 보장이 아니다 — 운영 DB 보호의 마지막 선은 운영 자격 증명을 개발 환경에 두지 않는 것이다.
 
 후크는 명령 문자열과 자기 환경만 본다 — 셸 프로필·direnv·스크립트 파일 안에서 정한 값은 보지 못한다.
+
+## CodeIgniter (php 판)
+
+- `scan`: 폴더를 안 주면 Alembic 폴더가 없을 때 `app/Database/Migrations`(CodeIgniter 4)·`application/migrations`(CodeIgniter 3)를 본다. `up()` 의 `dropTable`·`dropColumn`(CI3 `drop_table`·`drop_column`), 같은 테이블 `dropColumn`+`addColumn`(이름 변경 의심 — `modifyColumn` 의 `'name'` 으로), `'null' => false` 에 `'default'` 없는 `addColumn`·`modifyColumn`, raw SQL(`$this->db->query`)의 `DROP TABLE`·`DROP COLUMN`·`TRUNCATE`, 빈 `down()` 을 찾는다. 표시는 `// guard: destructive-ok <이유>`·`// guard: irreversible <이유>`. `--changed`·`--since` 도 같다.
+- `roundtrip`: `alembic.ini` 없이 `spark` 가 있으면 `php spark migrate → migrate:rollback → migrate`. 대상 판정은 아래 후크와 같다.
+- 후크: `php spark migrate`(`:rollback`·`:refresh`·`:reset` 포함, `:status` 제외)의 대상은 `.env` 의 `database.default.hostname`·`DBDriver` 와 `app/Config/Database.php` 의 `$default` 를 모두 후보로 본다(.env 가 덮어쓰므로). SQLite3 드라이버나 호스트가 모두 로컬이면 통과, 하나라도 원격이면 거부, 호스트를 못 찾거나, `-g`·`$defaultGroup`·`.env` 의 `database.defaultGroup`·`CI_ENVIRONMENT = testing` 으로 default 가 아닌 그룹이 쓰이거나, `Database.php` 가 코드에서 환경을 읽거나(`getenv`·`env(`·`$_ENV`·`$_SERVER`), `cd` 로 다른 폴더면 확인 요청. 원격 머신·컨테이너 규칙은 alembic 과 같다. CodeIgniter 3 은 CLI 마이그레이션 명령이 없어 후크 대상이 아니다.
 
 ## 4. 무중단 변경(expand–contract) 체크리스트
 
