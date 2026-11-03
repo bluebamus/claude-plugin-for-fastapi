@@ -297,3 +297,53 @@ test('신규 1단계: NFR- 만 있고 R- 가 없으면 통과하지 않는다', 
   put(cwd, 'docs/project/01-requirements.md', 'R-1 목록\nNFR-1 응답 1초\n수용 기준\n범위 밖\n가정\n');
   assert.ok(S.runCheck(cwd, { profile: 'greenfield' }, c).ok);
 });
+
+// 셸마다 따옴표 규칙이 달라(cmd.exe·sh) 명령 본문은 스크립트 파일로 둔다
+test('cmd 확인: 프로젝트 폴더에서 실행, 종료 코드 0 이면 통과, 아니면 마지막 출력 줄을 이유로 준다', () => {
+  const cwd = tmp();
+  put(cwd, 'ok.js', "process.exit(require('fs').existsSync('marker.txt') ? 0 : 1)");
+  put(cwd, 'fail.js', "console.log('a'); console.log('boom'); process.exit(3)");
+  assert.strictEqual(S.runCheck(cwd, {}, { cmd: 'node ok.js' }).ok, false);
+  put(cwd, 'marker.txt', 'x');
+  assert.ok(S.runCheck(cwd, {}, { cmd: 'node ok.js' }).ok);
+  const r = S.runCheck(cwd, {}, { cmd: 'node fail.js' });
+  assert.strictEqual(r.ok, false);
+  assert.match(r.why, /종료 코드 3/);
+  assert.match(r.why, /boom/);
+});
+
+test('cmd 확인: {work} 를 치환하지 않는다(작업 이름이 셸 명령에 섞이지 않게)', () => {
+  const cwd = tmp();
+  put(cwd, 'w.js', "process.exit(process.argv[2] === '{work}' ? 0 : 1)");
+  // 셸 연산자가 없는 값: 치환되면 argv 가 'abc' 가 되어 실패한다
+  assert.ok(S.runCheck(cwd, { work: 'abc' }, { cmd: 'node w.js {work}' }).ok);
+});
+
+test('cmd 확인: 시간 초과면 이유에 시간 초과를 적는다', () => {
+  const cwd = tmp();
+  put(cwd, 'slow.js', "console.log('working'); setTimeout(() => {}, 5000)");
+  const r = S.runCheck(cwd, {}, { cmd: 'node slow.js', timeout: 1000 });
+  assert.strictEqual(r.ok, false);
+  assert.match(r.why, /시간 초과/);
+});
+
+test('if 조건: 경로가 없으면 건너뜀(통과), 있으면 원래 확인을 한다', () => {
+  const cwd = tmp();
+  put(cwd, 'fail.js', 'process.exit(1)');
+  const c = { if: 'alembic.ini|migrations', cmd: 'node fail.js', label: '마이그레이션 왕복' };
+  const skip = S.runCheck(cwd, {}, c);
+  assert.ok(skip.ok);
+  assert.ok(skip.skipped);
+  assert.match(skip.why, /건너뜀/);
+  fs.mkdirSync(path.join(cwd, 'migrations'));
+  assert.strictEqual(S.runCheck(cwd, {}, c).ok, false, '대안 경로가 있으면 실행');
+  assert.ok(S.runCheck(cwd, {}, { if: 'nope.txt', file: 'missing.md' }).ok, 'file 확인에도 적용');
+  put(cwd, 'docs/work/w/x.md', '');
+  assert.ok(!S.runCheck(cwd, { work: 'w' }, { if: 'docs/work/{work}/x.md', file: 'missing.md' }).ok, 'if 경로는 {work} 치환');
+});
+
+test('cmd·if 확인의 표시 문구', () => {
+  assert.strictEqual(S.fmtCheck({ cmd: 'alembic check', label: '모델·마이그레이션 일치' }, {}), '모델·마이그레이션 일치 (alembic check)');
+  assert.strictEqual(S.fmtCheck({ cmd: 'ruff check .' }, {}), '명령 성공: ruff check .');
+  assert.strictEqual(S.fmtCheck({ if: 'alembic.ini', cmd: 'alembic check' }, {}), '명령 성공: alembic check (alembic.ini 있을 때만)');
+});

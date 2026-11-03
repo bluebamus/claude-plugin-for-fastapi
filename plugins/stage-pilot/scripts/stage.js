@@ -60,6 +60,10 @@ function fmtRun(r, st) {
 }
 
 function fmtCheck(c, st) {
+  return `${fmtCheckBody(c, st)}${c.if ? ` (${sub(c.if, st)} 있을 때만)` : ''}`;
+}
+function fmtCheckBody(c, st) {
+  if (c.cmd) return c.label ? `${c.label} (${c.cmd})` : `명령 성공: ${c.cmd}`;
   if (c.test) return '테스트 통과';
   if (c.clean) return '작업 트리 정리(커밋되지 않은 변경 없음)';
   if (c.testsAvoid) return `테스트가 ${c.testsAvoid} 를 읽지 않음(기준 데이터는 tests/ 아래)`;
@@ -263,17 +267,30 @@ function testCommand(cwd, st) {
   return 'python -m pytest -q';
 }
 
+// 시간 초과·실행 실패는 마지막 출력 줄에 가려지지 않게 앞에 적는다
+function procWhy(r) {
+  const last = `${r.stdout || ''}${r.stderr || ''}`.trim().split(/\r?\n/).pop() || '';
+  const err = r.error?.code === 'ETIMEDOUT' ? '시간 초과' : r.error ? `실행 실패 ${r.error.code || r.error.message}` : r.signal ? `신호 ${r.signal}` : '';
+  return `${err ? `${err}, ` : ''}종료 코드 ${r.status} (${last.slice(0, 120)})`;
+}
+
 function runCheck(cwd, st, c) {
+  // 도구가 없는 프로젝트(예: alembic 미사용)에서는 그 도구의 확인을 건너뛴다
+  if (c.if && !resolveFile(cwd, sub(c.if, st))) return { ok: true, skipped: true, why: `${sub(c.if, st)} 없음 — 건너뜀` };
+  if (c.cmd) {
+    // {work} 는 사용자 입력이라 셸 명령에 치환하지 않는다
+    const r = spawnSync(c.cmd, { cwd, shell: true, encoding: 'utf8', timeout: c.timeout || 900000 });
+    return { ok: r.status === 0, why: `${c.cmd} → ${procWhy(r)}` };
+  }
   if (c.test) {
     // modernize-* 의 legacy/<system> 링크는 트랙 동안 유지된다 — 프로젝트 자신을 가리키면 같은 테스트가 두 번 수집되므로 뺀다
     const base = testCommand(cwd, st);
     const cmd = /pytest/.test(base) && fs.existsSync(path.join(cwd, 'legacy')) && !/--ignore=legacy/.test(base) ? `${base} --ignore=legacy` : base;
     const r = spawnSync(cmd, { cwd, shell: true, encoding: 'utf8', timeout: 900000 });
     const out = `${r.stdout || ''}${r.stderr || ''}`;
-    const last = out.trim().split(/\r?\n/).pop() || '';
     // modernize-preflight 의 legacy/<system> 링크가 프로젝트 자신을 가리키면 같은 테스트가 두 번 수집된다
     const dup = /import file mismatch/.test(out) ? ' — 같은 테스트가 두 경로에서 수집됨: 분석 도구가 만든 링크(예: legacy/<system>)를 수집 범위에서 뺄 것' : '';
-    return { ok: r.status === 0, why: `${cmd} → 종료 코드 ${r.status} (${last.slice(0, 120)})${dup}` };
+    return { ok: r.status === 0, why: `${cmd} → ${procWhy(r)}${dup}` };
   }
   if (c.clean) {
     // 모노레포 하위 폴더 프로젝트도 있으므로 이 폴더 안의 변경만 보고, 상태 파일이 있는 .claude/ 는 뺀다
@@ -426,7 +443,7 @@ function main(argv) {
   return 1;
 }
 
-module.exports = { loadMap, card, matchStage, runHook, missingFor, findStage, plan, detect, intake, check, runCheck, sub, testCommand, main };
+module.exports = { loadMap, card, matchStage, runHook, missingFor, findStage, plan, detect, intake, check, runCheck, fmtCheck, sub, testCommand, main };
 if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); } catch (e) { console.error(e.message); process.exitCode = 1; }
 }
