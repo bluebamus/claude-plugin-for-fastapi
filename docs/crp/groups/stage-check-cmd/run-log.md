@@ -10,3 +10,8 @@
 | Round | CRIT | HIGH | MED | LOW | 신규 Fix | 판정 |
 |---|---|---|---|---|---|---|
 | 1 | 0 | 0 | 1 | 2 | 2 | CONVERGED |
+
+### Round 2 — 2026-11-03 (REQ-002, 브랜치별 반영)
+- **main:** `db4300a` fast-forward. stage-pilot 27/27, onboarding 4/4.
+- **php:** origin/php `c247602` 위 cherry-pick. 충돌은 stage.test.js 끝(양쪽 추가 테스트)만 — 둘 다 유지. php 의 phpunit 미설치 처리 앞에 if·cmd 확인이 들어감. stage-pilot 31/31, onboarding OK.
+- **수렴 판정:** `CONVERGED` — 새 finding 0.
