@@ -327,6 +327,21 @@ test('후크(F-027): 다른 머신에서 실행하면 거부, 컨테이너 안 �
   assert.strictEqual(hook(cwd, 'alembic upgrade head'), null, '기준');
 });
 
+test('scan(F-032): op.execute 의 raw SQL DROP·TRUNCATE 도 파괴적 연산', () => {
+  assert.ok(codes(rev('    op.execute("ALTER TABLE users DROP COLUMN email")\n')).includes('destructive'));
+  assert.ok(codes(rev("    op.execute('TRUNCATE TABLE logs')\n")).includes('destructive'));
+  assert.ok(codes(rev('    op.execute(\n        "DROP TABLE old"\n    )\n')).includes('destructive'));
+  assert.deepStrictEqual(codes(rev("    op.execute('DROP TABLE old')  # guard: destructive-ok 이관 완료\n")), []);
+  assert.deepStrictEqual(codes(rev("    op.execute('CREATE INDEX ix ON t (c)')\n")), []);
+});
+
+test('후크(F-028): 판정 중 예외가 나도 쓰기 명령은 확인 요청으로 떨어진다', () => {
+  const cwd = tmp();
+  put(cwd, 'alembic.ini', '[alembic]\nsqlalchemy.url = sqlite:///dev.db\n');
+  fs.mkdirSync(path.join(cwd, '.env'));
+  assert.strictEqual(hook(cwd, 'alembic upgrade head')?.permissionDecision, 'ask');
+});
+
 test('scan(F-008): 패키지 형식 script_location(pkg:migrations)도 찾는다', () => {
   const cwd = tmp();
   put(cwd, 'alembic.ini', '[alembic]\nscript_location = myapp.db:migrations\n');

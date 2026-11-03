@@ -51,6 +51,7 @@ function scanAlembic(text) {
       const table = inBatch ? batch && batch[1] : (args.match(/^\s*['"]([^'"]+)['"]/) || [])[1];
       return { name: m[2], args, line: lineAt(text, at), ok: /guard:\s*destructive-ok/.test(span), table };
     });
+    found.push(...rawSqlDrops(text, up.body, up.start));
     const added = new Set(calls.filter((c) => c.name === 'add_column').map((c) => c.table));
     for (const c of calls) {
       if (c.ok) continue;
@@ -63,6 +64,17 @@ function scanAlembic(text) {
   const rest = down ? down.body.replace(/("""|''')[\s\S]*?\1/g, '').replace(/#.*$/gm, '').replace(/\bpass\b/g, '') : '';
   if (!/\S/.test(rest) && !/guard:\s*irreversible/.test(text)) found.push({ line: down ? down.line : 1, code: 'no-downgrade', msg: 'downgrade 가 비어 있음 — 되돌리는 코드를 쓰거나, 되돌릴 수 없으면 "# guard: irreversible <이유>"' });
   return found;
+}
+
+// raw SQL(op.execute 문자열)의 DROP TABLE·DROP COLUMN·TRUNCATE — 표시는 그 줄이나 바로 윗줄에
+function rawSqlDrops(text, body, start) {
+  return [...body.matchAll(/\b(DROP\s+(?:TABLE|COLUMN)|TRUNCATE)\b/gi)].flatMap((m) => {
+    const at = start + m.index;
+    const lineText = text.slice(text.lastIndexOf('\n', at) + 1, (text.indexOf('\n', at) + 1 || text.length + 1) - 1);
+    const prev = text.slice(text.lastIndexOf('\n', text.lastIndexOf('\n', at) - 1) + 1, text.lastIndexOf('\n', at));
+    if (/guard:\s*destructive-ok/.test(lineText) || /guard:\s*destructive-ok/.test(prev)) return [];
+    return [{ line: lineAt(text, at), code: 'destructive', msg: `raw SQL ${m[1].toUpperCase().replace(/\s+/, ' ')} — 데이터 삭제. 의도했으면 그 줄 끝에 guard: destructive-ok <이유> 표시` }];
+  });
 }
 
 // ini 의 한 섹션(alembic 은 기본 [alembic], -n/--name 으로 바꿈). 파일이 없으면 null, 섹션이 없으면 undefined
@@ -267,7 +279,9 @@ function main(argv) {
   if (cmd === 'hook') {
     let input = {};
     try { input = JSON.parse(fs.readFileSync(0, 'utf8') || '{}'); } catch { return 0; }
-    const d = hookDecision(input, process.env);
+    let d;
+    // 판정 중 예외로 죽으면 후크가 아무 말 없이 통과시킨다 — 쓰기 명령이면 확인 요청으로 떨어뜨린다
+    try { d = hookDecision(input, process.env); } catch (e) { d = WRITE.test(JSON.stringify(input)) ? { decision: 'ask', reason: `마이그레이션 후크 판정 실패(${e.message}) — 대상 DB 를 확인한 뒤 승인` } : null; }
     if (d) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: d.decision, permissionDecisionReason: d.reason } }));
     return 0;
   }

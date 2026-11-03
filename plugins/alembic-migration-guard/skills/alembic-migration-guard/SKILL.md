@@ -20,7 +20,7 @@ node "<플러그인>/scripts/guard.js" scan [마이그레이션 폴더]
 | 코드 | 뜻 | 고치는 법 |
 |---|---|---|
 | `rename-suspect` | 같은 테이블에 drop_column + add_column — autogenerate 는 이름 변경을 이렇게 만든다 | `op.alter_column(t, old, new_column_name=new)` |
-| `destructive` | drop_table·drop_column | 의도했으면 그 줄 끝에 `# guard: destructive-ok <이유>`(백업·이관 근거) |
+| `destructive` | drop_table·drop_column, raw SQL(`op.execute`)의 `DROP TABLE`·`DROP COLUMN`·`TRUNCATE` | 의도했으면 그 줄 끝에 `# guard: destructive-ok <이유>`(백업·이관 근거) |
 | `not-null-no-default` | NOT NULL 컬럼 추가·변경에 `server_default` 없음 | 기본값을 주거나 아래 expand–contract 로 나눈다 |
 | `no-downgrade` | downgrade 가 비었거나 `pass` 뿐 | 되돌리는 코드를 쓰거나, 되돌릴 수 없으면 `# guard: irreversible <이유>` |
 

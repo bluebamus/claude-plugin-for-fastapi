@@ -22,3 +22,6 @@
 | 5 | 0 | 3 | 0 | 0 | 3 | NOT CONVERGED |
 | 6 | 0 | 1 | 0 | 0 | 1 | NOT CONVERGED |
 | 7 | 0 | 0 | 0 | 1 | 0 | CONVERGED |
+
+### main 후속 — 2026-11-03
+- php 판 검수에서 나온 공통 결함 F-028(후크 예외 통과)·F-032(op.execute raw SQL) 를 main 에도 반영. node 77/77, python 11/11, validate 통과

@@ -29,3 +29,5 @@
 | F-025 | HIGH | 후크: 앱 설정 모듈로 엔진을 만드는 env.py 를 ini 전용으로 보고 ini 주소를 믿음 | Fix | Fixed | 같은 테스트 — ini 는 engine_from_config·get_main_option 이고 create_engine 없을 때만 | main·php |
 | F-026 | HIGH | 후크: cd·pushd·Set-Location·uv --directory 로 다른 프로젝트에서 실행해도 현재 폴더 설정으로 판정 | Fix | Fixed | 같은 테스트 | main·php |
 | F-027 | HIGH | 후크: ssh·kubectl·heroku·fly·docker exec 등 다른 머신·컨테이너 실행을 로컬 파일로 판정, 따옴표 안 cd 미검출 | Fix | Fixed | guard.test `후크(F-027)` | main·php |
+| F-028 | MED | 후크: 판정 중 예외로 죽으면 아무 말 없이 통과(php 판 검수에서 발견, 공통) | Fix | Fixed | guard.test `후크(F-028)` — 쓰기 명령이면 확인 요청 | main·php |
+| F-032 | MED | alembic scan: raw SQL(op.execute) DROP·TRUNCATE 미검사(php 판 F-031 의 형제 결함) | Fix | Fixed | guard.test `scan(F-032)` | main·php |
