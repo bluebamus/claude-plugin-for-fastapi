@@ -1,6 +1,6 @@
 ---
 description: 현재 워크플로 단계와 추천 플러그인을 보여 주거나(기본), 트랙(신규·기능 추가·리팩토링·고도화)을 시작·이동하거나, 플러그인으로 단계를 수행한다(자동 승인 모드 지원)
-argument-hint: "[status | profiles | detect | init <profile> [stage] [--auto] [--work NAME] [--test "CMD"] | auto on|off | check [stage] | next | goto <stage> | run [stage] [--through <stage>]]"
+argument-hint: '[status | profiles | detect | init <profile> [stage] [--auto] [--work NAME] [--test "CMD"] | auto on|off | check [stage] | next | goto <stage> | run [stage] [--through <stage>]]'
 allowed-tools: Bash(node:*), Read
 ---
 

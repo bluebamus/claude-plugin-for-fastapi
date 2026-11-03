@@ -16,10 +16,13 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 
 | 플러그인 | 버전 | 언제 쓰나 | 결과물 |
 |---|---|---|---|
-| `stage-pilot` | 0.3.5 | 신규 FastAPI 프로젝트를 만들거나, 레거시에 기능 추가·리팩토링·고도화를 할 때 | 단계별 문서(`docs/`), 단계 보고서, 완료 확인을 통과한 코드와 커밋 |
+| `stage-pilot` | 0.3.7 | 신규 FastAPI 프로젝트를 만들거나, 레거시에 기능 추가·리팩토링·고도화를 할 때 | 단계별 문서(`docs/`), 단계 보고서, 완료 확인을 통과한 코드와 커밋 |
 | `legacy-onboarding-manual` | 0.1.2 | 레거시 프로젝트를 처음 맡아 코드를 만지기 전에 구조와 동작을 파악할 때 | `docs/onboarding/<이름>-onboarding-manual.html` 한 파일 |
+| `api-contract-guard` | 0.1.0 | 리팩토링·기능 추가로 API 응답·요청 형태가 몰래 바뀌지 않게 지킬 때 | `tests/contract/openapi.json` 스냅샷, 삭제·변경 판정, 인증 근거 없는 엔드포인트 목록 |
+| `alembic-migration-guard` | 0.1.0 | Alembic 마이그레이션을 만들거나 고칠 때 | 위험 리비전 목록(`파일:줄`), 로컬 왕복 결과, 원격 DB 대상 실행 차단 |
+| `fastapi-quality-gates` | 0.1.0 | 편집 직후 ruff 위반을 바로 알고 싶을 때 | Claude 에게 주는 보고(바꾼 줄만 고치라는 안내) — 고치지·막지 않음 |
 
-두 플러그인은 독립적입니다. 하나만 설치해도 되고, 레거시를 맡았다면 온보딩 매뉴얼로 먼저 파악한 뒤 stage-pilot 레거시 트랙으로 작업하는 순서를 권합니다.
+모두 독립적입니다. 하나만 설치해도 되고, 레거시를 맡았다면 온보딩 매뉴얼로 먼저 파악한 뒤 stage-pilot 레거시 트랙으로 작업하는 순서를 권합니다. 가드 세 개는 설치돼 있으면 stage-pilot 단계 카드가 제안하고 완료 확인이 자동으로 부르며, 없으면 그 확인을 "미설치 — 건너뜀"으로 넘깁니다.
 
 ## stage-pilot
 
@@ -89,6 +92,18 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 - 분석에는 설치된 도구를 우선 씁니다(code-modernization, feature-dev의 `code-explorer`, codegraph, LSP). 없으면 디렉터리 순회·grep·직접 읽기로 대신하므로 **추가 플러그인 없이도 동작**합니다.
 - 완성된 매뉴얼은 `check_manual.py`로 검사합니다. 12개 장 존재, Mermaid 블록 수·종류·캡션, `file:line` 근거 수, 확인/추정 표시, 남은 자리표시자(`TODO:`)를 봅니다. `--render`를 붙이면 Mermaid CLI로 도식을 실제 렌더링해 봅니다.
 
+## 가드 플러그인
+
+stage-pilot 의 단계 완료 확인에 도구 실행 결과를 더하는 작은 플러그인들입니다. 판정은 결정적(같은 입력 → 같은 결과)이고, 외부로 아무것도 보내지 않습니다.
+
+| 플러그인 | 하는 일 | stage-pilot 연결 |
+|---|---|---|
+| `api-contract-guard` | `snapshot --app app.main:app` 로 `app.openapi()` 를 저장, `check` 로 비교해 operation·스키마의 삭제·변경은 실패(추가는 통과). `authz` 는 인증 의존성·OpenAPI security 가 없는 엔드포인트를 보고(이름 기준 추정) | 보호 테스트 단계에서 스냅샷 제안, 스냅샷이 있으면 리팩토링 5·7·10, 기능 추가 5, 고도화 7 단계 완료 확인에서 비교 |
+| `alembic-migration-guard` | `scan`: 같은 테이블 drop_column+add_column(이름 변경 의심), drop_table·drop_column, server_default 없는 NOT NULL, 빈 downgrade. 사람이 판단했으면 `# guard: destructive-ok`·`# guard: irreversible` 표시. `roundtrip`: 로컬 DB 에서만 upgrade→downgrade→upgrade. 후크: 원격 DB 대상 `alembic upgrade·downgrade·stamp` 거부, 대상을 모르면 확인 요청 | `alembic.ini` 가 있으면 신규 5, 기능 추가 4, 고도화 5, 리팩토링 6 단계 완료 확인에서 `scan --changed`(이번에 바뀐 리비전만 — 레거시 이력은 막지 않음) |
+| `fastapi-quality-gates` | `.py` 편집 직후 `ruff check` 결과를 Claude 에게 보고. 포맷·자동 수정·차단 없음, ruff 가 없으면 아무것도 안 함 | 신규·리팩토링 0단계(준비)에서 제안 |
+
+고도화 트랙의 기준선·재측정은 stage-pilot 에 들어 있는 `scripts/perf.js`(로컬 주소만, p50·p95·처리량·오류 기록과 전후 비교표)로 합니다.
+
 ## 설치
 
 ### 준비물
@@ -108,6 +123,9 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 /plugin marketplace add bluebamus/claude-plugin-for-fastapi
 /plugin install stage-pilot@claude-plugin-for-fastapi
 /plugin install legacy-onboarding-manual@claude-plugin-for-fastapi
+/plugin install api-contract-guard@claude-plugin-for-fastapi
+/plugin install alembic-migration-guard@claude-plugin-for-fastapi
+/plugin install fastapi-quality-gates@claude-plugin-for-fastapi
 ```
 
 - 첫 줄은 이 저장소를 `claude-plugin-for-fastapi`라는 이름의 마켓플레이스로 등록합니다(정의: `.claude-plugin/marketplace.json`).
@@ -263,9 +281,11 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 
 | 경로 | 내용 |
 |---|---|
-| `.claude-plugin/marketplace.json` | 마켓플레이스 정의(두 플러그인의 이름·경로·버전) |
+| `.claude-plugin/marketplace.json` | 마켓플레이스 정의(플러그인 이름·경로·버전) |
 | `plugins/stage-pilot/` | 단계별 플러그인 제안·수행 플러그인(스킬, `/stage-pilot:stage` 명령, 훅, 테스트) |
 | `plugins/legacy-onboarding-manual/` | 온보딩 매뉴얼 스킬, HTML 템플릿, 도식 작성 가이드, 검사 스크립트 |
+| `plugins/api-contract-guard/` · `plugins/alembic-migration-guard/` · `plugins/fastapi-quality-gates/` | 가드 플러그인(스크립트, 스킬 또는 훅, 테스트) |
+| `docs/crp/groups/` | 작업 그룹별 요구·설계 결정·검수 기록 |
 | `docs/manual/stage-pilot-manual-v0.3.2.html` | stage-pilot 사용 매뉴얼(트랙별 단계 설명, 모드, 완료 확인, 단계 전체 표, 검증 결과, 문제 해결) |
 | `docs/manual/install-commands.html` | 설치 명령 모음: 기본판·PHP 지원판 설치, 판 바꾸기, 셸·로컬 클론 설치, 업데이트, 여러 세션 적용, 제거, 설치 확인 |
 | `docs/default/fastapi-claude-plugins-guide.html` | 통합 가이드: 플러그인 선정, 상세, 확장 검토, 역할 경계, 진입 전 매뉴얼, 0~11단계 워크플로 |
@@ -287,6 +307,9 @@ BRIEF.md 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 �
 
 ```
 node --test plugins/stage-pilot/tests/stage.test.js     # 단계 데이터·문서 앵커·훅·트랙 추천·완료 확인
+node --test plugins/stage-pilot/tests/perf.test.js      # 기준선 측정·비교
+node --test plugins/alembic-migration-guard/tests/guard.test.js plugins/fastapi-quality-gates/tests/gate.test.js
+python -m unittest discover -s plugins/api-contract-guard/tests
 claude plugin validate .                                # 마켓플레이스·플러그인 매니페스트
 python -m unittest discover -s plugins/legacy-onboarding-manual/tests   # 온보딩 매뉴얼 검사기
 python plugins/legacy-onboarding-manual/skills/legacy-onboarding-manual/scripts/check_manual.py <manual.html> [--render]
@@ -318,6 +341,7 @@ v0.2.0의 단계별 평가 도구(`eval/gen_legacy.py`, `eval/run_eval.py`)도 �
 | v0.3.0 | 최종본(판 L)으로 실전 6회차를 모두 통과했습니다(1~5회차 5회 연속, 6회차는 환경 손상을 바로잡은 뒤 재판정). 난이도는 중·상·최상이고, 회차마다 29~38단계를 진행했으며 테스트 재실행 결과는 82~1,237건 통과입니다. 평가 중 찾은 결함 6건은 플러그인에서 고쳤습니다. |
 | v0.3.1 | 평가에서 생성된 코드를 사람 리뷰어 관점으로 검토해, 약점을 완료 조건으로 바꿨습니다. 리뷰 단계는 남긴 `shortcut:`을 다시 보고 테스트가 `docs/work/`를 읽지 않게 하며, 레거시 커밋 단계는 릴리스 노트에 "배포 영향"을 적습니다. 바뀐 단계 7곳을 모두 지나는 실전 2회차(연쇄형 g6)를 다시 돌려 38단계 모두 통과했습니다(114분, 테스트 재실행 95건 통과). 다만 1회 확인이며 5회 연속 기준의 재평가는 아닙니다. |
 | v0.3.5 | 독립 검수로 찾은 결함 수정: 영어 단어 속 `auto`(예: autocomplete)를 자동 승인 요청으로 오인, 관계없는 요청에도 매번 폴더 전체를 훑어 큰 저장소에서 훅이 느려짐(`env/`·`build/` 등 제외 추가), 모노레포 하위 폴더에서 작업 트리 정리 확인이 항상 실패하고 git 저장소가 아니면 이유 없이 실패, "처리 단계" 같은 일반 단어에 트랙 안내가 끼어듦, 신규 1단계가 `NFR-`만으로 통과. legacy-onboarding-manual 0.1.2: 한국어 Windows 콘솔에서 검사기가 멈춤, 목차만으로 확인/추정 검사 통과, 본문의 "TODO" 설명을 자리표시자로 셈. 단위 테스트 22개 + 검사기 테스트 4개. |
+| v0.3.7 | 완료 확인에 도구 명령(`cmd`)·조건부(`if`) 확인과 `{python}`·`{plugin:이름}`·`{base}`(트랙 시작 커밋) 토큰을 추가하고, 가드 플러그인 3개(api-contract-guard·alembic-migration-guard·fastapi-quality-gates)와 기준선 측정 스크립트(`perf.js`)를 단계에 연결. 훅 timeout 5→15초(Windows 고부하 시 출력 유실 방지). 단위 테스트: stage-pilot 32 + perf 6, 가드 32 + 11 + 5. 독립 검수 7회, 결함 27건 반영(원격 DB 를 로컬로 오판하던 경로 포함). 실전 회차 재평가는 하지 않았습니다. |
 | v0.3.2 | README 명령으로 GitHub에서 설치한 두 플러그인을 실제 세션에서 확인했습니다. 그 과정에서 트랙 키워드가 없는 기능 추가 요청을 리팩토링으로 추천하는 문제를 찾아 고쳤습니다. |
 
 결과와 진단 이력은 [`eval/RESULTS.md`](eval/RESULTS.md)에 있습니다.

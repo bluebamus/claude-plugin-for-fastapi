@@ -7,13 +7,31 @@
       "name": "stage-pilot",
       "source": "./plugins/stage-pilot",
       "description": "신규·레거시(기능 추가·리팩토링·고도화) 워크플로 단계별 플러그인 제안·수행, 완료 확인, 자동 승인 모드",
-      "version": "0.3.5"
+      "version": "0.3.7"
     },
     {
       "name": "legacy-onboarding-manual",
       "source": "./plugins/legacy-onboarding-manual",
       "description": "레거시 프로젝트를 분석해 Mermaid 도식이 들어간 HTML 온보딩 매뉴얼을 만드는 스킬",
       "version": "0.1.2"
+    },
+    {
+      "name": "api-contract-guard",
+      "source": "./plugins/api-contract-guard",
+      "description": "FastAPI app.openapi() 스냅샷 비교로 API 삭제·변경을 잡고 인증 근거 없는 엔드포인트를 보고",
+      "version": "0.1.0"
+    },
+    {
+      "name": "alembic-migration-guard",
+      "source": "./plugins/alembic-migration-guard",
+      "description": "Alembic 마이그레이션 위험 검사, 로컬 DB 왕복 테스트, 원격 DB 대상 실행 차단 후크",
+      "version": "0.1.0"
+    },
+    {
+      "name": "fastapi-quality-gates",
+      "source": "./plugins/fastapi-quality-gates",
+      "description": "파이썬 파일 편집 직후 ruff 위반을 Claude 에게 보고(고치지·막지 않음)",
+      "version": "0.1.0"
     }
   ]
 }
