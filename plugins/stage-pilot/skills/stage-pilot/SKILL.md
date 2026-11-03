@@ -30,7 +30,7 @@ description: FastAPI 프로젝트와 PHP·CodeIgniter 레거시 프로젝트를 
 - `node "${CLAUDE_PLUGIN_ROOT}/scripts/stage.js" <하위 명령>`
   - `status` 현재 단계 카드 · `profiles` 트랙 목록 · `detect` 빈 폴더/레거시 판별
   - `plan [stage]` 도구로 호출할 항목(`invoke`), 안내만 할 항목(`other`), 완료 확인 목록(`checks`), 단계 보고서 경로(`report`)
-  - `check [stage]` 완료 확인 실행 — 문서 내용, ID 추적(R-·F-·E-가 계획·테스트까지 이어지는지), 테스트, 작업 트리 정리
+  - `check [stage]` 완료 확인 실행 — 문서 내용, ID 추적(R-·F-·E-가 계획·테스트까지 이어지는지), 테스트, 작업 트리 정리, 도구 명령(종료 코드 0 = 통과). "(X 있을 때만)" 항목은 X가 없으면 "건너뜀"으로 통과한다 — 건너뛴 항목은 보고서에 건너뜀으로 적고 수행한 것으로 쓰지 않는다
   - `next [--force]` check 를 통과해야 다음 단계로 간다. `--force`는 사람이 판단해 넘길 때만
   - `set …`, `auto on|off`, `log "<결정>"`, `consent "<사용자가 비용을 승인한 문장 원문>"`
   - `skip <ref> "<근거>"` 조건부 항목을 쓰지 않은 근거, `reuse <ref> "<앞 단계·산출물·최신 확인>"` 같은 트랙의 앞 단계에서 이미 실행한 결과를 쓴 일, `fallback <ref> "<이유 → 한 일>"` 호출할 수 없어 직접 한 일. `ref`는 `plan`에 나온 이름 그대로(예: `superpowers:dispatching-parallel-agents`), 항목마다 한 번씩
