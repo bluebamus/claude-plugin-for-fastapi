@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>stage-pilot 사용 매뉴얼 v0.3.6 (php)</title>
+<title>stage-pilot 사용 매뉴얼 v0.3.7 (php)</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <style>
@@ -147,7 +147,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-si
 
 <main>
 <header class="hero">
-  <div class="eyebrow"><span class="chip">버전 0.3.6 · php 브랜치</span><span class="chip">2026-10-28</span><span>Claude Code 플러그인 · FastAPI 신규 개발과 레거시 고도화 · PHP·CodeIgniter 레거시 지원</span></div>
+  <div class="eyebrow"><span class="chip">버전 0.3.7 · php 브랜치</span><span class="chip">2026-11-03</span><span>Claude Code 플러그인 · FastAPI 신규 개발과 레거시 고도화 · PHP·CodeIgniter 레거시 지원</span></div>
   <h1>stage-pilot 사용 매뉴얼</h1>
   <p class="lead">stage-pilot은 FastAPI 프로젝트를 <strong>단계별 워크플로</strong>로 이끄는 Claude Code 플러그인입니다. 빈 폴더에서 새 프로젝트를 시작할 때도, 이미 돌아가는 레거시 프로젝트에 기능을 더하거나 구조를 고치거나 성능을 끌어올릴 때도, <strong>"지금 단계에서 어떤 플러그인을 어떤 순서로 쓰고, 어디서 멈춰 확인받고, 무엇으로 끝났다고 판단하는가"</strong>를 알려 주고, 원하면 <strong>그 플러그인을 직접 호출해 단계를 수행</strong>합니다.</p>
   <p class="lead">이 문서는 처음 쓰는 사람이 설치부터 자동 수행까지 혼자 따라 할 수 있도록 썼습니다. 개념 → 설치 → 빠른 시작 → 트랙별 단계 설명 → 명령·모드 → 전체 단계 표 → 검증 결과 → 문제 해결 순서로 읽으면 됩니다.</p>
@@ -985,6 +985,7 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
 <div class="table-wrap"><table>
 <thead><tr><th>버전</th><th>날짜</th><th>내용</th></tr></thead>
 <tbody>
+<tr><td>0.3.7</td><td>2026-11-03</td><td>완료 확인에 도구 명령(<code>cmd</code>, 종료 코드 0 = 통과)과 조건부(<code>if</code>, 경로가 없으면 건너뜀) 확인 추가. 명령에는 사용자 입력(<code>{work}</code>)을 넣지 않고 <code>{python}</code>(프로젝트 인터프리터)·<code>{plugin:이름}</code>(설치 경로, 미설치면 건너뜀)·<code>{base}</code>(트랙 시작 커밋, <code>set</code> 이 기록)만 쓴다. 가드 플러그인 연결: api-contract-guard(스냅샷이 있으면 리팩토링 5·7·10, 기능 추가 5, 고도화 7), alembic-migration-guard(<code>alembic.ini</code>가 있으면 신규 5, 기능 추가 4, 고도화 5, 리팩토링 6), fastapi-quality-gates(준비 단계 제안). 고도화 1·6단계에 <code>scripts/perf.js</code> 기준선·비교. 훅 timeout 5→15초.</td></tr>
 <tr><td>0.3.6</td><td>2026-10-28</td><td><code>php</code> 브랜치. 기본판 0.3.5의 공통 결함 수정 반영(영어 단어 속 <code>auto</code> 오인, 관계없는 요청에도 폴더 전체 탐색과 <code>env/</code>·<code>build/</code> 등 제외, 일반 단어 "단계" 개입, 모노레포 하위 폴더의 작업 트리 정리 확인과 git 저장소가 아닐 때의 이유, 신규 1단계 <code>NFR-</code> 통과, <code>init</code> 도움말 <code>--test</code>, 온보딩 검사기 0.1.3의 cp949 멈춤·목차 통과·TODO 오인). PHP 전용: <code>composer.json</code>이 있는데 phpunit이 없으면 설치·지정 방법을 알림, 테스트 파일 판별이 상위 폴더 이름과 무관하고 <code>test/</code>·<code>Tests/</code>·<code>*_test.php</code>를 인정, 리팩토링 트랙 안내(종료 전 테스트 규칙·소스 폴더)를 언어 중립으로, 신규 트랙이 FastAPI 전용임을 명시, 플러그인·스킬 설명에 PHP·CodeIgniter. 판 구분은 버전이 아니라 등록 출처(<code>#php</code>)로. 단위 테스트 26개 + 검사기 테스트 4개</td></tr>
 <tr><td>0.3.4</td><td>2026-10-28</td><td><code>php</code> 브랜치. 기능 추가·고도화 0단계 완료 확인이 근거를 <code>.py:줄</code>로만 인정해 PHP 프로젝트에서 통과할 수 없던 결함 수정 — <code>\.(py|php):\d+</code>로 <code>.php:줄</code> 근거도 인정. 단위 테스트 20개</td></tr>
 <tr><td>0.3.3</td><td>2026-10-27</td><td><code>php</code> 브랜치 전용 판. PHP·CodeIgniter 레거시 지원: <code>.php</code> 파일로 레거시 판별(<code>vendor/</code> 제외)과 CodeIgniter 표시, <code>*Test.php</code>·<code>tests/</code> 안의 <code>.php</code>로 ID 추적, <code>vendor/bin/phpunit</code>이 있으면 <code>php vendor/bin/phpunit</code>을 기본 테스트 명령으로 사용. legacy-onboarding-manual 0.1.1은 <code>.php:줄</code> 근거를 셈. 설치 장에 업데이트 절차·여러 세션 적용·PHP 지원판 설치(<code>#php</code>) 추가. 단위 테스트 19개</td></tr>
@@ -998,7 +999,7 @@ node stage.js session|prompt                 # 훅용 (stdin JSON)
 </section>
 
 <footer>
-stage-pilot 0.3.6 (php 브랜치) · 근거 문서: <a href="../default/fastapi-claude-plugins-guide.html">통합 가이드</a> · 실전 평가 시나리오(검증 전용): <a href="../scenario-plugin-guide/g6-refactoring-guide.html">g6</a>, <a href="../scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html">fastapi-default-project-structure</a> · 이전 판: <a href="stage-pilot-manual-v0.2.0.html">v0.2.0</a>
+stage-pilot 0.3.7 (php 브랜치) · 근거 문서: <a href="../default/fastapi-claude-plugins-guide.html">통합 가이드</a> · 실전 평가 시나리오(검증 전용): <a href="../scenario-plugin-guide/g6-refactoring-guide.html">g6</a>, <a href="../scenario-plugin-guide/fastapi-default-project-structure-refactoring-guide.html">fastapi-default-project-structure</a> · 이전 판: <a href="stage-pilot-manual-v0.2.0.html">v0.2.0</a>
 </footer>
 </main>
 </div>

@@ -267,14 +267,47 @@ function* walkAll(dir) {
   }
 }
 
+const VENV_PY = ['.venv/Scripts/python.exe', '.venv/bin/python', 'venv/Scripts/python.exe', 'venv/bin/python'];
 function testCommand(cwd, st) {
   if (st.test_cmd) return st.test_cmd;
   if (fs.existsSync(path.join(cwd, 'uv.lock'))) return 'uv run pytest -q';
   if (fs.existsSync(path.join(cwd, 'vendor/bin/phpunit'))) return 'php vendor/bin/phpunit';
-  for (const py of ['.venv/Scripts/python.exe', '.venv/bin/python', 'venv/Scripts/python.exe', 'venv/bin/python']) {
+  for (const py of VENV_PY) {
     if (fs.existsSync(path.join(cwd, py))) return `"${path.join(cwd, py)}" -m pytest -q`;
   }
   return 'python -m pytest -q';
+}
+function pythonCommand(cwd) {
+  if (fs.existsSync(path.join(cwd, 'uv.lock'))) return 'uv run python';
+  const py = VENV_PY.find((p) => fs.existsSync(path.join(cwd, p)));
+  return py ? `"${path.join(cwd, py)}"` : 'python';
+}
+// project 범위 설치는 그 프로젝트 안에서만 유효하다 — 이 프로젝트의 설치, 없으면 user 범위 설치
+function pluginPath(name, home, cwd) {
+  try {
+    const d = JSON.parse(fs.readFileSync(path.join(home, '.claude', 'plugins', 'installed_plugins.json'), 'utf8'));
+    const key = Object.keys(d.plugins || {}).find((k) => k.split('@')[0] === name);
+    const list = key ? d.plugins[key] : [];
+    const here = path.resolve(cwd).toLowerCase();
+    const inProject = list.find((e) => e.projectPath && (here + path.sep).startsWith(path.resolve(e.projectPath).toLowerCase() + path.sep));
+    const global = list.find((e) => !e.projectPath);
+    return (inProject || global || {}).installPath || null;
+  } catch { return null; }
+}
+// cmd 토큰은 신뢰할 수 있는 값만 넣는다: 프로젝트 인터프리터, 설치된 플러그인 경로, 해시 형식이 확인된 시작 커밋
+// ({work} 같은 사용자 입력은 넣지 않는다)
+function expandCmd(cwd, cmd, home, st = {}) {
+  const base = /^[0-9a-f]{7,40}$/.test(st.base || '') ? st.base : 'HEAD';
+  cmd = cmd.replace(/\{base\}/g, base);
+  let missing = null;
+  const out = cmd
+    .replace(/\{plugin:([\w.-]+)\}/g, (_, n) => {
+      const p = pluginPath(n, home, cwd);
+      if (!p) missing = missing || n;
+      return p || '';
+    })
+    .replace(/\{python\}/g, () => pythonCommand(cwd));
+  return missing ? { missing } : { cmd: out };
 }
 
 // 시간 초과·실행 실패는 마지막 출력 줄에 가려지지 않게 앞에 적는다
@@ -284,13 +317,15 @@ function procWhy(r) {
   return `${err ? `${err}, ` : ''}종료 코드 ${r.status} (${last.slice(0, 120)})`;
 }
 
-function runCheck(cwd, st, c) {
+function runCheck(cwd, st, c, home = os.homedir()) {
   // 도구가 없는 프로젝트(예: alembic 미사용)에서는 그 도구의 확인을 건너뛴다
   if (c.if && !resolveFile(cwd, sub(c.if, st))) return { ok: true, skipped: true, why: `${sub(c.if, st)} 없음 — 건너뜀` };
   if (c.cmd) {
     // {work} 는 사용자 입력이라 셸 명령에 치환하지 않는다
-    const r = spawnSync(c.cmd, { cwd, shell: true, encoding: 'utf8', timeout: c.timeout || 900000 });
-    return { ok: r.status === 0, why: `${c.cmd} → ${procWhy(r)}` };
+    const x = expandCmd(cwd, c.cmd, home, st);
+    if (x.missing) return { ok: true, skipped: true, why: `${x.missing} 플러그인 미설치 — 건너뜀` };
+    const r = spawnSync(x.cmd, { cwd, shell: true, encoding: 'utf8', timeout: c.timeout || 900000 });
+    return { ok: r.status === 0, why: `${x.cmd} → ${procWhy(r)}` };
   }
   if (c.test) {
     // PHP 프로젝트에서 phpunit 이 없으면 pytest 로 넘어가 엉뚱한 Python 오류로 실패한다
@@ -383,6 +418,11 @@ function main(argv) {
     const work = argValue(argv, '--work') || (st.profile === profile ? st.work : undefined);
     const next = { ...st, profile, stage, work, history: [...(st.history || []), { profile, stage, at: new Date().toISOString() }] };
     if (!work) delete next.work;
+    // 새 트랙(또는 새 작업)의 시작 커밋 — 완료 확인이 "이 작업에서 바뀐 것"만 보게 한다({base})
+    if (st.profile !== profile || st.work !== work || !st.base) {
+      const head = spawnSync('git', ['rev-parse', 'HEAD'], { cwd, encoding: 'utf8' });
+      if (head.status === 0) next.base = head.stdout.trim(); else delete next.base;
+    }
     if (argv.includes('--auto')) next.auto = true;
     // 프로젝트마다 다른 테스트 실행법(마커 제외·환경 변수 등) — 한 번 정하면 트랙이 바뀌어도 유지
     if (argValue(argv, '--test')) next.test_cmd = argValue(argv, '--test');
@@ -457,7 +497,7 @@ function main(argv) {
   return 1;
 }
 
-module.exports = { loadMap, card, matchStage, runHook, missingFor, findStage, plan, detect, intake, check, runCheck, fmtCheck, sub, testCommand, main };
+module.exports = { loadMap, card, matchStage, runHook, missingFor, findStage, plan, detect, intake, check, runCheck, fmtCheck, pythonCommand, sub, testCommand, main };
 if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); } catch (e) { console.error(e.message); process.exitCode = 1; }
 }

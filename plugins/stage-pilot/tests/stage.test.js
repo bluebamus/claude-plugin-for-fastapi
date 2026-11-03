@@ -406,3 +406,76 @@ test('cmd·if 확인의 표시 문구', () => {
   assert.strictEqual(S.fmtCheck({ cmd: 'ruff check .' }, {}), '명령 성공: ruff check .');
   assert.strictEqual(S.fmtCheck({ if: 'alembic.ini', cmd: 'alembic check' }, {}), '명령 성공: alembic check (alembic.ini 있을 때만)');
 });
+
+test('stage-map 의 cmd 확인은 사용자 입력 토큰({work})을 쓰지 않고, {plugin:이름} 은 목록에 있는 플러그인이다', () => {
+  for (const p of Object.values(map.profiles)) {
+    for (const s of p.stages) {
+      for (const c of (s.checks || []).filter((x) => x.cmd)) {
+        assert.ok(!/\{work\}/.test(c.cmd), `${s.id}: ${c.cmd}`);
+        for (const [, n] of c.cmd.matchAll(/\{plugin:([\w.-]+)\}/g)) assert.ok(map.plugins[n], `목록에 없는 플러그인 ${n}`);
+      }
+    }
+  }
+});
+
+const fakeHome = (plugins) => {
+  const home = tmp();
+  const d = { version: 2, plugins: {} };
+  for (const [name, p] of Object.entries(plugins)) d.plugins[`${name}@m`] = [{ installPath: p }];
+  put(home, '.claude/plugins/installed_plugins.json', JSON.stringify(d));
+  return home;
+};
+
+test('cmd 토큰: {plugin:이름} 은 설치 경로, 없으면 건너뜀', () => {
+  const cwd = tmp();
+  const pdir = tmp();
+  put(pdir, 'scripts/g.js', 'process.exit(0)');
+  const home = fakeHome({ guard: pdir });
+  assert.ok(S.runCheck(cwd, {}, { cmd: 'node "{plugin:guard}/scripts/g.js"' }, home).ok);
+  const r = S.runCheck(cwd, {}, { cmd: 'node "{plugin:nope}/x.js"' }, home);
+  assert.ok(r.ok && r.skipped, '미설치 플러그인은 건너뜀');
+  assert.match(r.why, /nope.*미설치/);
+});
+
+test('cmd 토큰(F-016): set 이 새 트랙의 시작 커밋을 base 로 남기고, {base} 는 그 해시(형식이 아니면 HEAD)', () => {
+  const cwd = tmp();
+  const git = (...a) => execFileSync('git', a, { cwd }).toString().trim();
+  git('init', '-q');
+  git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'a');
+  const sha = git('rev-parse', 'HEAD');
+  execFileSync('node', [SCRIPT, 'set', 'feature', '0', '--work', 'w', '--cwd', cwd]);
+  const st = JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'stage-pilot', 'state.json'), 'utf8'));
+  assert.strictEqual(st.base, sha);
+  git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'b');
+  execFileSync('node', [SCRIPT, 'set', 'feature', '3', '--cwd', cwd]);
+  assert.strictEqual(JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'stage-pilot', 'state.json'), 'utf8')).base, sha, '같은 트랙 안 이동은 base 유지');
+  put(cwd, 'echo.js', 'console.log(process.argv[2])');
+  assert.match(S.runCheck(cwd, st, { cmd: 'node echo.js {base} && exit 1' }).why, new RegExp(sha));
+  assert.match(S.runCheck(cwd, { base: 'x; rm -rf /' }, { cmd: 'node echo.js {base} && exit 1' }).why, /\(HEAD\)/);
+});
+
+test('cmd 토큰(F-012): project 범위 설치는 그 프로젝트 안에서만 쓰고, 아니면 user 범위 설치를 쓴다', () => {
+  const cwd = tmp();
+  const other = tmp();
+  const mine = tmp();
+  const user = tmp();
+  for (const d of [other, mine, user]) put(d, 'g.js', `process.exit(${d === mine ? 0 : d === user ? 0 : 7})`);
+  const home = tmp();
+  const entries = (list) => put(home, '.claude/plugins/installed_plugins.json', JSON.stringify({ version: 2, plugins: { 'guard@m': list } }));
+  entries([{ scope: 'project', projectPath: other, installPath: other }, { scope: 'project', projectPath: cwd, installPath: mine }]);
+  assert.ok(S.runCheck(cwd, {}, { cmd: 'node "{plugin:guard}/g.js"' }, home).ok, '이 프로젝트의 설치를 고름');
+  entries([{ scope: 'project', projectPath: other, installPath: other }]);
+  assert.ok(S.runCheck(cwd, {}, { cmd: 'node "{plugin:guard}/g.js"' }, home).skipped, '다른 프로젝트 설치만 있으면 미설치');
+  entries([{ scope: 'project', projectPath: other, installPath: other }, { scope: 'user', installPath: user }]);
+  assert.ok(S.runCheck(cwd, {}, { cmd: 'node "{plugin:guard}/g.js"' }, home).ok, 'user 범위 설치');
+});
+
+test('cmd 토큰: {python} 은 프로젝트 인터프리터(uv → venv → python)', () => {
+  const cwd = tmp();
+  assert.strictEqual(S.pythonCommand(cwd), 'python');
+  put(cwd, '.venv/bin/python', '');
+  assert.match(S.pythonCommand(cwd), /\.venv.*python/);
+  put(cwd, 'uv.lock', '');
+  assert.strictEqual(S.pythonCommand(cwd), 'uv run python');
+  assert.ok(S.runCheck(tmp(), {}, { cmd: '{python} --version' }).ok, '기본 python 실행');
+});
