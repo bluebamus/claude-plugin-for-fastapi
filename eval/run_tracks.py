@@ -114,7 +114,9 @@ def stage_check(proj, profile, sid):
     tmp = dict(json.loads(raw), profile=profile, stage=sid)
     try:
         json.dump(tmp, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-        r = subprocess.run(["node", STAGE_JS, "check", sid, "--cwd", proj], capture_output=True, text=True, encoding="utf-8")
+        # 세션과 같은 도구 PATH(평가용 pyright·python3·php 래퍼) — 없으면 재판정만 "명령 없음"으로 실패한다
+        env = dict(os.environ, PATH=os.pathsep.join([os.path.join(TOOLS, "node_modules", ".bin"), os.path.join(TOOLS, "py3", "Scripts"), os.path.join(TOOLS, "php")] + [os.environ["PATH"]]))
+        r = subprocess.run(["node", STAGE_JS, "check", sid, "--cwd", proj], capture_output=True, text=True, encoding="utf-8", env=env)
     finally:
         open(path, "w", encoding="utf-8").write(raw)
     return r.returncode == 0, r.stdout.strip()
@@ -193,7 +195,7 @@ def git(proj, *args):
 
 def run_track(proj, profile, sc, docs_lookup, n, logdir, rep, intake=None):
     ids = [s["id"] for s in MAP["profiles"][profile]["stages"]]
-    prompt = (intake or INTAKE[profile]).format(feature=sc["feature"], enhance=sc["enhance"], refactor=sc.get("refactor", ""))
+    prompt = (intake or INTAKE[profile]).format(feature=sc["feature"], enhance=os.environ.get("SP_ENHANCE") or sc["enhance"], refactor=sc.get("refactor", ""))
     c0 = len(state(proj).get("completed", []))
     track = {"profile": profile, "stages": [], "intake": None}
     rep["tracks"].append(track)
