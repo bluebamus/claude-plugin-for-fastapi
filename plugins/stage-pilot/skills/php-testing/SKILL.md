@@ -19,6 +19,7 @@ description: PHP 테스트 작성 기준 — 단위(메서드 하나의 기능)�
 - **API·통합 테스트는 거시적 목적 하나를 끝까지 확인한다.** docblock 첫 줄에 그 목적을 쓴다.
 - **API·통합 테스트는 단위 테스트의 결과를 고려하지 않는다.** 단위에서 확인했다고 확인을 생략하지 않고, 단위 테스트의 Fake·헬퍼·데이터를 가져다 쓰지 않으며, 실행 순서를 가정하지 않는다. 계층마다 자기 기반 TestCase·`setUp()` 으로 스스로 준비한다.
 - 테스트끼리 상태를 공유하지 않는다(`$refresh = true`, 순수 PHP 는 `setUp()` 에서 새 PDO·스키마).
+- **준비물은 계층별 기반 TestCase 로 나눈다**(`tests/_support/UnitTestCase.php`·`FeatureTestCase.php`(또는 ApiTestCase)·`IntegrationTestCase.php`). DB·Fabricator 준비는 API·통합 기반 클래스에만 두어 단위 테스트에서 보이지 않게 한다(완료 확인이 `tests/_support` 를 본다).
 
 ## 2. 테스트 파일 — 도메인별로 나눈다
 

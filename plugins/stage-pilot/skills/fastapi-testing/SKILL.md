@@ -19,6 +19,7 @@ description: FastAPI 테스트 작성 기준 — 단위(함수 하나의 기능)
 - **API·통합 테스트는 거시적 목적 하나를 끝까지 확인한다.** 테스트(또는 파일) docstring 첫 줄에 그 목적을 쓴다. 
 - **API·통합 테스트는 단위 테스트의 결과를 고려하지 않는다.** 단위 테스트에서 이미 확인한 동작이라고 확인을 생략하지 않고, 단위 테스트의 픽스처·헬퍼·데이터를 가져다 쓰지 않으며, 단위 테스트가 먼저 돌았다고 가정하지 않는다. 계층마다 자기 `conftest.py` 로 스스로 준비한다.
 - 테스트끼리 순서·공유 상태에 기대지 않는다(함수 범위 픽스처, 테스트마다 깨끗한 DB).
+- **`conftest.py` 는 계층별로 둔다.** 최상위 `tests/conftest.py` 에는 모든 계층 공통(Faker seed·locale, 설정 객체)만 두고, DB 엔진·`client`·Factory Fixture 는 `tests/api/conftest.py`·`tests/integration/conftest.py`, Fake UoW·stub 은 `tests/unit/conftest.py` 에 둔다. 단위 테스트에서 DB·client 픽스처가 보이지 않아야 한다(완료 확인이 계층 `conftest.py` 를 본다).
 
 ## 2. 테스트 파일 — 도메인별로 나눈다
 
