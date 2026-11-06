@@ -25,3 +25,8 @@
 | 판 | 트랙 | 단계 | 판정 | 비고 |
 |---|---|---|---|---|
 | main | greenfield → enhance (과제 supply, 실제 MySQL·Redis) | **18** | **18 통과(92분)** | 설계 문서에 「규모 판정」(소형 — 1팀·도메인 2·엔드포인트 10 안팎, 근거 기재)·「패턴 결정」·「쓰지 않은 패턴」(Abstract Factory: 제품군 없음, Builder: 단계 3~4·조건부 없음). 라우터는 SupplyServiceDep·RequestServiceDep 만 받고 Session import 없음, UnitOfWork 가 session_factory() 로 작업마다 열고 close(롤백 실패에도 반환) |
+
+### Round 4 — 2026-11-06 (REQ-011 테스트 규칙·테스트 문서·커버리지)
+| 판 | 트랙 | 단계 | 판정 | 비고 |
+|---|---|---|---|---|
+| main | greenfield → enhance (과제 supply, 실제 MySQL·Redis) | **18** | **18 통과(90분)** | 테스트 17파일 도메인·모듈별(unit 5: request_service·schemas·cache·uow·idempotency_hash / api 6 / integration 6, 목적 이름: request_lifecycle·concurrent_requests 등), pyproject 에 [tool.pytest.ini_options]·--cov·[tool.coverage.*], pytest-cov·faker, docs/test-plan/index.html 86개 테스트 전부 문서화·커버리지 99.3%·요약→상세 링크 86개(test-plan.js check 통과). **부족:** conftest.py 가 최상위 하나(DB·client·Factory 가 단위에도 보임) → 스킬에 "최상위는 공통만, 계층별 conftest" 명시하고 신규 구현 check 에 계층 conftest 확인 추가 |
