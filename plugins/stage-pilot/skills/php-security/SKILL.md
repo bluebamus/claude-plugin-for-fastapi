@@ -28,8 +28,8 @@ description: PHP(순수 PHP·CodeIgniter 4·3) 코드의 보안 설계·구현·
 | 대량 할당 | Model `$allowedFields` 를 최소로, `id`·`role`·`owner_id` 제외 | 허용 필드 화이트리스트 |
 | 객체 권한 | Service 에서 소유자 확인, 남의 객체는 404 | 같음 |
 | 인증·비밀번호 | Shield, 또는 `password_hash()`/`password_verify()`(PASSWORD_DEFAULT) | 같음. md5·sha1 금지 |
-| 세션 | `Config\Session` — `cookieSecure`, `cookieHTTPOnly`, `cookieSameSite=Lax`, 로그인 후 `regenerate()` | `session_regenerate_id(true)`, 쿠키 플래그 |
-| 입력 검증 | `$this->validate([...])` 또는 Model `$validationRules`, 실패는 422 | 타입 캐스팅 + 범위 확인 |
+| 세션 | 쿠키 플래그는 `Config\Cookie` — `$secure = true`, `$httponly = true`, `$samesite = 'Lax'`. 로그인 후 `session()->regenerate()` | `session_regenerate_id(true)`, 쿠키 플래그 |
+| 입력 검증 | `$this->validate([...])` 또는 Model `$validationRules`, 실패는 `$this->fail($this->validator->getErrors(), 422)`(`failValidationErrors()` 기본은 400 — 설계에서 정한 코드로 명시) | 타입 캐스팅 + 범위 확인 |
 | 파일 업로드 | `$file->isValid()`, `getMimeType()` 확인, `getRandomName()`, `writable/uploads`(웹 루트 밖) | `finfo` MIME 확인, 무작위 이름, 웹 루트 밖 |
 | 오류 노출 | 운영 `CI_ENVIRONMENT=production`(상세 오류 숨김) | `display_errors=0`, 로그만 |
 | 자원 소비 | 목록 `limit` 상한, `Throttler`(필요 시) | 상한 |

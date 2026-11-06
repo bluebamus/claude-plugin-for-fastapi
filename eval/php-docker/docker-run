@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# 사용: docker-run <php|composer> [인자…]
+# Windows(Git Bash)에서 WSL 의 Docker 로 PHP·composer 를 실행한다. 현재 폴더를 /mnt/<드라이브>/… 같은 경로로 보고
+# /mnt 전체를 마운트하므로, 컨테이너 안과 밖의 경로가 같다(Windows 절대 경로 인자는 /mnt/… 로 바꿔 넘긴다).
+set -euo pipefail
+export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'   # Git Bash 가 /mnt/… 인자를 Windows 경로로 바꾸지 않게
+tool="$1"; shift
+img="${SP_PHP_IMAGE:-sp-php:8.3}"
+distro="${SP_WSL_DISTRO:-Ubuntu}"
+
+to_wsl() {  # C:\a\b 또는 C:/a/b → /mnt/c/a/b
+  local p="$1" d
+  d=$(printf '%s' "${p:0:1}" | tr 'A-Z' 'a-z')
+  p="${p:2}"
+  printf '/mnt/%s%s' "$d" "${p//\\//}"
+}
+
+cwd=$(to_wsl "$(pwd -W)")
+args=()
+for a in "$@"; do
+  case "$a" in
+    [A-Za-z]:[\\/]*) args+=("$(to_wsl "$a")") ;;
+    *) args+=("$a") ;;
+  esac
+done
+
+extra=()
+# php spark serve: 컨테이너 밖(Windows localhost)에서 접속할 수 있게 포트를 열고 모든 주소에서 듣는다
+if [ "$tool" = php ] && [ "${args[0]:-}" = spark ] && [ "${args[1]:-}" = serve ]; then
+  port=8080
+  for ((i = 2; i < ${#args[@]}; i++)); do
+    [ "${args[$i]}" = --port ] && port="${args[$((i + 1))]}"
+  done
+  extra=(-p "$port:$port")
+  args+=(--host 0.0.0.0)
+fi
+
+# --exec: WSL 쪽 셸을 거치지 않아 인자의 따옴표·공백·$ 가 그대로 전달된다
+exec wsl.exe -d "$distro" --exec docker run --rm -i "${extra[@]}" \
+  -v /mnt:/mnt -v sp-composer-cache:/tmp/composer-cache -e COMPOSER_CACHE_DIR=/tmp/composer-cache \
+  -e CI_ENVIRONMENT -w "$cwd" "$img" "$tool" "${args[@]}"

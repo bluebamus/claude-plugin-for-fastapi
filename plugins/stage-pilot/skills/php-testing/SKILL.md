@@ -29,7 +29,7 @@ description: PHP 테스트 작성 기준 — PHPUnit 단위 테스트, API(HTTP)
 
 - 메서드 이름이 확인하는 동작 하나를 말한다: `testCreateItemReturns201`, `testCreateItemRejectsNegativePrice`.
 - 준비 → 실행(한 번) → 확인. 확인은 그 동작의 결과만.
-- 여러 입력은 `#[DataProvider('invalidPrices')]`(PHPUnit 10+) — 반복문으로 몰아넣지 않는다.
+- 여러 입력은 `#[DataProvider('invalidPrices')]`(PHPUnit 10+, `use PHPUnit\Framework\Attributes\DataProvider;`, provider 는 `public static function`) — 반복문으로 몰아넣지 않는다.
 - 본문에 조건문·반복문·try 를 쓰지 않는다. 준비 코드는 `setUp()`·작은 팩토리 메서드로.
 - 요구사항 ID 를 docblock 에: `/** R-2: 가격이 음수면 422. */`
 
@@ -71,6 +71,8 @@ final class ItemsTest extends CIUnitTestCase
     }
 }
 ```
+
+예제의 422 는 컨트롤러가 `$this->fail($errors, 422)` 로 응답할 때다(`failValidationErrors()` 기본은 400). 설계 문서에 정한 상태 코드를 테스트한다.
 
 CSRF 필터가 켜진 라우트는 테스트에서 토큰을 넣거나, API 그룹을 CSRF 대상에서 빼는 설계를 따른다(php-security). 테스트만을 위해 필터를 끄지 않는다.
 

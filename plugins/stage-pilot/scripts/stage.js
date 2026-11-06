@@ -68,6 +68,7 @@ function fmtCheckBody(c, st) {
   if (c.test) return '테스트 통과';
   if (c.clean) return '작업 트리 정리(커밋되지 않은 변경 없음)';
   if (c.testsAvoid) return `테스트가 ${c.testsAvoid} 를 읽지 않음(기준 데이터는 tests/ 아래)`;
+  if (c.testsIn) return `${c.label || '테스트'}: ${c.testsIn} 안에 요구사항 ID(R-·F-·E-)가 적힌 테스트 파일(예제 제외)`;
   if (c.trace) return `${c.trace} 추적: ${sub(c.from, st)} 의 ID 가 모두 ${c.to.map((t) => sub(t, st)).join(', ')} 에 있음`;
   return `${sub(c.file, st)}${c.has ? ` 에 ${c.has.join(' · ')}` : ' 있음'}`;
 }
@@ -102,13 +103,17 @@ function card(map, profile, id, installed, st = {}) {
 // 작업 메모리: 세션이 바뀌거나 대화가 압축돼도 전체 작업·하위 작업과 최근 결정이 카드로 다시 들어온다
 const OPEN = ['doing', 'blocked', 'todo'];
 const TASK_MARK = { todo: '[ ]', doing: '[>]', blocked: '[!]', done: '[x]' };
+const taskWork = (t) => t.work || t.profile;
 function memoryLines(st) {
-  const open = (st.tasks || []).filter((t) => OPEN.includes(t.status))
+  const all = st.tasks || [];
+  // 지금 작업(work)의 열린 작업만 펼친다 — 다른 작업·끝난 트랙의 항목은 개수만
+  const open = all.filter((t) => OPEN.includes(t.status) && taskWork(t) === workOf(st))
     .sort((a, b) => OPEN.indexOf(a.status) - OPEN.indexOf(b.status));
-  const done = (st.tasks || []).length - open.length;
+  const elsewhere = all.filter((t) => OPEN.includes(t.status) && taskWork(t) !== workOf(st)).length;
+  const done = all.filter((t) => t.status === 'done').length;
   const out = [];
-  if ((st.tasks || []).length) {
-    out.push(`작업 메모리: 열린 작업 ${open.length}개 · 끝난 작업 ${done}개 (stage.js task list)`);
+  if (all.length) {
+    out.push(`작업 메모리: 열린 작업 ${open.length}개 · 끝난 작업 ${done}개${elsewhere ? ` · 다른 작업에 열린 것 ${elsewhere}개` : ''} (stage.js task list)`);
     for (const t of open.slice(0, 8)) out.push(`  ${TASK_MARK[t.status]} ${t.id}${t.parent ? ` (↳${t.parent})` : ''} ${t.title}${t.note ? ` — ${t.note}` : ''}`);
     if (open.length > 8) out.push(`  … 외 ${open.length - 8}개`);
   }
@@ -124,7 +129,9 @@ function taskCmd(st, argv) {
     const title = rest.join(' ').trim();
     const parent = argValue(argv, '--parent');
     if (!title) return { msg: '사용: stage.js task add <제목> [--parent W-n]', code: 1 };
-    if (parent && !tasks.some((t) => t.id === parent)) return { msg: `없는 상위 작업: ${parent}`, code: 1 };
+    const up = parent && tasks.find((t) => t.id === parent);
+    if (parent && !up) return { msg: `없는 상위 작업: ${parent}`, code: 1 };
+    if (up && up.status === 'done') return { msg: `상위 작업 ${parent} 은 이미 끝남 — 이어서 할 일이면 먼저 task start ${parent}`, code: 1 };
     const id = `W-${tasks.reduce((m, t) => Math.max(m, Number(t.id.slice(2)) || 0), 0) + 1}`;
     tasks.push({ id, title, ...(parent ? { parent } : {}), profile: st.profile, stage: st.stage, ...(st.work ? { work: st.work } : {}), status: 'todo', at: new Date().toISOString() });
     return { st: { ...st, tasks }, msg: `작업 추가: ${id} ${title}${parent ? ` (상위 ${parent})` : ''}` };
@@ -137,8 +144,17 @@ function taskCmd(st, argv) {
     // 하위 작업이 열려 있으면 상위 작업을 끝낼 수 없다 — 끝난 것처럼 보이는 상위 작업이 남은 일을 가린다
     const openKids = tasks.filter((x) => x.parent === id && x.status !== 'done');
     if (status === 'done' && openKids.length) return { msg: `${id} 의 하위 작업이 열려 있음: ${openKids.map((x) => x.id).join(', ')}`, code: 1 };
+    // 상태가 바뀌면 옛 메모(예: 막힌 이유)는 지운다
+    if (t.status !== status) delete t.note;
     Object.assign(t, { status, ...(note.length ? { note: note.join(' ') } : {}), updated: new Date().toISOString() });
-    return { st: { ...st, tasks }, msg: `${id} → ${status}${t.note ? ` — ${t.note}` : ''}` };
+    // 끝난 상위 작업 아래 하위 작업을 다시 열면 상위도 다시 연다(위로 끝까지)
+    const reopened = [];
+    for (let p = t.parent && tasks.find((x) => x.id === t.parent); status !== 'done' && p && p.status === 'done'; p = p.parent && tasks.find((x) => x.id === p.parent)) {
+      Object.assign(p, { status: 'doing', updated: new Date().toISOString() });
+      delete p.note;
+      reopened.push(p.id);
+    }
+    return { st: { ...st, tasks }, msg: `${id} → ${status}${t.note ? ` — ${t.note}` : ''}${reopened.length ? ` (상위 ${reopened.join(', ')} 다시 엶)` : ''}` };
   }
   if (sub === 'list' || !sub) {
     if (!tasks.length) return { msg: '작업 없음 — stage.js task add <제목> [--parent W-n]' };
@@ -329,7 +345,7 @@ const VENV_PY = ['.venv/Scripts/python.exe', '.venv/bin/python', 'venv/Scripts/p
 function testCommand(cwd, st) {
   if (st.test_cmd) return st.test_cmd;
   if (fs.existsSync(path.join(cwd, 'uv.lock'))) return 'uv run pytest -q';
-  if (fs.existsSync(path.join(cwd, 'vendor/bin/phpunit'))) return 'php vendor/bin/phpunit';
+  if (fs.existsSync(path.join(cwd, 'vendor/bin/phpunit'))) return 'php vendor/bin/phpunit --no-coverage'; // 완료 확인에 커버리지는 필요 없다 — 드라이버(xdebug·pcov)가 없으면 경고로 종료 코드 1
   for (const py of VENV_PY) {
     if (fs.existsSync(path.join(cwd, py))) return `"${path.join(cwd, py)}" -m pytest -q`;
   }
@@ -410,6 +426,14 @@ function runCheck(cwd, st, c, home = os.homedir()) {
     // 작업 문서(docs/work)는 정리될 수 있으므로 테스트 기준값을 거기서 읽으면 나중에 깨진다
     const hit = testText(cwd).split(/\r?\n/).filter((l) => l.includes(c.testsAvoid));
     return { ok: !hit.length, why: hit.length ? `테스트에서 ${c.testsAvoid} 참조 ${hit.length}곳: ${hit[0].trim().slice(0, 100)}` : '' };
+  }
+  if (c.testsIn) {
+    // 폴더만 있거나 프레임워크 예제(CI4 appstarter 의 HealthTest·Example*)만 있으면 그 계층 테스트를 쓴 것이 아니다
+    const dirs = sub(c.testsIn, st).split('|').map((d) => path.join(cwd, d)).filter((d) => fs.existsSync(d) && fs.statSync(d).isDirectory());
+    if (!dirs.length) return { ok: false, why: `${c.testsIn} 폴더 없음` };
+    const files = dirs.flatMap((d) => [...walkAll(d)]).filter((f) => /(^test_.*\.py|_test\.py|Test\.php)$/.test(path.basename(f)) && !/^(Example|Health)/.test(path.basename(f)));
+    const hit = files.find((f) => /\b[RFE]-\d+\b/.test(fs.readFileSync(f, 'utf8')));
+    return { ok: !!hit, why: hit ? path.relative(cwd, hit).replace(/\\/g, '/') : `테스트 파일 ${files.length}개, 요구사항 ID 가 적힌 것 없음` };
   }
   if (c.trace) {
     const from = resolveFile(cwd, sub(c.from, st));

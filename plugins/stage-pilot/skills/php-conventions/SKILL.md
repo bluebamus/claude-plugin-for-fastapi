@@ -17,7 +17,7 @@ description: PHP 프로젝트(순수 PHP·CodeIgniter 4, 레거시 CodeIgniter 3
 
 | 하려는 일 | 명령 |
 |---|---|
-| 새 CI4 프로젝트 | `composer create-project codeigniter4/appstarter .` |
+| 새 CI4 프로젝트 | 빈 폴더면 `composer create-project codeigniter4/appstarter .`. 이미 `.git`·문서가 있으면 composer 가 거부하므로 `composer create-project codeigniter4/appstarter _ci4` → `_ci4` 내용을 루트로 옮김(`.gitignore` 는 합침) → `_ci4` 삭제 |
 | 새 순수 PHP 프로젝트 | `composer init` 후 `"autoload": {"psr-4": {"App\\": "src/"}}`, `composer dump-autoload` |
 | 실행 의존성 | `composer require <패키지>` (손으로 composer.json 고치지 않음) |
 | 개발 의존성 | `composer require --dev phpunit/phpunit squizlabs/php_codesniffer` (CI4 appstarter 는 phpunit 포함) |
@@ -30,6 +30,7 @@ description: PHP 프로젝트(순수 PHP·CodeIgniter 4, 레거시 CodeIgniter 3
   <?xml version="1.0"?>
   <ruleset name="project">
     <rule ref="PSR12"/>
+    <config name="ignore_warnings_on_exit" value="1"/>  <!-- 경고(줄 길이 등)는 보고만, 오류만 실패 -->
     <file>app</file>      <!-- 순수 PHP 는 src -->
     <file>tests</file>
     <exclude-pattern>app/Config/*</exclude-pattern>
@@ -88,10 +89,14 @@ tests/unit/ tests/feature/ tests/database/
 - 테스트 하네스가 없으면 보호 테스트는 PHPUnit + 부트스트랩으로 컨트롤러 출력·모델 결과를 고정(php-testing).
 - CI4 로의 이전은 별도 작업(고도화 트랙)으로만.
 
-## 5. 완료 전 확인
+## 5. 로컬에 PHP 가 없을 때 — Docker
+
+PHP 를 설치하지 않은 PC 에서는 공식 이미지로 실행한다. 예: `docker run --rm -v "$PWD":/app -w /app composer:2 composer install`, 테스트는 `php:8.3-cli`(intl 확장 추가) 이미지에서 `php vendor/bin/phpunit`. 프로젝트에 `compose.yaml` 이 있으면 `docker compose run --rm app php vendor/bin/phpunit` 을 쓰고, stage-pilot 완료 확인에는 그 명령을 `set … --test "<명령>"` 으로 준다. 이 저장소의 `eval/php-docker/` 에 Windows(WSL Docker)용 `php`·`composer` 래퍼 예시가 있다.
+
+## 6. 완료 전 확인
 
 ```
-php vendor/bin/phpunit
+php vendor/bin/phpunit --no-coverage   # 커버리지 드라이버가 없어도 경고로 실패하지 않게
 php vendor/bin/phpcs          # phpcs.xml 이 있을 때
 php -l <바꾼 파일>              # 구문 확인(fastapi-quality-gates 가 편집 직후 자동 보고)
 ```

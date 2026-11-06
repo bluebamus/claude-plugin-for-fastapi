@@ -184,7 +184,7 @@ test('PHP(CodeIgniter) 프로젝트: 레거시로 판별하고, *Test.php 로 ID
   assert.ok(S.runCheck(cwd, st, c).ok, 'tests/ 안의 .php 도 테스트로 봄');
   assert.match(S.testCommand(cwd, {}), /pytest/, 'phpunit 이 없으면 기존 기본값');
   put(cwd, 'vendor/bin/phpunit', '');
-  assert.strictEqual(S.testCommand(cwd, {}), 'php vendor/bin/phpunit');
+  assert.strictEqual(S.testCommand(cwd, {}), 'php vendor/bin/phpunit --no-coverage');
 });
 
 test('check 의 pytest 는 분석 도구의 legacy/ 링크를 수집에서 뺀다', () => {
@@ -593,4 +593,61 @@ test('별칭 new-php 는 greenfield-php 로 저장된다', () => {
   const cwd = tmp();
   run(cwd, 'set', 'new-php', '0');
   assert.strictEqual(stateOf(cwd).profile, 'greenfield-php');
+});
+
+// ── 검수 반영(공통) ──
+test('끝난 상위 작업 아래에는 하위 작업을 추가할 수 없다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'done', 'W-1');
+  assert.throws(() => execFileSync('node', [SCRIPT, 'task', 'add', '토큰', '--parent', 'W-1', '--cwd', cwd], { stdio: 'pipe' }));
+});
+
+test('끝난 하위 작업을 다시 열면 끝난 상위 작업도 다시 열린다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'add', '토큰', '--parent', 'W-1');
+  run(cwd, 'task', 'done', 'W-2');
+  run(cwd, 'task', 'done', 'W-1');
+  run(cwd, 'task', 'start', 'W-2');
+  assert.strictEqual(stateOf(cwd).tasks[0].status, 'doing');
+});
+
+test('상태가 바뀌면 옛 메모는 지워진다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'block', 'W-1', '키 발급 대기');
+  run(cwd, 'task', 'start', 'W-1');
+  assert.strictEqual(stateOf(cwd).tasks[0].note, undefined);
+});
+
+test('세션 카드는 다른 작업의 열린 항목을 펼치지 않고 개수만 보인다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '신규 트랙 작업');
+  run(cwd, 'set', 'enhance', '0', '--work', 'paging');
+  assert.match(hook('session', { cwd }), /다른 작업에 열린 것 1개/);
+});
+
+test('testsIn: 폴더만 있으면 통과하지 않는다', () => {
+  const cwd = tmp();
+  fs.mkdirSync(path.join(cwd, 'tests', 'unit'), { recursive: true });
+  assert.strictEqual(S.runCheck(cwd, {}, { testsIn: 'tests/unit' }).ok, false);
+});
+
+test('testsIn: 프레임워크 예제 테스트는 세지 않는다', () => {
+  const cwd = tmp();
+  put(cwd, 'tests/unit/HealthTest.php', '<?php // R-1');
+  assert.strictEqual(S.runCheck(cwd, {}, { testsIn: 'tests/unit' }).ok, false);
+});
+
+test('testsIn: 요구사항 ID 가 적힌 테스트 파일이 있으면 통과한다', () => {
+  const cwd = tmp();
+  put(cwd, 'tests/unit/test_item_service.py', 'def test_x():\n    """R-1: 등록"""\n');
+  assert.strictEqual(S.runCheck(cwd, {}, { testsIn: 'tests/unit' }).ok, true);
+});
+
+test('testsIn: 대안 폴더(a|b) 중 하나에 있으면 통과한다', () => {
+  const cwd = tmp();
+  put(cwd, 'tests/database/ItemFlowTest.php', '<?php /** R-2 흐름 */');
+  assert.strictEqual(S.runCheck(cwd, {}, { testsIn: 'tests/integration|tests/database' }).ok, true);
 });
