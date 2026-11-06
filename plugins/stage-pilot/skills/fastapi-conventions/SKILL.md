@@ -28,31 +28,32 @@ app/
   main.py            # FastAPI() 생성, 라우터 등록, 예외 처리기, lifespan(외부 자원 생성·해제)
   core/config.py     # pydantic-settings Settings — 환경 변수에서 읽음
   core/security.py   # 비밀번호 해시·토큰 (인증이 요구사항에 있을 때만)
-  db.py              # engine, SessionLocal, get_db 의존성
-  uow.py             # UnitOfWork — 트랜잭션 경계(commit·rollback·커밋 뒤 훅)
+  db.py              # engine·sessionmaker 를 만드는 함수(lifespan 에서 한 번 호출)
+  uow.py             # UnitOfWork — 원자적 작업 동안만 세션을 열고 닫음(commit·rollback·커밋 뒤 훅)
+  api/deps.py        # 조립 한 곳: session_factory → UoW → Service 제공자(Depends)
   models/            # SQLAlchemy 2.x Declarative (Mapped[...] 타입)
   schemas/           # Pydantic v2 요청·응답 모델 (Create / Update / Read 분리)
-  repositories/      # DB 접근만 (select/insert), 세션은 인자로 받음
+  repositories/      # DB 접근만 (select/insert), UoW 가 연 세션을 생성자로 받음, commit 하지 않음
   services/          # 비즈니스 규칙, UoW 로 트랜잭션 경계 소유
-  api/routes/        # APIRouter — 입력 검증·의존성 주입·상태 코드만
+  api/routes/        # APIRouter — 입력 검증·Service 호출·상태 코드만(세션을 모름)
 tests/unit/ tests/api/ tests/integration/   # → fastapi-testing 스킬
 ```
 
-작은 프로젝트(엔드포인트 5개 미만, 규칙 거의 없음)는 `repositories/` 를 생략하고 service 에서 바로 세션을 써도 된다. 생략했으면 설계 문서에 이유를 적는다.
+작은 프로젝트(엔드포인트 5개 미만, 규칙 거의 없음)는 `repositories/` 를 생략하고 service 가 UoW 의 세션으로 바로 쿼리해도 된다. 생략했으면 설계 문서에 이유를 적는다. 규모 판정과 패턴 선택은 `stage-pilot:design-patterns`.
 
 ## 3. 레이어 규칙과 패턴
 
 | 패턴 | 언제 | FastAPI 관용 형태 |
 |---|---|---|
-| 의존성 주입 | 항상 | `Depends(get_db)`, `Depends(get_current_user)`, `Annotated[Session, Depends(get_db)]` 별칭 |
+| 의존성 주입 | 항상 | 라우터는 `Annotated[ItemService, Depends(get_item_service)]` 처럼 Service 만 받음, `Depends(get_current_user)`. 조립은 `api/deps.py`(session_factory → UoW → Service). 라우터에 `Session` 주입 금지(→ design-patterns §4) |
 | Service layer | 규칙이 하나라도 있으면 | 라우터는 service 함수 1개를 부르고 결과를 반환 |
-| Repository | 같은 쿼리를 2곳 이상에서 쓰거나 테스트에서 DB 를 바꿔 끼워야 할 때 | 클래스 또는 모듈 함수, 세션을 생성자/인자로 |
-| Unit of Work | DB 쓰기가 있으면 항상 | `with uow:` 하나가 비즈니스 작업 하나, repository·라우터는 commit 하지 않음, 캐시·검색 반영은 `uow.after_commit` (→ infra-resilience) |
+| Repository | 같은 쿼리를 2곳 이상에서 쓰거나 테스트에서 DB 를 바꿔 끼워야 할 때 | 클래스, UoW 가 연 세션을 생성자로 받음, commit·close 하지 않음 |
+| Unit of Work | DB 를 쓰면 항상(읽기 포함) | `SqlAlchemyUnitOfWork(session_factory)`, `with uow:` 하나가 원자적 작업 하나, 명시적 `uow.commit()`, 나갈 때 rollback·close. 커밋 뒤 캐시·검색 반영은 `uow.after_commit` (→ design-patterns §4, infra-resilience) |
 | DTO 분리 | 항상 | `XCreate`·`XUpdate`·`XRead`(`model_config = ConfigDict(from_attributes=True)`), `response_model` 지정, UoW 안에서 ORM → DTO 변환 후 반환 |
 | 설정 객체 | 항상 | `Settings(BaseSettings)` + `@lru_cache get_settings()` |
 | 도메인 예외 | 규칙 위반을 HTTP 로 바꿔야 할 때 | service 는 `class NotFound(Exception)`, main 의 `exception_handler` 가 404 로 변환 |
 
-금지: 라우터에서 세션 직접 사용(작은 프로젝트 예외 제외), service 에서 `HTTPException` 발생(HTTP 는 바깥 계층의 일), 전역 가변 상태, 필요 없는 추상 기반 클래스·팩토리·제네릭 Repository.
+금지: 라우터·`Depends` 로 `Session` 주입(신규 프로젝트 — 레거시가 이미 그 방식이면 유지하고 바꾸는 것은 리팩토링 트랙에서), Repository 메서드마다 세션 열기, service 에서 `HTTPException` 발생(HTTP 는 바깥 계층의 일), 전역 가변 상태, 필요 없는 추상 기반 클래스·팩토리·제네릭 Repository.
 
 외부 자원(MySQL·PostgreSQL·Redis·Memcached·Elasticsearch 등): lifespan 에서 만들고 닫으며 `Depends` 로 주입한다. 원자성·멱등성·캐시 무효화 순서는 `stage-pilot:infra-resilience` 를 따른다.
 

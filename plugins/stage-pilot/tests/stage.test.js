@@ -604,3 +604,21 @@ test('infra-resilience 스킬이 있고 신규 트랙 설계·구현 단계에 �
   for (const id of ['2', '5']) assert.ok(gf.find((s) => s.id === id).run.some((r) => r.ref === 'stage-pilot:infra-resilience'), id);
   assert.ok(gf.find((s) => s.id === '2').checks.some((c) => c.ifHas && c.file === 'docs/project/02-design.md'));
 });
+
+test('design-patterns: 신규 트랙 기획·설계·구현·리뷰에 연결되고 설계 단계가 규모 판정·패턴 결정 절을 확인한다', () => {
+  assert.ok(fs.existsSync(path.join(__dirname, '..', 'skills', 'design-patterns', 'SKILL.md')));
+  const gf = map.profiles.greenfield.stages;
+  for (const id of ['1', '2', '5', '6']) assert.ok(gf.find((s) => s.id === id).run.some((r) => r.ref === 'stage-pilot:design-patterns'), id);
+  const c = gf.find((s) => s.id === '2').checks.find((x) => x.label === '규모 판정·패턴 결정');
+  const cwd = tmp();
+  put(cwd, 'docs/project/02-design.md', '## 규모 판정\n소형\n## 패턴 결정\n| UoW |\n');
+  assert.strictEqual(S.runCheck(cwd, {}, c).ok, false, '쓰지 않은 패턴 절이 없으면 실패');
+  put(cwd, 'docs/project/02-design.md', '## 규모 판정\n소형\n## 패턴 결정\n| UoW |\n### 쓰지 않은 패턴\n| Builder | 단계 3개 |\n');
+  assert.strictEqual(S.runCheck(cwd, {}, c).ok, true);
+});
+
+test('외부 설계 스킬은 조건부(when)로만 연결되고 레지스트리에 설치 안내가 있다', () => {
+  for (const name of ['python-development', 'backend-development']) assert.match(map.plugins[name].marketplace, /wshobson\/agents/);
+  const refs = Object.values(map.profiles).flatMap((p) => p.stages.flatMap((s) => s.run)).filter((r) => /^(python|backend)-development:/.test(r.ref));
+  assert.ok(refs.length && refs.every((r) => r.when));
+});
