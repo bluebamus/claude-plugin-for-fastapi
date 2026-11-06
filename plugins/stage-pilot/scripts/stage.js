@@ -451,6 +451,8 @@ function runCheck(cwd, st, c, home = os.homedir()) {
   }
   const f = resolveFile(cwd, sub(c.file, st));
   if (!f) return { ok: false, why: '파일 없음' };
+  // 내용 조건이 없으면 있는지만 본다 — 폴더를 파일로 읽으면 EISDIR 로 check 전체가 죽는다
+  if (!c.has) return { ok: true, why: path.relative(cwd, f).replace(/\\/g, '/') };
   const body = fs.readFileSync(f, 'utf8');
   const lack = (c.has || []).filter((h) => !new RegExp(h, 'm').test(body));
   return { ok: !lack.length, why: lack.length ? `없는 내용: ${lack.join(', ')}` : path.relative(cwd, f).replace(/\\/g, '/') };

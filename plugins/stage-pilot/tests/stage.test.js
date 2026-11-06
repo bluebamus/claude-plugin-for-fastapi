@@ -596,6 +596,12 @@ test('별칭 new-php 는 greenfield-php 로 저장된다', () => {
 });
 
 // ── 검수 반영(공통) ──
+test('내용 조건 없는 file 확인은 폴더여도 죽지 않고 통과한다', () => {
+  const cwd = tmp();
+  fs.mkdirSync(path.join(cwd, 'tests', 'unit'), { recursive: true });
+  assert.strictEqual(S.runCheck(cwd, {}, { file: 'tests/unit' }).ok, true);
+});
+
 test('끝난 상위 작업 아래에는 하위 작업을 추가할 수 없다', () => {
   const cwd = startTrack();
   run(cwd, 'task', 'add', '인증');
