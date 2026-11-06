@@ -116,8 +116,10 @@ test('check: 문서 내용·ID 추적·.claude 승인 대기 초안을 확인하
   put(cwd, 'docs/project/04-work-plan.md', '| T-1 | R-1 | 선행 없음 | 완료 기준: 단위·API·통합 테스트 | 위험 낮음 |\n');
   writeReport(cwd, 'greenfield', '4');
   const r1 = S.check(map, { profile: 'greenfield' }, '4', cwd);
-  assert.deepStrictEqual(r1.map((r) => r.ok), [true, false, true]);
-  assert.match(r1[1].why, /R-2/, '계획에 빠진 요구사항 ID 를 알려 줌');
+  // [계획 문서, 인프라 조건부(요구사항에 외부 자원 없음 → 건너뜀), R- 추적, 보고서]
+  assert.deepStrictEqual(r1.map((r) => r.ok), [true, true, false, true]);
+  assert.strictEqual(r1[1].skipped, true);
+  assert.match(r1[2].why, /R-2/, '계획에 빠진 요구사항 ID 를 알려 줌');
   assert.throws(() => execFileSync('node', [SCRIPT, 'next', '--cwd', cwd], { stdio: 'pipe' }));
   put(cwd, 'docs/project/04-work-plan.md', '| T-1 | R-1 | 선행 없음 | 완료 기준 | 위험 |\n| T-2 | R-2 | T-1 | 완료 기준(통합) | 위험 |\n');
   execFileSync('node', [SCRIPT, 'next', '--cwd', cwd]);
@@ -656,4 +658,49 @@ test('testsIn: 대안 폴더(a|b) 중 하나에 있으면 통과한다', () => {
   const cwd = tmp();
   put(cwd, 'tests/database/ItemFlowTest.php', '<?php /** R-2 흐름 */');
   assert.strictEqual(S.runCheck(cwd, {}, { testsIn: 'tests/integration|tests/database' }).ok, true);
+});
+
+const INFRA_CHECK = { if: 'docs/project/01-requirements.md', ifHas: 'redis|mysql', testsHas: ['rollback|롤백', 'idempot|멱등'] };
+
+test('ifHas: 요구사항에 외부 자원이 없으면 확인을 건너뛴다', () => {
+  const cwd = tmp();
+  put(cwd, 'docs/project/01-requirements.md', 'R-1: 메모 저장(SQLite)');
+  const r = S.runCheck(cwd, {}, INFRA_CHECK);
+  assert.deepStrictEqual([r.ok, r.skipped], [true, true]);
+});
+
+test('testsHas: 요구사항에 Redis 가 있는데 멱등 테스트가 없으면 통과하지 않는다', () => {
+  const cwd = tmp();
+  put(cwd, 'docs/project/01-requirements.md', 'R-1: 목록은 Redis 캐시');
+  put(cwd, 'tests/integration/test_flow.py', 'def test_rollback_on_failure():\n    """R-1"""\n');
+  const r = S.runCheck(cwd, {}, INFRA_CHECK);
+  assert.strictEqual(r.ok, false);
+  assert.match(r.why, /idempot/);
+});
+
+test('testsHas: 롤백·멱등 테스트가 모두 있으면 통과한다(PHP 테스트도 읽음)', () => {
+  const cwd = tmp();
+  put(cwd, 'docs/project/01-requirements.md', 'R-1: 저장은 MySQL');
+  put(cwd, 'tests/database/OrderTest.php', '<?php // testRollbackOnFailure, testIdempotentReplay');
+  assert.strictEqual(S.runCheck(cwd, {}, INFRA_CHECK).ok, true);
+});
+
+test('testsHas: vendor/ 안의 테스트는 읽지 않는다', () => {
+  const cwd = tmp();
+  put(cwd, 'docs/project/01-requirements.md', 'R-1: 저장은 MySQL');
+  put(cwd, 'vendor/x/tests/RollbackIdempotentTest.php', '<?php // rollback idempot');
+  assert.strictEqual(S.runCheck(cwd, {}, INFRA_CHECK).ok, false);
+});
+
+test('infra-resilience 스킬이 있고 신규 트랙 설계·구현 단계에 연결돼 있다', () => {
+  assert.ok(fs.existsSync(path.join(__dirname, '..', 'skills', 'infra-resilience', 'SKILL.md')));
+  const gf = map.profiles.greenfield.stages;
+  for (const id of ['2', '5']) assert.ok(gf.find((s) => s.id === id).run.some((r) => r.ref === 'stage-pilot:infra-resilience'), id);
+  assert.ok(gf.find((s) => s.id === '2').checks.some((c) => c.ifHas && c.file === 'docs/project/02-design.md'));
+});
+
+test('greenfield-php 도 설계·구현 단계에 infra-resilience 와 조건부 확인이 있다', () => {
+  const gp = map.profiles['greenfield-php'].stages;
+  for (const id of ['2', '5']) assert.ok(gp.find((s) => s.id === id).run.some((r) => r.ref === 'stage-pilot:infra-resilience'), id);
+  assert.ok(gp.find((s) => s.id === '5').checks.some((c) => c.ifHas && c.testsHas));
 });

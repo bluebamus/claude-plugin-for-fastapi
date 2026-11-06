@@ -48,7 +48,8 @@ description: PHP 프로젝트(순수 PHP·CodeIgniter 4, 레거시 CodeIgniter 3
 ```
 public/index.php        # 유일한 진입점(front controller) — 라우팅만
 src/Http/Controller/    # 요청 해석·응답(JSON)·상태 코드
-src/Service/            # 비즈니스 규칙, 트랜잭션 경계
+src/Service/            # 비즈니스 규칙, 트랜잭션 경계(UoW: beginTransaction·commit·rollBack)
+src/Dto/                # final readonly 요청·응답 DTO
 src/Repository/         # PDO 쿼리만(prepared statement)
 src/Domain/             # 값 객체·엔티티
 config/                 # 설정 배열, .env 읽기
@@ -56,7 +57,7 @@ tests/unit/ tests/api/ tests/integration/
 ```
 
 - 의존성은 생성자 주입. 작은 프로젝트는 `public/index.php` 에서 손으로 조립(컨테이너 라이브러리는 필요할 때만).
-- DB 는 `PDO`(`ERRMODE_EXCEPTION`, `EMULATE_PREPARES=false`), 항상 바인드 파라미터.
+- DB 는 `PDO`(`ERRMODE_EXCEPTION`, `EMULATE_PREPARES=false`), 항상 바인드 파라미터. PDO·Redis 등 외부 자원은 `config/` 팩토리 한 곳에서 만들어 생성자로 넘긴다(→ infra-resilience §8).
 - 라우팅 라이브러리가 필요하면 널리 쓰는 것(예: `nikic/fast-route`)을 고르고 기술 선정 문서에 근거를 적는다.
 
 ## 3. CodeIgniter 4 — 구조와 패턴
@@ -67,6 +68,7 @@ app/Controllers/        # BaseController 상속, API 는 ResourceController / Re
 app/Services/           # (직접 만듦) 비즈니스 규칙·트랜잭션 — Config\Services 에 등록하거나 생성자에서 생성
 app/Models/             # CodeIgniter\Model — $table, $allowedFields, $returnType(Entity), $validationRules
 app/Entities/           # CodeIgniter\Entity\Entity — 캐스팅·접근자
+app/Dto/                # (직접 만듦) final readonly 요청·응답 DTO
 app/Filters/            # 인증·권한·CSRF·CORS (Config\Filters 에 등록)
 app/Database/Migrations/ app/Database/Seeds/
 tests/unit/ tests/feature/ tests/database/
@@ -76,6 +78,9 @@ tests/unit/ tests/feature/ tests/database/
 |---|---|
 | 얇은 컨트롤러 | 입력 검증(`$this->validate()` 또는 Validation 서비스) → Service 호출 → `respond()`/`respondCreated()`/`failNotFound()` |
 | Service layer | 규칙이 하나라도 있으면 `app/Services/XService.php`. 트랜잭션은 `$db->transException(true)->transStart()`… `transComplete()` |
+| Unit of Work | DB 쓰기가 있으면 항상: Service 메서드 하나 = 트랜잭션 하나, 예외면 `transRollback()` 후 다시 던짐, 캐시 삭제·색인은 `transComplete()` 뒤(→ infra-resilience §8) |
+| DTO | 항상: `final readonly class PlaceOrder` + `fromArray()` 에서 검증, 응답도 DTO(`OrderView`). 연관 배열을 계층 사이로 넘기지 않음 |
+| 외부 자원 | `Config\Database` 그룹·`Config\Cache`(redis·memcached)·`Config\Services` 공유 인스턴스(phpredis·Elasticsearch), 값은 `.env` |
 | Model | 쿼리는 Model·Query Builder 로. `$allowedFields` 로 대량 할당 제한, `$useTimestamps` |
 | 횡단 관심사 | Filter(인증·권한·로깅). 컨트롤러마다 반복하지 않음 |
 | 설정 | `.env` + `app/Config/*` , 코드에 상수로 박지 않음 |

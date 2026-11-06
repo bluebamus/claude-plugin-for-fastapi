@@ -61,13 +61,14 @@ function fmtRun(r, st) {
 }
 
 function fmtCheck(c, st) {
-  return `${fmtCheckBody(c, st)}${c.if ? ` (${sub(c.if, st)} 있을 때만)` : ''}`;
+  return `${fmtCheckBody(c, st)}${c.if ? ` (${sub(c.if, st)}${c.ifHas ? ` 에 ${c.ifHas}` : ''} 있을 때만)` : ''}`;
 }
 function fmtCheckBody(c, st) {
   if (c.cmd) return c.label ? `${c.label} (${c.cmd})` : `명령 성공: ${c.cmd}`;
   if (c.test) return '테스트 통과';
   if (c.clean) return '작업 트리 정리(커밋되지 않은 변경 없음)';
   if (c.testsAvoid) return `테스트가 ${c.testsAvoid} 를 읽지 않음(기준 데이터는 tests/ 아래)`;
+  if (c.testsHas) return `${c.label || '테스트 내용'}: 테스트에 ${c.testsHas.join(' · ')}`;
   if (c.testsIn) return `${c.label || '테스트'}: ${c.testsIn} 안에 요구사항 ID(R-·F-·E-)가 적힌 테스트 파일(예제 제외)`;
   if (c.trace) return `${c.trace} 추적: ${sub(c.from, st)} 의 ID 가 모두 ${c.to.map((t) => sub(t, st)).join(', ')} 에 있음`;
   return `${sub(c.file, st)}${c.has ? ` 에 ${c.has.join(' · ')}` : ' 있음'}`;
@@ -393,7 +394,12 @@ function procWhy(r) {
 
 function runCheck(cwd, st, c, home = os.homedir()) {
   // 도구가 없는 프로젝트(예: alembic 미사용)에서는 그 도구의 확인을 건너뛴다
-  if (c.if && !resolveFile(cwd, sub(c.if, st))) return { ok: true, skipped: true, why: `${sub(c.if, st)} 없음 — 건너뜀` };
+  if (c.if) {
+    const f = resolveFile(cwd, sub(c.if, st));
+    if (!f) return { ok: true, skipped: true, why: `${sub(c.if, st)} 없음 — 건너뜀` };
+    // 요구사항에 그 자원(예: Redis·MySQL)이 나올 때만 확인한다
+    if (c.ifHas && !new RegExp(c.ifHas, 'i').test(textOf(f))) return { ok: true, skipped: true, why: `${sub(c.if, st)} 에 ${c.ifHas} 없음 — 건너뜀` };
+  }
   if (c.cmd) {
     // {work} 는 사용자 입력이라 셸 명령에 치환하지 않는다
     const x = expandCmd(cwd, c.cmd, home, st);
@@ -426,6 +432,11 @@ function runCheck(cwd, st, c, home = os.homedir()) {
     // 작업 문서(docs/work)는 정리될 수 있으므로 테스트 기준값을 거기서 읽으면 나중에 깨진다
     const hit = testText(cwd).split(/\r?\n/).filter((l) => l.includes(c.testsAvoid));
     return { ok: !hit.length, why: hit.length ? `테스트에서 ${c.testsAvoid} 참조 ${hit.length}곳: ${hit[0].trim().slice(0, 100)}` : '' };
+  }
+  if (c.testsHas) {
+    const body = testText(cwd);
+    const lack = c.testsHas.filter((h) => !new RegExp(h, 'i').test(body));
+    return { ok: !lack.length, why: lack.length ? `테스트에 없는 내용: ${lack.join(', ')}` : '' };
   }
   if (c.testsIn) {
     // 폴더만 있거나 프레임워크 예제(CI4 appstarter 의 HealthTest·Example*)만 있으면 그 계층 테스트를 쓴 것이 아니다

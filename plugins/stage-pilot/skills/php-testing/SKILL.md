@@ -76,6 +76,23 @@ final class ItemsTest extends CIUnitTestCase
 
 CSRF 필터가 켜진 라우트는 테스트에서 토큰을 넣거나, API 그룹을 CSRF 대상에서 빼는 설계를 따른다(php-security). 테스트만을 위해 필터를 끄지 않는다.
 
+## 원자성·멱등 테스트 (외부 자원·DB 쓰기가 있을 때)
+
+`stage-pilot:infra-resilience` §6·§8 의 필수 테스트를 넣는다: 중간 실패 롤백(`dontSeeInDatabase`), 같은 `Idempotency-Key` 재요청, 커밋 뒤 캐시 무효화, 경쟁 갱신(실제 DB). 메서드 이름에 `Rollback`·`Idempotent`(또는 docblock 에 롤백·멱등)를 넣는다. 요구사항이 MySQL·PostgreSQL·Redis 를 명시하면 통합 테스트 한 벌은 실제 엔진으로(`phpunit.xml.dist` 의 `database.tests.*` 를 환경 변수로).
+
+```php
+/** R-4: 같은 Idempotency-Key 로 다시 보내면 저장된 응답을 그대로 돌려준다(멱등). */
+public function testCreateOrderIdempotentReplay(): void
+{
+    $req = $this->withHeaders(['Idempotency-Key' => 'k-1'])->withBodyFormat('json');
+    $first = $req->post('orders', ['item_id' => 1, 'qty' => 1]);
+
+    $second = $req->post('orders', ['item_id' => 1, 'qty' => 1]);
+
+    $this->assertSame($first->getJSON(), $second->getJSON());
+}
+```
+
 ## 흐름 테스트(예외)
 
 여러 기능을 잇는 **API 흐름 테스트와 통합 테스트는** 한 메서드에 여러 요청·확인을 둘 수 있다(예: 대여 → 반납 → 목록). 대신 `tests/database/`(또는 integration)에 두고 이름에 `Flow`, 단계마다 짧은 주석.

@@ -82,6 +82,21 @@ def test_create_item_rejects_negative_price(client):
 - 단계마다 무엇을 확인하는지 짧은 주석을 단다.
 - 같은 동작을 단위·API 테스트로 이미 확인했으면 흐름 테스트는 연결만 본다.
 
+## 원자성·멱등 테스트 (외부 자원·DB 쓰기가 있을 때)
+
+`stage-pilot:infra-resilience` §6 의 필수 테스트를 넣는다: 중간 실패 롤백(통합), 같은 `Idempotency-Key` 재요청(API), 커밋 뒤 캐시 무효화(통합), 경쟁 갱신(실제 DB 통합). 테스트 이름이나 docstring 에 `rollback`·`idempot`(또는 롤백·멱등)을 넣는다. 요구사항이 MySQL·PostgreSQL·Redis 등을 명시하면 통합 테스트는 실제 엔진으로 한 번 이상 돈다(`TEST_DATABASE_URL` 등 환경 변수, 없으면 skip 사유를 보고서에).
+
+```python
+def test_create_order_idempotent_replay(client):
+    """R-4: 같은 Idempotency-Key 로 다시 보내면 저장된 응답을 그대로 돌려준다(멱등)."""
+    headers = {"Idempotency-Key": "k-1"}
+    first = client.post("/orders", json={"item_id": 1, "qty": 1}, headers=headers)
+
+    second = client.post("/orders", json={"item_id": 1, "qty": 1}, headers=headers)
+
+    assert second.json() == first.json()
+```
+
 ## 레거시(보호 테스트)
 
 - 바꾸기 전에 지금 동작을 그대로 고정한다(특성화 테스트). 이상해 보여도 현재 응답을 기대값으로 두고 "버그 후보"로 기록한다.

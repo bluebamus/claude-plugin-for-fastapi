@@ -35,7 +35,14 @@ if [ "$tool" = php ] && [ "${args[0]:-}" = spark ] && [ "${args[1]:-}" = serve ]
   args+=(--host 0.0.0.0)
 fi
 
+# 접속 정보 등 환경 변수는 값이 있을 때만 값째 넘긴다(WSL 프로세스는 Windows 쪽 환경 변수를 물려받지 않음)
+for name in ${SP_PHP_ENV:-CI_ENVIRONMENT DATABASE_URL TEST_DATABASE_URL REDIS_URL TEST_REDIS_URL}; do
+  if [ -n "${!name:-}" ]; then extra+=(-e "$name=${!name}"); fi
+done
+# SP_PHP_NETWORK=host: 컨테이너가 WSL 네트워크를 같이 써서 127.0.0.1:<포트> 로 Docker 의 MySQL·Redis 에 닿는다
+if [ "${SP_PHP_NETWORK:-}" = host ]; then extra+=(--network host); fi
+
 # --exec: WSL 쪽 셸을 거치지 않아 인자의 따옴표·공백·$ 가 그대로 전달된다
 exec wsl.exe -d "$distro" --exec docker run --rm -i "${extra[@]}" \
   -v /mnt:/mnt -v sp-composer-cache:/tmp/composer-cache -e COMPOSER_CACHE_DIR=/tmp/composer-cache \
-  -e CI_ENVIRONMENT -w "$cwd" "$img" "$tool" "${args[@]}"
+  -w "$cwd" "$img" "$tool" "${args[@]}"
