@@ -69,6 +69,7 @@ function fmtCheckBody(c, st) {
   if (c.clean) return '작업 트리 정리(커밋되지 않은 변경 없음)';
   if (c.testsAvoid) return `테스트가 ${c.testsAvoid} 를 읽지 않음(기준 데이터는 tests/ 아래)`;
   if (c.testsHas) return `${c.label || '테스트 내용'}: 테스트에 ${c.testsHas.join(' · ')}`;
+  if (c.testsSplit) return `${c.label || '테스트 파일 분리'}: ${c.testsSplit} 에 테스트 파일 ${c.min || 2}개 이상(도메인·모듈별)`;
   if (c.testsIn) return `${c.label || '테스트'}: ${c.testsIn} 안에 요구사항 ID(R-·F-·E-)가 적힌 테스트 파일(예제 제외)`;
   if (c.trace) return `${c.trace} 추적: ${sub(c.from, st)} 의 ID 가 모두 ${c.to.map((t) => sub(t, st)).join(', ')} 에 있음`;
   return `${sub(c.file, st)}${c.has ? ` 에 ${c.has.join(' · ')}` : ' 있음'}`;
@@ -381,7 +382,8 @@ function expandCmd(cwd, cmd, home, st = {}) {
       if (!p) missing = missing || n;
       return p || '';
     })
-    .replace(/\{python\}/g, () => pythonCommand(cwd));
+    .replace(/\{python\}/g, () => pythonCommand(cwd))
+    .replace(/\{self\}/g, () => path.resolve(__dirname, '..'));  // 이 플러그인 자신(예: scripts/test-plan.js)
   return missing ? { missing } : { cmd: out };
 }
 
@@ -437,6 +439,13 @@ function runCheck(cwd, st, c, home = os.homedir()) {
     const body = testText(cwd);
     const lack = c.testsHas.filter((h) => !new RegExp(h, 'i').test(body));
     return { ok: !lack.length, why: lack.length ? `테스트에 없는 내용: ${lack.join(', ')}` : '' };
+  }
+  if (c.testsSplit) {
+    // 한 파일에 모든 테스트를 몰아넣지 않았는지 — 도메인·독립 모듈마다 파일
+    const dirs = sub(c.testsSplit, st).split('|').map((d) => path.join(cwd, d)).filter((d) => fs.existsSync(d) && fs.statSync(d).isDirectory());
+    const files = dirs.flatMap((d) => [...walkAll(d)]).filter((f) => /(^test_.*\.py|_test\.py|Test\.php)$/.test(path.basename(f)) && !/^(Example|Health)/.test(path.basename(f)));
+    const min = c.min || 2;
+    return { ok: files.length >= min, why: `테스트 파일 ${files.length}개${files.length < min ? ` — 도메인(또는 서비스 CRUD)·독립 모듈마다 파일을 나눌 것(최소 ${min})` : ''}` };
   }
   if (c.testsIn) {
     // 폴더만 있거나 프레임워크 예제(CI4 appstarter 의 HealthTest·Example*)만 있으면 그 계층 테스트를 쓴 것이 아니다
@@ -598,7 +607,7 @@ function main(argv) {
   return 1;
 }
 
-module.exports = { memoryLines, taskCmd, loadMap, card, matchStage, runHook, missingFor, findStage, plan, detect, intake, check, runCheck, fmtCheck, pythonCommand, sub, testCommand, main };
+module.exports = { memoryLines, taskCmd, loadMap, card, matchStage, runHook, missingFor, findStage, plan, detect, intake, check, runCheck, fmtCheck, pythonCommand, sub, testCommand, expandCmd, main };
 if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); } catch (e) { console.error(e.message); process.exitCode = 1; }
 }

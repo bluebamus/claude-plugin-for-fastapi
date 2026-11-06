@@ -13,7 +13,7 @@ description: FastAPI 프로젝트의 표준 구조·코드 스타일·설계 패
 |---|---|---|
 | 새 프로젝트 | `uv init --app --name <이름>` (이미 폴더가 있으면 그 안에서 `uv init`) | 손으로 쓴 requirements.txt |
 | 실행 의존성 추가 | `uv add fastapi "uvicorn[standard]" pydantic-settings` | `pip install` |
-| 개발 의존성 추가 | `uv add --dev pytest httpx ruff` (필요할 때 `pytest-cov`) | 전역 설치 |
+| 개발 의존성 추가 | `uv add --dev pytest pytest-cov httpx faker ruff` | 전역 설치 |
 | 환경 맞추기 | `uv sync` (CI·다른 PC: `uv sync --locked`) | 가상환경 손수 만들기 |
 | 실행 | `uv run uvicorn app.main:app --reload`, `uv run pytest`, `uv run ruff check .` | `.venv` 경로 직접 호출 |
 | 제거 | `uv remove <패키지>` | pyproject 손편집 |
@@ -77,7 +77,8 @@ tests/unit/ tests/api/ tests/integration/   # → fastapi-testing 스킬
 
 ```
 uv run ruff check .
-uv run pytest -q
+uv run pytest            # pyproject 의 addopts 로 커버리지(coverage.json) 포함
+node "${CLAUDE_PLUGIN_ROOT}/scripts/test-plan.js" build   # docs/test-plan/index.html
 ```
 
 둘 다 통과해야 단계를 마친다. pyright-lsp 가 켜져 있으면 편집 중 타입 오류를 바로 고친다.

@@ -20,3 +20,9 @@
 | 판 | 트랙 | 단계 | 판정 | 비고 |
 |---|---|---|---|---|
 | main | greenfield → enhance (과제 supply: 실제 MySQL 8.4·Redis 7, WSL Docker, 의뢰서에 원자성·멱등성 단어 없음) | **18** | **18 통과(75분)** | 새 조건부 확인이 모두 실제로 실행(건너뜀 없음): 설계 「자원 수명주기·원자성·멱등」 절, 계획의 롤백·멱등 테스트, 테스트 본문. 결과물: lifespan 에서 redis.close→engine.dispose, 조건부 UPDATE·with_for_update·CHECK(stock>=0), 멱등 키를 같은 트랜잭션에, 실제 MySQL·Redis 통합 테스트(테스트 DB 이름·Redis 0번 보호 가드 자체 추가), 동시 20건 재고 음수 0·같은 키 동시 1회 차감. pytest 71 → 고도화 후 102 통과 |
+
+### Round 3 — 2026-11-06 (REQ-010 설계 패턴 가이드)
+| 판 | 트랙 | 단계 | 판정 | 비고 |
+|---|---|---|---|---|
+| main | greenfield → enhance (과제 supply, 실제 MySQL·Redis) | **18** | **18 통과(92분)** | 설계 문서에 「규모 판정」(소형 — 1팀·도메인 2·엔드포인트 10 안팎, 근거 기재)·「패턴 결정」·「쓰지 않은 패턴」(Abstract Factory: 제품군 없음, Builder: 단계 3~4·조건부 없음). 라우터는 SupplyServiceDep·RequestServiceDep 만 받고 Session import 없음, UnitOfWork 가 session_factory() 로 작업마다 열고 close(롤백 실패에도 반환) |
+| php | greenfield-php → enhance (과제 supply, CodeIgniter 4·PHP 8.3 Docker, 실제 MySQL·Redis, REQ-009·010 함께) | **18** | **18 통과(142분)** | 설계 「규모 판정」(소형)·「자원 수명주기」·「원자성」·「멱등성」·「패턴 결정」·「쓰지 않은 패턴」. Service 메서드 안 트랜잭션·실패 시 transRollback, Idempotency-Key 형식 검증·본문 불일치 422, 컨트롤러는 쿼리 없음. 롤백 2·멱등 3·동시성(실제 MySQL) 3 테스트 |

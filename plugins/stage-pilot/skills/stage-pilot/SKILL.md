@@ -36,6 +36,8 @@ description: FastAPI 프로젝트와 PHP(순수 PHP·CodeIgniter 4·3) 프로젝
 
 구현 단계 보고서에는 `## 테스트 계층` 절(계층 | 파일 | 개수 | 비고 + 실행 결과)이 있어야 `check`가 통과한다. 신규 트랙은 `tests/unit`·`tests/api`·`tests/integration` 폴더, `uv.lock`, `uv run ruff check .` 통과도 확인한다. PHP 신규 트랙은 `tests/unit`·`tests/feature`(또는 api)·`tests/database`(또는 integration), `composer.lock`, `phpcs.xml` 과 `php vendor/bin/phpcs` 통과를 확인한다.
 
+**테스트 규칙(fastapi-testing / php-testing):** 단위 테스트는 함수(메서드) 하나의 기능만, API·통합 테스트는 거시적 목적 하나를 끝까지 확인하며 단위 테스트 결과에 기대지 않는다. 테스트 파일은 도메인별(모호하면 서비스 CRUD 단위)·독립 모듈별로 나누고, FastAPI 는 계층별 `conftest.py`·Factory Fixture·Faker·stub/mock·Fake Repository·SQLite, PHP 는 계층별 기반 TestCase·`setUp`·CI4 Fabricator·Faker·`createStub`/`createMock`·Fake Repository·SQLite 를 쓴다. 신규 구현 단계 보고서에는 `## 커버리지` 절도 있어야 하고, `check`는 커버리지 설정(FastAPI: `pyproject.toml` 의 `[tool.pytest.ini_options]`·`--cov`·`[tool.coverage.*]`, PHP: `phpunit.xml.dist` 의 `<source>`/`<coverage>`), 단위 테스트 파일 2개 이상, **테스트 문서** `docs/test-plan/index.html` 이 최신인지(`node "${CLAUDE_PLUGIN_ROOT}/scripts/test-plan.js" check`)를 본다. 문서는 테스트 docstring·docblock(첫 줄 목적, `준비:`·`실행:`·`확인:`)과 커버리지 결과(coverage.json·clover.xml)로 `test-plan.js build` 가 만든다 — 맨 위 한눈에 보기 요약, 항목을 누르면 상세로 이동. PHP 커버리지에는 pcov(또는 Xdebug)가 필요하다.
+
 레거시 트랙은 언어별 짝 항목이 `when`(「FastAPI(파이썬) 프로젝트일 때」 / 「PHP(순수 PHP·CodeIgniter) 프로젝트일 때」)으로 들어 있다. 프로젝트 언어에 맞는 쪽을 부르고 다른 쪽은 `skip <ref> "PHP 프로젝트"`처럼 근거를 남긴다. PHP 프로젝트는 `php-lsp`(조건부, intelephense 필요)를 `pyright-lsp` 대신 쓴다.
 
 ### 에이전트 사용안

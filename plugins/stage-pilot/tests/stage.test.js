@@ -730,3 +730,27 @@ test('greenfield-php 도 설계 단계가 규모 판정·패턴 결정 절을 �
   assert.ok(s2.checks.some((x) => x.label === '규모 판정·패턴 결정'));
   assert.ok(!s2.run.some((r) => r.ref.startsWith('python-development:')));
 });
+
+test('testsSplit: 단위 테스트가 한 파일뿐이면 실패, 도메인·모듈별로 나뉘면 통과', () => {
+  const cwd = tmp();
+  put(cwd, 'tests/unit/test_all.py', 'def test_a(): pass\n');
+  const c = { testsSplit: 'tests/unit' };
+  assert.strictEqual(S.runCheck(cwd, {}, c).ok, false);
+  put(cwd, 'tests/unit/test_pagination.py', 'def test_b(): pass\n');
+  assert.strictEqual(S.runCheck(cwd, {}, c).ok, true);
+});
+
+test('{self} 는 이 플러그인 폴더로 바뀌고, 신규 구현 단계가 테스트 문서·커버리지 설정을 확인한다', () => {
+  assert.strictEqual(S.expandCmd(tmp(), 'node "{self}/scripts/test-plan.js" check', os.homedir()).cmd, `node "${path.resolve(__dirname, '..')}/scripts/test-plan.js" check`);
+  const checks = map.profiles.greenfield.stages.find((s) => s.id === '5').checks;
+  assert.ok(checks.some((c) => /test-plan\.js" check/.test(c.cmd || '')));
+  assert.ok(checks.some((c) => c.testsSplit));
+  assert.ok(checks.some((c) => c.file === 'pyproject.toml' && c.has.some((h) => /coverage/.test(h))));
+});
+
+test('greenfield-php 구현 단계가 phpunit 커버리지 설정·단위 파일 분리·테스트 문서를 확인한다', () => {
+  const checks = map.profiles['greenfield-php'].stages.find((s) => s.id === '5').checks;
+  assert.ok(checks.some((c) => /phpunit\.xml/.test(c.file || '') && c.has.some((h) => /source|coverage/.test(h))));
+  assert.ok(checks.some((c) => c.testsSplit));
+  assert.ok(checks.some((c) => /test-plan\.js" check/.test(c.cmd || '')));
+});
