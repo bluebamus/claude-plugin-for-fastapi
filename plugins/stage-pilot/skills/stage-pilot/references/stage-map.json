@@ -128,7 +128,7 @@
            {"type": "skill", "ref": "superpowers:dispatching-parallel-agents", "when": "선행 관계가 없는 작업 묶음이 2개 이상일 때"}],
          "approval": "계획과 다르게 가야 할 때(계획 문서를 먼저 고침)",
          "done": "모든 작업 완료 표시, 테스트 통과, 테스트에 요구사항 ID 표기",
-         "checks": [{"test": true}, {"trace": "R-\\d+", "from": "docs/project/01-requirements.md", "to": ["tests"]}, {"if": "alembic.ini", "cmd": "node \"{plugin:alembic-migration-guard}/scripts/guard.js\" scan --changed --since {base}", "label": "마이그레이션 안전 검사(이번에 바뀐 리비전)"}, {"file": "tests/unit"}, {"file": "tests/api"}, {"file": "tests/integration"}, {"if": "uv.lock", "cmd": "uv run ruff check .", "label": "코드 스타일(ruff)"}],
+         "checks": [{"test": true}, {"trace": "R-\\d+", "from": "docs/project/01-requirements.md", "to": ["tests"]}, {"if": "alembic.ini", "cmd": "node \"{plugin:alembic-migration-guard}/scripts/guard.js\" scan --changed --since {base}", "label": "마이그레이션 안전 검사(이번에 바뀐 리비전)"}, {"testsIn": "tests/unit", "label": "단위 테스트"}, {"testsIn": "tests/api", "label": "API 테스트"}, {"testsIn": "tests/integration", "label": "통합 테스트"}, {"if": "uv.lock", "cmd": "uv run ruff check .", "label": "코드 스타일(ruff)"}],
          "report": ["테스트 계층"],
          "keywords": ["구현", "개발", "코딩", "tdd", "implement"]},
         {"id": "6", "title": "검증·리뷰·단순화", "anchor": "#gf-6",

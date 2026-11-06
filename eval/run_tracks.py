@@ -154,8 +154,11 @@ def judge_stage(profile, sid, r, st, docs_lookup, check, since="", mcp=None):
             good = not called and recorded("skip", ref)
             detail.append((ref, "조건불충족기록" if good else "호출" if called else "판정기록없음"))
         elif not usable:
-            good = called or recorded("fallback", ref)
-            detail.append((ref, "미설치→" + ("대체기록" if good else "기록없음")))
+            # 조건부 항목(예: "설치돼 있을 때")은 미설치면 조건 불충족 기록도 정답
+            fb = recorded("fallback", ref)
+            sk = bool(x.get("when")) and recorded("skip", ref)
+            good = called or fb or sk
+            detail.append((ref, "미설치→" + ("호출" if called else "대체기록" if fb else "조건불충족기록" if sk else "기록없음")))
         elif x.get("when"):
             # context7 은 의뢰서의 문서 조회 허용 여부로 정답이 정해진다
             if ref == "context7":

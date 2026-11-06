@@ -47,4 +47,4 @@ description: FastAPI 코드의 보안 설계·구현·검토 기준(OWASP API Se
 ```
 
 4. 수정한 발견마다 재발 방지 테스트를 하나 붙인다.
-5. 의존성 취약점: `uv pip list --outdated` 로 오래된 패키지를 보고, `pip-audit` 를 쓸 수 있으면 `uvx pip-audit` 로 확인(외부 조회가 허용됐을 때만).
+5. 의존성 취약점: `uv pip list --outdated` 로 오래된 패키지를 본다. 외부 조회가 허용됐으면 프로젝트 의존성을 내보내 검사한다 — `uv export --format requirements-txt --no-hashes -o requirements-audit.txt && uvx pip-audit -r requirements-audit.txt`(그냥 `uvx pip-audit` 는 도구 자신의 환경을 검사해 거짓 통과가 된다). 검사용 파일은 커밋하지 않는다.
