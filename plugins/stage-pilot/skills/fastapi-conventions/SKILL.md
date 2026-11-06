@@ -25,14 +25,15 @@ description: FastAPI 프로젝트의 표준 구조·코드 스타일·설계 패
 
 ```
 app/
-  main.py            # FastAPI() 생성, 라우터 등록, 예외 처리기, lifespan
+  main.py            # FastAPI() 생성, 라우터 등록, 예외 처리기, lifespan(외부 자원 생성·해제)
   core/config.py     # pydantic-settings Settings — 환경 변수에서 읽음
   core/security.py   # 비밀번호 해시·토큰 (인증이 요구사항에 있을 때만)
   db.py              # engine, SessionLocal, get_db 의존성
+  uow.py             # UnitOfWork — 트랜잭션 경계(commit·rollback·커밋 뒤 훅)
   models/            # SQLAlchemy 2.x Declarative (Mapped[...] 타입)
   schemas/           # Pydantic v2 요청·응답 모델 (Create / Update / Read 분리)
   repositories/      # DB 접근만 (select/insert), 세션은 인자로 받음
-  services/          # 비즈니스 규칙, 트랜잭션 경계(commit) 소유
+  services/          # 비즈니스 규칙, UoW 로 트랜잭션 경계 소유
   api/routes/        # APIRouter — 입력 검증·의존성 주입·상태 코드만
 tests/unit/ tests/api/ tests/integration/   # → fastapi-testing 스킬
 ```
@@ -46,11 +47,14 @@ tests/unit/ tests/api/ tests/integration/   # → fastapi-testing 스킬
 | 의존성 주입 | 항상 | `Depends(get_db)`, `Depends(get_current_user)`, `Annotated[Session, Depends(get_db)]` 별칭 |
 | Service layer | 규칙이 하나라도 있으면 | 라우터는 service 함수 1개를 부르고 결과를 반환 |
 | Repository | 같은 쿼리를 2곳 이상에서 쓰거나 테스트에서 DB 를 바꿔 끼워야 할 때 | 클래스 또는 모듈 함수, 세션을 생성자/인자로 |
-| DTO 분리 | 항상 | `XCreate`·`XUpdate`·`XRead`(`model_config = ConfigDict(from_attributes=True)`), `response_model` 지정 |
+| Unit of Work | DB 쓰기가 있으면 항상 | `with uow:` 하나가 비즈니스 작업 하나, repository·라우터는 commit 하지 않음, 캐시·검색 반영은 `uow.after_commit` (→ infra-resilience) |
+| DTO 분리 | 항상 | `XCreate`·`XUpdate`·`XRead`(`model_config = ConfigDict(from_attributes=True)`), `response_model` 지정, UoW 안에서 ORM → DTO 변환 후 반환 |
 | 설정 객체 | 항상 | `Settings(BaseSettings)` + `@lru_cache get_settings()` |
 | 도메인 예외 | 규칙 위반을 HTTP 로 바꿔야 할 때 | service 는 `class NotFound(Exception)`, main 의 `exception_handler` 가 404 로 변환 |
 
 금지: 라우터에서 세션 직접 사용(작은 프로젝트 예외 제외), service 에서 `HTTPException` 발생(HTTP 는 바깥 계층의 일), 전역 가변 상태, 필요 없는 추상 기반 클래스·팩토리·제네릭 Repository.
+
+외부 자원(MySQL·PostgreSQL·Redis·Memcached·Elasticsearch 등): lifespan 에서 만들고 닫으며 `Depends` 로 주입한다. 원자성·멱등성·캐시 무효화 순서는 `stage-pilot:infra-resilience` 를 따른다.
 
 동기/비동기: DB 드라이버가 동기(SQLAlchemy 기본·sqlite)면 `def` 엔드포인트를 쓴다. `async def` 안에서 동기 I/O(`requests`, `time.sleep`, 동기 세션)를 부르지 않는다.
 

@@ -21,6 +21,7 @@ main(FastAPI)·php(PHP·CodeIgniter) 두 판의 stage-pilot 이 단계마다 역
 | REQ-006 | 2026-11-06 | "작업 후 마켓·GitHub 재검토, 신뢰·안정 확인된 것만 신규 적용, 관련 스킬 추가" | docs/plugin-review/main-2026-11.md, Trail of Bits 5종·semgrep(조건부) 등록 | Active | ADR-002 |
 | REQ-007 | 2026-11-06 | "신규 개발 + 고도화 테스트(main: FastAPI, php: CodeIgniter)" | 실전 테스트 결과를 run-log 에 | Active | |
 | REQ-008 | 2026-11-06 | "업데이트된 main 기반으로 php 에 php-lsp 등, 순수 PHP·CodeIgniter 고려" | php 판에 main 변경 이식 후 php-lsp·PHP 스킬 | Active | |
+| REQ-009 | 2026-11-06 | "redis·엘라스틱·mysql·postgresql·멤캐시드 사용 — 자원 등록·관리·해제, 원자성·멱등성, DTO·UoW 필수. 1~4 모두 main 부터 적용하고 평가까지" | infra-resilience 스킬, fastapi-conventions UoW 필수·fastapi-testing 롤백·멱등 테스트, stage.js `ifHas`·`testsHas`, 신규 트랙 설계·계획·구현 조건부 확인, 레거시는 명세에 약속한 테스트 확인, Redis·MySQL 과제로 실전 평가 | Active | INV-4 |
 
 ## 3. 설계 결정 기록
 | ADR-ID | 날짜 | 결정 | 근거 | 상태 | supersedes |

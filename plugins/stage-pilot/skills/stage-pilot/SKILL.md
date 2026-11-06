@@ -26,6 +26,9 @@ description: FastAPI 프로젝트를 워크플로 단계로 이끄는 지휘자.
 | 단위·API·통합 테스트 3계층, 같은 환경(conftest 픽스처), 테스트 하나에 동작 하나(흐름 테스트만 예외) | `stage-pilot:fastapi-testing` | 계획·보호 테스트·구현·검증 |
 | 보안 경계(설계) → 안전한 기본값(구현) → OWASP 대조표(검토) | `stage-pilot:fastapi-security` | 기획·설계·구현·보안 |
 | 전체 작업·하위 작업·결정의 지속 기록 | `stage-pilot:work-memory` | 준비·계획·구현·마무리 |
+| 외부 자원(MySQL·PostgreSQL·Redis·Memcached·Elasticsearch)의 등록·주입·해제, Unit of Work 원자성, 멱등성, DTO 경계, 롤백·멱등 필수 테스트 | `stage-pilot:infra-resilience` | 기획·설계·구현·검증 |
+
+요구사항에 이런 외부 자원이 나오면 `check`가 설계 문서의 "자원 수명주기·원자성·멱등" 절, 작업 계획의 롤백·멱등 테스트, 테스트 본문의 `rollback`·`idempot`(또는 롤백·멱등)을 확인한다(`ifHas`·`testsHas`). 레거시 트랙은 명세·설계에 멱등 키·롤백을 약속했을 때 그 테스트를 확인한다.
 
 구현 단계 보고서에는 `## 테스트 계층` 절(계층 | 파일 | 개수 | 비고 + 실행 결과)이 있어야 `check`가 통과한다. 신규 트랙은 `tests/unit`·`tests/api`·`tests/integration` 폴더, `uv.lock`, `uv run ruff check .` 통과도 확인한다.
 
