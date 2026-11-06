@@ -9,3 +9,10 @@
 - [x] 단위 테스트: main 98 / php 123 통과
 - [x] 실전 평가: main 신규→고도화 18/18, php 신규 9 + 고도화 9 통과
 - [x] main·php 직접 푸시 없음 — 작업 브랜치 + draft PR(C-2)
+
+## Round 2~5 — 2026-11-06
+- [x] REQ-009 외부 자원 수명주기·UoW·원자성·멱등성(infra-resilience), ifHas·testsHas 확인 — main 18/18, php 18/18(실제 MySQL·Redis)
+- [x] REQ-010 설계 패턴 가이드(design-patterns): 목적·명세 → 규모 판정 → 패턴, 라우터는 Service 만·세션은 UoW 안, Builder·Abstract Factory 조건부 — main 18/18, php 18/18
+- [x] REQ-011 테스트 규칙·docs/test-plan HTML·커버리지(test-plan.js), 도메인별 파일, 계층별 conftest(PHP: tests/_support) — main 18/18 ×2, php 18/18
+- [x] 단위 테스트: main Node 113·Python 15, php Node 141·Python 15
+- [x] main·php 직접 푸시 없음 — 작업 브랜치만
