@@ -22,6 +22,7 @@ main(FastAPI)·php(PHP·CodeIgniter) 두 판의 stage-pilot 이 단계마다 역
 | REQ-007 | 2026-11-06 | "신규 개발 + 고도화 테스트(main: FastAPI, php: CodeIgniter)" | 실전 테스트 결과를 run-log 에 | Active | |
 | REQ-008 | 2026-11-06 | "업데이트된 main 기반으로 php 에 php-lsp 등, 순수 PHP·CodeIgniter 고려" | php 판에 main 변경 이식 후 php-lsp·PHP 스킬 | Active | |
 | REQ-009 | 2026-11-06 | "redis·엘라스틱·mysql·postgresql·멤캐시드 사용 — 자원 등록·관리·해제, 원자성·멱등성, DTO·UoW 필수. 1~4 모두 main 부터 적용하고 평가까지" | infra-resilience 스킬, fastapi-conventions UoW 필수·fastapi-testing 롤백·멱등 테스트, stage.js `ifHas`·`testsHas`, 신규 트랙 설계·계획·구현 조건부 확인, 레거시는 명세에 약속한 테스트 확인, Redis·MySQL 과제로 실전 평가 | Active | INV-4 |
+| REQ-010 | 2026-11-06 | "Loose coupling — DB 연결은 view 에 DI 하지 말고 DB 작업 클래스에 인자로, 원자적 워크플로 동안만 사용·반환. 공통은 추상 팩토리, 복잡한 워크플로만 빌더. 목적·명세 → 소형/중형/대형/마이크로서비스 판정 → 패턴 선택, 읽기 쉬움 최우선, 필요하면 질문" | design-patterns 스킬(근거: SQLAlchemy Session Basics·Cosmic Python·FastAPI 고급 의존성·Fowler·Azure·microservices.io·refactoring.guru·python-patterns.guide). 사용자 선택: 추상 팩토리는 제품군 교체에만(공통 변수=Settings, 공통 기능=기반 클래스·함수), 세션은 UoW 단위, 질문은 일반 모드만(자동 모드는 가정 기록), wshobson/agents python-development·backend-development 조건부. 다른 스킬을 "라우터는 Service 만·세션은 UoW 안에서만"으로 일관화, 설계 check 에 규모 판정·패턴 결정·쓰지 않은 패턴 | Active | ADR-002 |
 
 ## 3. 설계 결정 기록
 | ADR-ID | 날짜 | 결정 | 근거 | 상태 | supersedes |

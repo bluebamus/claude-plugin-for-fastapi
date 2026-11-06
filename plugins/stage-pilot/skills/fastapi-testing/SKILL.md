@@ -9,8 +9,8 @@ description: FastAPI 테스트 작성 기준 — 단위 테스트·API 테스트
 
 | 계층 | 폴더 | 대상 | 경계 |
 |---|---|---|---|
-| 단위 | `tests/unit/` | service 규칙, 스키마 검증기, 순수 함수 | HTTP·실제 DB 없음. 저장소는 가짜 객체나 메모리 sqlite 세션 |
-| API | `tests/api/` | 엔드포인트 하나의 요청→응답(상태 코드·본문·검증 오류·인증) | `TestClient(app)` + `dependency_overrides` 로 테스트 DB |
+| 단위 | `tests/unit/` | service 규칙, 스키마 검증기, 순수 함수 | HTTP·실제 DB 없음. Service 에 `FakeUnitOfWork`(가짜 Repository) 를 넘김 |
+| API | `tests/api/` | 엔드포인트 하나의 요청→응답(상태 코드·본문·검증 오류·인증) | `TestClient(app)` + `dependency_overrides[get_session_factory]` 로 테스트 DB |
 | 통합 | `tests/integration/` | 여러 계층이 실제로 맞물리는지: 라우터→service→repository→DB, 트랜잭션·제약 조건, 여러 엔드포인트를 잇는 흐름 | 실제 DB 엔진(sqlite 파일 또는 테스트용 DB) |
 
 ## 같은 환경 유지
@@ -28,24 +28,25 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.db import Base, get_db
+from app.api.deps import get_session_factory
+from app.db import Base
 from app.main import app
 
 
 @pytest.fixture
-def db_session():
+def session_factory():
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     Base.metadata.create_all(engine)
-    session = sessionmaker(bind=engine)()
-    yield session
-    session.close()
+    yield sessionmaker(bind=engine, expire_on_commit=False)
     Base.metadata.drop_all(engine)
+    engine.dispose()
 
 
 @pytest.fixture
-def client(db_session):
-    app.dependency_overrides[get_db] = lambda: db_session
-    yield TestClient(app)
+def client(session_factory):
+    # 세션은 앱 코드의 UoW 가 작업마다 열고 닫는다 — 테스트는 어느 DB 를 쓸지만 바꾼다
+    app.dependency_overrides[get_session_factory] = lambda: session_factory
+    yield TestClient(app)  # with 없이 쓰면 lifespan(실제 DB·Redis 연결)을 돌리지 않음
     app.dependency_overrides.clear()
 ```
 

@@ -55,49 +55,53 @@ def get_redis(request: Request) -> redis.Redis:
 
 ## 2. Unit of Work — 트랜잭션 경계
 
-service 가 UoW 로 작업을 감싸고, repository 는 같은 세션을 받아 쿼리만 한다. 예외가 나면 롤백, 정상 종료면 커밋하고 **커밋된 뒤에만** 캐시·검색 반영 훅을 실행한다.
+service 가 UoW 로 작업을 감싸고, repository 는 같은 세션을 받아 쿼리만 한다. 명시적 `uow.commit()` 이 없거나 예외가 나면 롤백하고, **커밋된 뒤에만** 캐시·검색 반영 훅을 실행한다. 라우터는 세션을 모르고 Service 만 받는다(→ design-patterns §4).
 
 ```python
-# app/uow.py
-class UnitOfWork:
-    def __init__(self, session_factory):
-        self._factory = session_factory
+# app/uow.py — design-patterns §4 의 SqlAlchemyUnitOfWork 에 커밋 뒤 훅을 더한 형태
+class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
+    def __init__(self, session_factory: sessionmaker) -> None:
+        self.session_factory = session_factory
 
-    def __enter__(self):
-        self.session = self._factory()
+    def __enter__(self) -> "SqlAlchemyUnitOfWork":
+        self.session = self.session_factory()   # 원자적 작업 동안만 연결을 빌림
         self.items = ItemRepository(self.session)
         self._after_commit = []
-        return self
+        return super().__enter__()
 
-    def after_commit(self, hook):
+    def __exit__(self, *exc) -> None:
+        super().__exit__(*exc)                  # commit 하지 않았거나 예외면 rollback
+        self.session.close()
+
+    def after_commit(self, hook) -> None:
         self._after_commit.append(hook)
 
-    def __exit__(self, exc_type, exc, tb):
-        try:
-            if exc_type is None:
-                self.session.commit()
-            else:
-                self.session.rollback()
-        except Exception:
-            self.session.rollback()
-            raise
-        finally:
-            self.session.close()
-        if exc_type is None:
-            for hook in self._after_commit:
-                try:
-                    hook()
-                except Exception:  # 캐시 실패로 이미 커밋된 요청을 실패시키지 않는다 — TTL 이 안전망
-                    logger.exception("after-commit hook failed")
+    def commit(self) -> None:
+        self.session.commit()
+        hooks, self._after_commit = self._after_commit, []
+        for hook in hooks:                      # 커밋이 성공한 뒤에만
+            try:
+                hook()
+            except Exception:  # 캐시 실패로 이미 커밋된 요청을 실패시키지 않는다 — TTL 이 안전망
+                logger.exception("after-commit hook failed")
+
+    def rollback(self) -> None:
+        self._after_commit = []
+        self.session.rollback()
 
 # app/services/items.py
-def update_item(uow: UnitOfWork, cache: Cache, item_id: int, data: ItemUpdate) -> ItemRead:
-    with uow:
-        item = uow.items.get_for_update(item_id)  # 없으면 도메인 예외 NotFound
-        item.apply(data)
-        result = ItemRead.model_validate(item)   # 세션이 닫히기 전에 DTO 로
-        uow.after_commit(lambda: cache.delete(f"item:{item_id}"))
-    return result
+class ItemService:
+    def __init__(self, uow: AbstractUnitOfWork, cache: Cache) -> None:
+        self.uow, self.cache = uow, cache
+
+    def update(self, item_id: int, data: ItemUpdate) -> ItemRead:
+        with self.uow:
+            item = self.uow.items.get_for_update(item_id)  # 없으면 도메인 예외 NotFound
+            item.apply(data)
+            result = ItemRead.model_validate(item)          # 세션이 닫히기 전에 DTO 로
+            self.uow.after_commit(lambda: self.cache.delete(f"item:{item_id}"))
+            self.uow.commit()
+        return result
 ```
 
 - repository·라우터에서 `commit()` 을 부르지 않는다. 한 요청에서 UoW 를 중첩하지 않는다.

@@ -62,6 +62,7 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
   - `fastapi-testing` 단위·API·통합 3계층 테스트, 같은 환경(conftest 픽스처), 테스트 하나에 동작 하나(흐름 테스트만 예외)
   - `fastapi-security` 설계(보안 경계)·구현(안전한 기본값)·검토(OWASP API Top 10 대조표)
   - `work-memory` 전체 작업·하위 작업·결정을 `stage.js task`·`log`로 기록하고, 세션 시작·압축 후 카드에 다시 넣음
+  - `design-patterns` 설계 목적·명세 확보 → 소형·중형·대형·마이크로서비스 판정 → 그 규모에서 대중적인 패턴만 선택. 라우터(컨트롤러)는 Service 만 받고 DB 연결은 Unit of Work(트랜잭션) 안에서만 씀(느슨한 결합, FastAPI·CodeIgniter 4). Builder·Abstract Factory 는 조건을 충족할 때만, 읽기 쉬움이 최우선
   - `infra-resilience` MySQL·PostgreSQL·Redis·Memcached·Elasticsearch 같은 외부 자원의 등록·주입·해제, Unit of Work 원자성, 멱등성(Idempotency-Key), DTO 경계와 롤백·멱등 필수 테스트(FastAPI·순수 PHP·CodeIgniter). 요구사항에 이런 자원이 나오면 완료 확인이 설계 절과 테스트를 봅니다
 - **하지 않는 일:** 원격 저장소 작업, 데이터 삭제, 사용자 전용 명령(`/plugin`, `/mcp` 등)은 자동 모드에서도 하지 않습니다.
 

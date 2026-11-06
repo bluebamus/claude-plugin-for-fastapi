@@ -27,7 +27,10 @@ description: FastAPI 프로젝트와 PHP(순수 PHP·CodeIgniter 4·3) 프로젝
 | 단위·API·통합 테스트 3계층, 같은 환경(pytest conftest / phpunit.xml.dist·DatabaseTestTrait), 테스트 하나에 동작 하나(흐름 테스트만 예외) | `stage-pilot:fastapi-testing` / `stage-pilot:php-testing` | 계획·보호 테스트·구현·검증 |
 | 보안 경계(설계) → 안전한 기본값(구현) → OWASP 대조표(검토) | `stage-pilot:fastapi-security` / `stage-pilot:php-security` | 기획·설계·구현·보안 |
 | 전체 작업·하위 작업·결정의 지속 기록 | `stage-pilot:work-memory` | 준비·계획·구현·마무리 |
+| 설계 목적·명세 확보 → 규모(소형·중형·대형·마이크로서비스) 판정 → 그 규모에 맞는 대중적 패턴, 라우터는 Service 만·DB 세션은 UoW 안에서만, Builder·Abstract Factory 는 조건 충족 시만, 읽기 쉬움 최우선 | `stage-pilot:design-patterns` | 기획·설계·구현·검증 |
 | 외부 자원(MySQL·PostgreSQL·Redis·Memcached·Elasticsearch)의 등록·주입·해제, Unit of Work 원자성, 멱등성, DTO 경계, 롤백·멱등 필수 테스트 | `stage-pilot:infra-resilience` | 기획·설계·구현·검증 |
+
+**설계 목적·명세 질문:** 기획·설계 단계에서 규모 판정에 필요한 정보(목적·도메인 수·쓰기 흐름 복잡도·팀·배포 단위·트래픽)가 의뢰서로 확인되지 않으면, 일반 모드에서는 `AskUserQuestion` 으로 빠진 것만 묻는다(한 번에 최대 4개, 권장안 표시). 자동 승인 모드에서는 묻지 않고 기본 가정으로 진행하며 `stage.js log "가정: …"` 과 요구사항 문서 「가정」 절에 남긴다. 신규 트랙 설계 단계 `check`는 설계 문서의 「규모 판정」·「패턴 결정」·「쓰지 않은 패턴」 절을 확인한다.
 
 요구사항에 이런 외부 자원이 나오면 `check`가 설계 문서의 "자원 수명주기·원자성·멱등" 절, 작업 계획의 롤백·멱등 테스트, 테스트 본문의 `rollback`·`idempot`(또는 롤백·멱등)을 확인한다(`ifHas`·`testsHas`). 레거시 트랙은 명세·설계에 멱등 키·롤백을 약속했을 때 그 테스트를 확인한다.
 

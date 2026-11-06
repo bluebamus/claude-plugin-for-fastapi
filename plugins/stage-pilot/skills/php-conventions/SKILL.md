@@ -77,7 +77,7 @@ tests/unit/ tests/feature/ tests/database/
 | 패턴 | CI4 관용 형태 |
 |---|---|
 | 얇은 컨트롤러 | 입력 검증(`$this->validate()` 또는 Validation 서비스) → Service 호출 → `respond()`/`respondCreated()`/`failNotFound()` |
-| Service layer | 규칙이 하나라도 있으면 `app/Services/XService.php`. 트랜잭션은 `$db->transException(true)->transStart()`… `transComplete()` |
+| Service layer | 규칙이 하나라도 있으면 `app/Services/XService.php`, `ConfigServices` 에서 연결·Model 을 생성자로 넘겨 조립, 컨트롤러는 Service 만 부름(→ design-patterns §9). 트랜잭션은 `$db->transException(true)->transStart()`… `transComplete()` |
 | Unit of Work | DB 쓰기가 있으면 항상: Service 메서드 하나 = 트랜잭션 하나, 예외면 `transRollback()` 후 다시 던짐, 캐시 삭제·색인은 `transComplete()` 뒤(→ infra-resilience §8) |
 | DTO | 항상: `final readonly class PlaceOrder` + `fromArray()` 에서 검증, 응답도 DTO(`OrderView`). 연관 배열을 계층 사이로 넘기지 않음 |
 | 외부 자원 | `Config\Database` 그룹·`Config\Cache`(redis·memcached)·`Config\Services` 공유 인스턴스(phpredis·Elasticsearch), 값은 `.env` |
