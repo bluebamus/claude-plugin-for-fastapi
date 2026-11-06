@@ -60,6 +60,7 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
   - `fastapi-testing` 단위·API·통합 3계층 테스트, 같은 환경(conftest 픽스처), 테스트 하나에 동작 하나(흐름 테스트만 예외)
   - `fastapi-security` 설계(보안 경계)·구현(안전한 기본값)·검토(OWASP API Top 10 대조표)
   - `work-memory` 전체 작업·하위 작업·결정을 `stage.js task`·`log`로 기록하고, 세션 시작·압축 후 카드에 다시 넣음
+  - `infra-resilience` MySQL·PostgreSQL·Redis·Memcached·Elasticsearch 같은 외부 자원의 등록·주입·해제(lifespan), Unit of Work 원자성, 멱등성(Idempotency-Key), DTO 경계와 롤백·멱등 필수 테스트. 요구사항에 이런 자원이 나오면 완료 확인이 설계 절과 테스트를 봅니다
 - **하지 않는 일:** 원격 저장소 작업, 데이터 삭제, 사용자 전용 명령(`/plugin`, `/mcp` 등)은 자동 모드에서도 하지 않습니다.
 
 자세한 사용법은 **[stage-pilot 사용 매뉴얼 v0.3.2](docs/manual/stage-pilot-manual-v0.3.2.html)** 에 있습니다. 이전 판은 [v0.2.0](docs/manual/stage-pilot-manual-v0.2.0.html)입니다. 명령 요약은 [plugins/stage-pilot/README.md](plugins/stage-pilot/README.md)에도 있습니다.
