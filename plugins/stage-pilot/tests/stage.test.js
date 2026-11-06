@@ -113,13 +113,13 @@ test('check: 문서 내용·ID 추적·.claude 승인 대기 초안을 확인하
   const cwd = tmp();
   execFileSync('node', [SCRIPT, 'set', 'new', '4', '--cwd', cwd]);
   put(cwd, 'docs/project/01-requirements.md', 'R-1 목록 조회\nR-2 예약 생성\n');
-  put(cwd, 'docs/project/04-work-plan.md', '| T-1 | R-1 | 선행 없음 | 완료 기준: 테스트 | 위험 낮음 |\n');
+  put(cwd, 'docs/project/04-work-plan.md', '| T-1 | R-1 | 선행 없음 | 완료 기준: 단위·API·통합 테스트 | 위험 낮음 |\n');
   writeReport(cwd, 'greenfield', '4');
   const r1 = S.check(map, { profile: 'greenfield' }, '4', cwd);
   assert.deepStrictEqual(r1.map((r) => r.ok), [true, false, true]);
   assert.match(r1[1].why, /R-2/, '계획에 빠진 요구사항 ID 를 알려 줌');
   assert.throws(() => execFileSync('node', [SCRIPT, 'next', '--cwd', cwd], { stdio: 'pipe' }));
-  put(cwd, 'docs/project/04-work-plan.md', '| T-1 | R-1 | 선행 없음 | 완료 기준 | 위험 |\n| T-2 | R-2 | T-1 | 완료 기준 | 위험 |\n');
+  put(cwd, 'docs/project/04-work-plan.md', '| T-1 | R-1 | 선행 없음 | 완료 기준 | 위험 |\n| T-2 | R-2 | T-1 | 완료 기준(통합) | 위험 |\n');
   execFileSync('node', [SCRIPT, 'next', '--cwd', cwd]);
   const st = JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'stage-pilot', 'state.json'), 'utf8'));
   assert.strictEqual(st.profile, 'greenfield', '별칭 new 는 greenfield 로 저장');
@@ -478,4 +478,119 @@ test('cmd 토큰: {python} 은 프로젝트 인터프리터(uv → venv → pyth
   put(cwd, 'uv.lock', '');
   assert.strictEqual(S.pythonCommand(cwd), 'uv run python');
   assert.ok(S.runCheck(tmp(), {}, { cmd: '{python} --version' }).ok, '기본 python 실행');
+});
+
+// ── 작업 메모리(task) ──
+const startTrack = () => { const cwd = tmp(); execFileSync('node', [SCRIPT, 'set', 'greenfield', '0', '--cwd', cwd]); return cwd; };
+const run = (cwd, ...a) => execFileSync('node', [SCRIPT, ...a, '--cwd', cwd]).toString();
+const stateOf = (cwd) => JSON.parse(fs.readFileSync(path.join(cwd, '.claude', 'stage-pilot', 'state.json'), 'utf8'));
+
+test('task add 는 W- 번호를 차례로 매긴다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '로그인 API');
+  run(cwd, 'task', 'add', '회원 가입 API');
+  assert.deepStrictEqual(stateOf(cwd).tasks.map((t) => t.id), ['W-1', 'W-2']);
+});
+
+test('task add --parent 는 하위 작업으로 기록한다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'add', '토큰 발급', '--parent', 'W-1');
+  assert.strictEqual(stateOf(cwd).tasks[1].parent, 'W-1');
+});
+
+test('없는 상위 작업을 주면 거부한다', () => {
+  const cwd = startTrack();
+  assert.throws(() => execFileSync('node', [SCRIPT, 'task', 'add', 'x', '--parent', 'W-9', '--cwd', cwd], { stdio: 'pipe' }));
+});
+
+test('하위 작업이 열려 있으면 상위 작업을 done 할 수 없다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'add', '토큰 발급', '--parent', 'W-1');
+  assert.throws(() => execFileSync('node', [SCRIPT, 'task', 'done', 'W-1', '--cwd', cwd], { stdio: 'pipe' }));
+});
+
+test('task done 은 상태와 메모를 남긴다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'done', 'W-1', 'pytest', '통과');
+  assert.deepStrictEqual([stateOf(cwd).tasks[0].status, stateOf(cwd).tasks[0].note], ['done', 'pytest 통과']);
+});
+
+test('세션 카드에 열린 작업이 다시 보인다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'start', 'W-1');
+  assert.match(hook('session', { cwd }), /\[>\] W-1 인증/);
+});
+
+test('세션 카드에 끝난 작업은 목록으로 나오지 않는다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'done', 'W-1');
+  assert.doesNotMatch(hook('session', { cwd }), /\[x\] W-1/);
+});
+
+test('세션 카드에 최근 결정이 보인다', () => {
+  const cwd = startTrack();
+  run(cwd, 'log', '설계안 B 채택');
+  assert.match(hook('session', { cwd }), /최근 결정: \[0\] 설계안 B 채택/);
+});
+
+test('task list 는 하위 작업을 들여 쓴다', () => {
+  const cwd = startTrack();
+  run(cwd, 'task', 'add', '인증');
+  run(cwd, 'task', 'add', '토큰 발급', '--parent', 'W-1');
+  assert.match(run(cwd, 'task', 'list'), /\n {2}\[ \] W-2 토큰 발급/);
+});
+
+test('단계가 부르는 stage-pilot 스킬은 모두 skills/ 에 있다', () => {
+  const refs = new Set(Object.values(map.profiles).flatMap((p) => p.stages.flatMap((s) => s.run.map((r) => r.ref))).filter((r) => r.startsWith('stage-pilot:')));
+  for (const r of refs) assert.ok(fs.existsSync(path.join(__dirname, '..', 'skills', r.split(':')[1], 'SKILL.md')), `${r} 스킬 없음`);
+});
+
+// ── 역할 ──
+test('모든 단계에 역할이 있다', () => {
+  for (const [name, p] of Object.entries(map.profiles)) for (const s of p.stages) assert.ok(s.role, `${name}/${s.id} 역할 없음`);
+});
+
+test('카드에 역할과 공통 기준이 보인다', () => {
+  const cwd = startTrack();
+  assert.match(run(cwd, 'status'), /역할: .+\n[\s\S]*공통 기준: /);
+});
+
+// ── PHP 신규 트랙 ──
+const empty = { kind: 'new', py: 0, php: 0, tests: 0 };
+
+test('CodeIgniter 를 말한 새 프로젝트 요청은 greenfield-php 를 추천한다', () => {
+  assert.strictEqual(S.intake(map, 'BRIEF.md 로 새 CodeIgniter 4 프로젝트를 처음부터 시작하려고 해', empty).profile, 'greenfield-php');
+});
+
+test('PHP 를 말하지 않은 새 프로젝트 요청은 greenfield 를 추천한다', () => {
+  assert.strictEqual(S.intake(map, 'BRIEF.md 로 새 FastAPI 프로젝트를 처음부터 시작하려고 해', empty).profile, 'greenfield');
+});
+
+test('graphql 같은 단어 속 php 는 PHP 요청으로 보지 않는다', () => {
+  assert.strictEqual(S.intake(map, '새 프로젝트를 처음부터 시작, graphphpx 라이브러리', empty).profile, 'greenfield');
+});
+
+test('PHP 신규 트랙 구현 단계의 주 플러그인은 php-lsp 다', () => {
+  assert.ok(S.findStage(map, 'greenfield-php', '5').s.primary.includes('php-lsp'));
+});
+
+test('PHP 신규 트랙 기술 선정은 composer.lock 이 없으면 통과하지 않는다', () => {
+  const cwd = tmp();
+  put(cwd, 'docs/project/03-tech-stack.md', '버전 대안 근거 R-1');
+  put(cwd, 'composer.json', '{"require-dev": {"phpunit/phpunit": "^10"}}');
+  put(cwd, 'phpcs.xml', '<ruleset/>');
+  writeReport(cwd, 'greenfield-php', '3');
+  const lock = S.check(map, { profile: 'greenfield-php' }, '3', cwd).find((r) => /composer\.lock/.test(r.label));
+  assert.strictEqual(lock.ok, false);
+});
+
+test('별칭 new-php 는 greenfield-php 로 저장된다', () => {
+  const cwd = tmp();
+  run(cwd, 'set', 'new-php', '0');
+  assert.strictEqual(stateOf(cwd).profile, 'greenfield-php');
 });

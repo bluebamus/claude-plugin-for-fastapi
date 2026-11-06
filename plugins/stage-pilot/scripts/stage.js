@@ -4,6 +4,7 @@
 //       node stage.js status|profiles|detect|next [--force]|set <profile> [stage] [--auto] [--work NAME] [--test "CMD"]
 //                     |auto on|off|log <결정>|skip <ref> <근거>|fallback <ref> <이유>|reuse <ref> <앞 단계·산출물>|consent <사용자 원문>
 //                     |plan [stage]|check [stage] [--cwd DIR]
+//                     |task add <제목> [--parent W-n]|task start|done|block <W-n> [메모]|task list
 'use strict';
 const fs = require('fs');
 const os = require('os');
@@ -79,6 +80,7 @@ function card(map, profile, id, installed, st = {}) {
   const lines = [
     `■ stage-pilot · ${p.title}${view.work ? ` · 작업: ${view.work}` : ''}`,
     `현재: ${s.id}단계 — ${s.title}  (${p.doc}${s.anchor})`,
+    ...(s.role ? [`역할: ${s.role}`] : []),
     `주 플러그인: ${s.primary.join(', ') || '-'}`,
     `보조: ${s.assist.join(', ') || '-'}`,
     ...s.conditional.map((c) => `조건부: ${c.plugin} — ${c.when}`),
@@ -89,10 +91,64 @@ function card(map, profile, id, installed, st = {}) {
     `모드: ${st.auto ? '자동 승인 — 승인 지점에서 멈추지 않고 기본 원칙으로 결정한 뒤 log 로 기록' : '제안 (승인 지점에서 멈춤)'}`,
     `비용 승인 기록: ${(st.consent || []).length ? (st.consent || []).map((c) => `"${c.text}" (${c.at.slice(0, 10)})`).join(' / ') : '없음 — 비용 확인을 요구하는 스캔(claude-security)은 사용자가 직접 승인해야 실행'}`,
   ];
+  if (map.standards) lines.push(`공통 기준: ${map.standards}`);
+  lines.push(...memoryLines(st));
   if (p.workspace_note) lines.push(`주의: ${p.workspace_note}`);
   for (const m of miss) lines.push(`미설치(설치 목록 기준, --plugin-dir 로 불러온 것은 반영 안 됨): ${m.name} → ${m.marketplace ? m.marketplace + ' 후 ' : ''}/plugin install ${m.install}`);
   lines.push(next ? `다음: ${next.id}단계 — ${next.title}` : '다음: 없음(이 트랙의 마지막 단계)');
   return lines.join('\n');
+}
+
+// 작업 메모리: 세션이 바뀌거나 대화가 압축돼도 전체 작업·하위 작업과 최근 결정이 카드로 다시 들어온다
+const OPEN = ['doing', 'blocked', 'todo'];
+const TASK_MARK = { todo: '[ ]', doing: '[>]', blocked: '[!]', done: '[x]' };
+function memoryLines(st) {
+  const open = (st.tasks || []).filter((t) => OPEN.includes(t.status))
+    .sort((a, b) => OPEN.indexOf(a.status) - OPEN.indexOf(b.status));
+  const done = (st.tasks || []).length - open.length;
+  const out = [];
+  if ((st.tasks || []).length) {
+    out.push(`작업 메모리: 열린 작업 ${open.length}개 · 끝난 작업 ${done}개 (stage.js task list)`);
+    for (const t of open.slice(0, 8)) out.push(`  ${TASK_MARK[t.status]} ${t.id}${t.parent ? ` (↳${t.parent})` : ''} ${t.title}${t.note ? ` — ${t.note}` : ''}`);
+    if (open.length > 8) out.push(`  … 외 ${open.length - 8}개`);
+  }
+  const recent = (st.decisions || []).slice(-3);
+  if (recent.length) out.push(`최근 결정: ${recent.map((d) => `[${d.stage}] ${d.text}`).join(' / ')}`);
+  return out;
+}
+
+function taskCmd(st, argv) {
+  const [, sub, ...rest] = positional(argv);
+  const tasks = [...(st.tasks || [])];
+  if (sub === 'add') {
+    const title = rest.join(' ').trim();
+    const parent = argValue(argv, '--parent');
+    if (!title) return { msg: '사용: stage.js task add <제목> [--parent W-n]', code: 1 };
+    if (parent && !tasks.some((t) => t.id === parent)) return { msg: `없는 상위 작업: ${parent}`, code: 1 };
+    const id = `W-${tasks.reduce((m, t) => Math.max(m, Number(t.id.slice(2)) || 0), 0) + 1}`;
+    tasks.push({ id, title, ...(parent ? { parent } : {}), profile: st.profile, stage: st.stage, ...(st.work ? { work: st.work } : {}), status: 'todo', at: new Date().toISOString() });
+    return { st: { ...st, tasks }, msg: `작업 추가: ${id} ${title}${parent ? ` (상위 ${parent})` : ''}` };
+  }
+  if (['start', 'done', 'block'].includes(sub)) {
+    const [id, ...note] = rest;
+    const t = tasks.find((x) => x.id === id);
+    if (!t) return { msg: `사용: stage.js task ${sub} <W-n> [메모] — 없는 작업: ${id || '(빈 값)'}`, code: 1 };
+    const status = { start: 'doing', done: 'done', block: 'blocked' }[sub];
+    // 하위 작업이 열려 있으면 상위 작업을 끝낼 수 없다 — 끝난 것처럼 보이는 상위 작업이 남은 일을 가린다
+    const openKids = tasks.filter((x) => x.parent === id && x.status !== 'done');
+    if (status === 'done' && openKids.length) return { msg: `${id} 의 하위 작업이 열려 있음: ${openKids.map((x) => x.id).join(', ')}`, code: 1 };
+    Object.assign(t, { status, ...(note.length ? { note: note.join(' ') } : {}), updated: new Date().toISOString() });
+    return { st: { ...st, tasks }, msg: `${id} → ${status}${t.note ? ` — ${t.note}` : ''}` };
+  }
+  if (sub === 'list' || !sub) {
+    if (!tasks.length) return { msg: '작업 없음 — stage.js task add <제목> [--parent W-n]' };
+    const line = (t, depth) => `${'  '.repeat(depth)}${TASK_MARK[t.status]} ${t.id} ${t.title} [${t.profile} ${t.stage}${t.work ? ` · ${t.work}` : ''}]${t.note ? ` — ${t.note}` : ''}`;
+    const out = [];
+    const walkT = (parent, depth) => { for (const t of tasks.filter((x) => (x.parent || null) === parent)) { out.push(line(t, depth)); walkT(t.id, depth + 1); } };
+    walkT(null, 0);
+    return { msg: out.join('\n') };
+  }
+  return { msg: '사용: stage.js task add|start|done|block|list', code: 1 };
 }
 
 // 요청 문장을 단계 키워드와 대조해 가장 많이 맞는 단계를 고른다.
@@ -156,7 +212,9 @@ function intake(map, prompt, info) {
   const auto = /자동 ?승인|자동으로|(?<![\w-])auto(?![\w-])/.test(text);
   // 키워드가 없으면 레거시 트랙을 짐작하지 않는다 — 기능 추가 요청을 리팩토링으로 안내한 사례가 있었다
   if (!hit && info.kind !== 'new') return { profile: null, auto };
-  const name = hit ? hit.name : 'greenfield';
+  let name = hit ? hit.name : 'greenfield';
+  // 신규 트랙은 언어별로 나뉜다 — PHP·CodeIgniter 를 말한 새 프로젝트 요청은 PHP 신규 트랙
+  if (name === 'greenfield' && map.profiles['greenfield-php'] && /\bphp\b|codeigniter|코드이그나이터|\bci4\b|\bcomposer\b/.test(text)) name = 'greenfield-php';
   return { profile: name, mismatch: map.profiles[name].kind !== info.kind, auto };
 }
 
@@ -224,7 +282,7 @@ function plan(map, st, id) {
   const { s } = findStage(map, st.profile, id);
   const view = (r) => ({ ...r, ...(r.note ? { note: sub(r.note, st) } : {}) });
   return {
-    profile: st.profile, stage: s.id, title: s.title, work: workOf(st), approval: s.approval, done: s.done,
+    profile: st.profile, stage: s.id, title: s.title, ...(s.role ? { role: s.role } : {}), work: workOf(st), approval: s.approval, done: s.done,
     invoke: s.run.filter((r) => INVOKE.includes(r.type)).map(view),
     other: s.run.filter((r) => !INVOKE.includes(r.type)).map(view),
     checks: [...(s.checks || []).map((c) => fmtCheck(c, st)), `단계 보고서 ${reportPath(st, s.id)}${s.report ? ` (${s.report.join(' · ')} 절 포함)` : ''}`],
@@ -384,7 +442,7 @@ function argValue(argv, flag) {
   const i = argv.indexOf(flag);
   return i >= 0 ? argv[i + 1] : undefined;
 }
-const positional = (argv) => argv.filter((a, i) => !a.startsWith('--') && !['--cwd', '--work', '--test'].includes(argv[i - 1]));
+const positional = (argv) => argv.filter((a, i) => !a.startsWith('--') && !['--cwd', '--work', '--test', '--parent'].includes(argv[i - 1]));
 
 function main(argv) {
   const cmd = argv[0];
@@ -406,7 +464,7 @@ function main(argv) {
   }
   if (cmd === 'detect') {
     const info = detect(cwd);
-    console.log(JSON.stringify({ ...info, suggest: info.kind === 'new' ? ['greenfield'] : ['feature', 'default', 'enhance'] }));
+    console.log(JSON.stringify({ ...info, suggest: info.kind === 'new' ? ['greenfield', 'greenfield-php'] : ['feature', 'default', 'enhance'] }));
     return 0;
   }
   if (cmd === 'set') {
@@ -491,13 +549,19 @@ function main(argv) {
     console.log(`비용 승인 기록: "${text}"`);
     return 0;
   }
+  if (cmd === 'task') {
+    const r = taskCmd(st, argv);
+    if (r.st) writeState(cwd, r.st);
+    console.log(r.msg);
+    return r.code || 0;
+  }
   if (cmd === 'plan') { console.log(JSON.stringify(plan(map, st, positional(argv)[1] || st.stage), null, 2)); return 0; }
   if (cmd === 'status' || !cmd) { console.log(card(map, st.profile, st.stage, installedPlugins(), st)); return 0; }
-  console.log('사용: stage.js status|profiles|detect|next [--force]|set <profile> [stage] [--auto] [--work NAME] [--test "CMD"]|auto on|off|log <결정>|skip <ref> <근거>|fallback <ref> <이유>|reuse <ref> <앞 단계·산출물>|consent <원문>|plan [stage]|check [stage] [--cwd DIR]');
+  console.log('사용: stage.js status|profiles|detect|next [--force]|set <profile> [stage] [--auto] [--work NAME] [--test "CMD"]|auto on|off|log <결정>|skip <ref> <근거>|fallback <ref> <이유>|reuse <ref> <앞 단계·산출물>|consent <원문>|plan [stage]|check [stage] [--cwd DIR]|task add|start|done|block|list');
   return 1;
 }
 
-module.exports = { loadMap, card, matchStage, runHook, missingFor, findStage, plan, detect, intake, check, runCheck, fmtCheck, pythonCommand, sub, testCommand, main };
+module.exports = { memoryLines, taskCmd, loadMap, card, matchStage, runHook, missingFor, findStage, plan, detect, intake, check, runCheck, fmtCheck, pythonCommand, sub, testCommand, main };
 if (require.main === module) {
   try { process.exitCode = main(process.argv.slice(2)); } catch (e) { console.error(e.message); process.exitCode = 1; }
 }

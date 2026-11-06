@@ -492,6 +492,22 @@ claude plugin install legacy-onboarding-manual@claude-plugin-for-fastapi</code><
   <li><strong>superpowers:finishing-a-development-branch</strong>(스킬) — 브랜치를 정리합니다. 로컬 병합만 하고 push·PR은 하지 않습니다.</li>
 </ul>
 <p><strong>완료 확인.</strong> CLAUDE.md가 있고, 테스트가 통과하고, 커밋되지 않은 변경이 없어야 합니다(<code>.claude/</code> 아래는 제외).</p>
+
+<h3 id="gp">PHP 신규 프로젝트 트랙 (<code>greenfield-php</code>, 별칭 <code>new-php</code>) — v0.4.0</h3>
+<p>빈 폴더에서 PHP·CodeIgniter 를 말한 새 프로젝트 요청이 오면 이 트랙을 추천합니다. 단계 구성은 FastAPI 신규 트랙과 같고, 도구와 확인 기준만 PHP 에 맞춥니다. 단계마다 <strong>역할</strong>이 카드에 나오고, <code>stage-pilot:php-conventions</code>·<code>php-testing</code>·<code>php-security</code>·<code>work-memory</code> 스킬이 배정돼 있습니다. 순수 PHP 와 CodeIgniter 4 를 모두 다루고, CodeIgniter 3 레거시는 레거시 트랙에서 다룹니다.</p>
+<table>
+<tr><th>단계</th><th>역할</th><th>PHP 에서 달라지는 점</th></tr>
+<tr id="gp-0"><td>0 준비</td><td>개발 환경 책임자</td><td>hookify 규칙 require-phpunit-before-stop, <code>.gitignore</code> 에 <code>vendor/</code>(CI4 는 <code>writable/</code>·<code>.env</code> 도)</td></tr>
+<tr id="gp-1"><td>1 기획</td><td>요구사항 분석가</td><td>보안 NFR(인증·CSRF·권한·비밀값)을 요구사항에 포함</td></tr>
+<tr id="gp-2"><td>2 설계</td><td>소프트웨어 아키텍트</td><td>CI4: Controller → Service → Model(Entity), 순수 PHP: front controller → Controller → Service → Repository(PDO). 설계 문서에 보안 경계 표</td></tr>
+<tr id="gp-3"><td>3 기술 선정</td><td>기술 리드</td><td><code>composer create-project codeigniter4/appstarter</code> 또는 <code>composer init</code>+PSR-4, <code>composer require --dev phpunit/phpunit squizlabs/php_codesniffer</code>, <code>phpcs.xml</code>(PSR-12). 완료 확인: composer.json 의 phpunit, composer.lock, phpcs.xml</td></tr>
+<tr id="gp-4"><td>4 작업 계획</td><td>테크 리드(계획)</td><td>작업마다 단위·API(Feature)·통합(Database) 테스트 완료 기준, <code>stage.js task add</code></td></tr>
+<tr id="gp-5"><td>5 구현</td><td>백엔드 개발자(TDD)</td><td>주 플러그인 <code>php-lsp</code>(intelephense). 완료 확인: phpunit 통과, <code>tests/unit</code>·<code>tests/feature</code>(또는 api)·<code>tests/integration</code>(또는 database), <code>php vendor/bin/phpcs</code>, 보고서 「테스트 계층」</td></tr>
+<tr id="gp-6"><td>6 검증</td><td>코드 리뷰어·QA</td><td>테스트 품질(한 테스트에 동작 하나), phpcs</td></tr>
+<tr id="gp-7"><td>7 보안</td><td>애플리케이션 보안 엔지니어</td><td><code>php-security</code> 점검표(CSRF·<code>esc()</code>·쿼리 바인딩·세션·업로드) 대조, insecure-defaults·semgrep(로컬, 설치 시)</td></tr>
+<tr id="gp-8"><td>8 마무리</td><td>릴리스 담당</td><td>열린 작업이 없는지 <code>task list</code> 확인 후 커밋</td></tr>
+</table>
+<p><strong>작업 메모리.</strong> <code>stage.js task add "&lt;T-n 제목&gt;" [--parent W-n]</code>, <code>task start|done|block &lt;W-n&gt;</code>, <code>task list</code>. 열린 작업과 최근 결정은 세션 시작·재개·압축 후 단계 카드에 다시 나옵니다.</p>
 </section>
 
 <!-- ============ 7 ============ -->
