@@ -16,7 +16,7 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
 
 | 플러그인 | 버전 | 언제 쓰나 | 결과물 |
 |---|---|---|---|
-| `stage-pilot` | 0.3.7 | 신규 FastAPI 프로젝트를 만들거나, 레거시에 기능 추가·리팩토링·고도화를 할 때 | 단계별 문서(`docs/`), 단계 보고서, 완료 확인을 통과한 코드와 커밋 |
+| `stage-pilot` | 0.4.0 | 신규 FastAPI 프로젝트를 만들거나, 레거시에 기능 추가·리팩토링·고도화를 할 때 | 단계별 문서(`docs/`), 단계 보고서, 완료 확인을 통과한 코드와 커밋 |
 | `legacy-onboarding-manual` | 0.1.2 | 레거시 프로젝트를 처음 맡아 코드를 만지기 전에 구조와 동작을 파악할 때 | `docs/onboarding/<이름>-onboarding-manual.html` 한 파일 |
 | `api-contract-guard` | 0.1.0 | 리팩토링·기능 추가로 API 응답·요청 형태가 몰래 바뀌지 않게 지킬 때 | `tests/contract/openapi.json` 스냅샷, 삭제·변경 판정, 인증 근거 없는 엔드포인트 목록 |
 | `alembic-migration-guard` | 0.1.0 | Alembic 마이그레이션을 만들거나 고칠 때 | 위험 리비전 목록(`파일:줄`), 로컬 왕복 결과, 원격 DB 대상 실행 차단 |
@@ -55,6 +55,11 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
   - 호출한 플러그인과 결과를 담은 단계 보고서
   - 자동 결정과 근거
   - `.claude/` 쓰기가 막혔을 때의 승인 대기 초안
+- **역할과 전문 스킬:** 단계마다 맡는 역할(요구사항 분석가·아키텍트·TDD 개발자·QA·보안 엔지니어 등)이 카드에 나오고, 이 플러그인의 전문 스킬이 단계에 배정됩니다.
+  - `fastapi-conventions` 대중적인 구조·스타일·설계 패턴, uv add·sync 패키지 관리
+  - `fastapi-testing` 단위·API·통합 3계층 테스트, 같은 환경(conftest 픽스처), 테스트 하나에 동작 하나(흐름 테스트만 예외)
+  - `fastapi-security` 설계(보안 경계)·구현(안전한 기본값)·검토(OWASP API Top 10 대조표)
+  - `work-memory` 전체 작업·하위 작업·결정을 `stage.js task`·`log`로 기록하고, 세션 시작·압축 후 카드에 다시 넣음
 - **하지 않는 일:** 원격 저장소 작업, 데이터 삭제, 사용자 전용 명령(`/plugin`, `/mcp` 등)은 자동 모드에서도 하지 않습니다.
 
 자세한 사용법은 **[stage-pilot 사용 매뉴얼 v0.3.2](docs/manual/stage-pilot-manual-v0.3.2.html)** 에 있습니다. 이전 판은 [v0.2.0](docs/manual/stage-pilot-manual-v0.2.0.html)입니다. 명령 요약은 [plugins/stage-pilot/README.md](plugins/stage-pilot/README.md)에도 있습니다.
@@ -182,7 +187,14 @@ stage-pilot의 **수행 모드**는 단계마다 다른 플러그인을 호출�
 /plugin install context7@claude-plugins-official         # 선택: 외부 문서 조회를 허용하는 프로젝트만
 /plugin marketplace add DietrichGebert/ponytail          # 선택: 과설계 점검
 /plugin install ponytail@ponytail
+/plugin marketplace add trailofbits/skills               # 선택: Trail of Bits 보안·파이썬 스킬(로컬 실행)
+/plugin install insecure-defaults@trailofbits
+/plugin install differential-review@trailofbits
+/plugin install modern-python@trailofbits
+/plugin install static-analysis@trailofbits              # semgrep CLI 가 있을 때
 ```
+
+채택 근거와 채택하지 않은 후보는 [플러그인 재검토(main)](docs/plugin-review/main-2026-11.md)에 있습니다.
 
 목록의 출처와 각 플러그인의 쓰임은 [매뉴얼 3장](docs/manual/stage-pilot-manual-v0.3.2.html#install)에 있습니다.
 </details>
@@ -341,6 +353,7 @@ v0.2.0의 단계별 평가 도구(`eval/gen_legacy.py`, `eval/run_eval.py`)도 �
 | v0.3.0 | 최종본(판 L)으로 실전 6회차를 모두 통과했습니다(1~5회차 5회 연속, 6회차는 환경 손상을 바로잡은 뒤 재판정). 난이도는 중·상·최상이고, 회차마다 29~38단계를 진행했으며 테스트 재실행 결과는 82~1,237건 통과입니다. 평가 중 찾은 결함 6건은 플러그인에서 고쳤습니다. |
 | v0.3.1 | 평가에서 생성된 코드를 사람 리뷰어 관점으로 검토해, 약점을 완료 조건으로 바꿨습니다. 리뷰 단계는 남긴 `shortcut:`을 다시 보고 테스트가 `docs/work/`를 읽지 않게 하며, 레거시 커밋 단계는 릴리스 노트에 "배포 영향"을 적습니다. 바뀐 단계 7곳을 모두 지나는 실전 2회차(연쇄형 g6)를 다시 돌려 38단계 모두 통과했습니다(114분, 테스트 재실행 95건 통과). 다만 1회 확인이며 5회 연속 기준의 재평가는 아닙니다. |
 | v0.3.5 | 독립 검수로 찾은 결함 수정: 영어 단어 속 `auto`(예: autocomplete)를 자동 승인 요청으로 오인, 관계없는 요청에도 매번 폴더 전체를 훑어 큰 저장소에서 훅이 느려짐(`env/`·`build/` 등 제외 추가), 모노레포 하위 폴더에서 작업 트리 정리 확인이 항상 실패하고 git 저장소가 아니면 이유 없이 실패, "처리 단계" 같은 일반 단어에 트랙 안내가 끼어듦, 신규 1단계가 `NFR-`만으로 통과. legacy-onboarding-manual 0.1.2: 한국어 Windows 콘솔에서 검사기가 멈춤, 목차만으로 확인/추정 검사 통과, 본문의 "TODO" 설명을 자리표시자로 셈. 단위 테스트 22개 + 검사기 테스트 4개. |
+| v0.4.0 | 단계별 역할(`role`)·공통 기준(`standards`)과 전문 스킬 4종(fastapi-conventions·fastapi-testing·fastapi-security·work-memory)을 단계에 배정. 작업 메모리(`stage.js task add/start/done/block/list`, 세션 카드에 열린 작업·최근 결정). 신규 트랙 완료 확인에 `uv.lock`·테스트 3계층 폴더·`ruff`, 구현 단계 보고서에 「테스트 계층」 절. 플러그인 재검토로 Trail of Bits 스킬(insecure-defaults·differential-review·modern-python·static-analysis·supply-chain-risk-auditor)과 semgrep(조건부) 등록. 단위 테스트: stage-pilot 44 + perf 6. |
 | v0.3.7 | 완료 확인에 도구 명령(`cmd`)·조건부(`if`) 확인과 `{python}`·`{plugin:이름}`·`{base}`(트랙 시작 커밋) 토큰을 추가하고, 가드 플러그인 3개(api-contract-guard·alembic-migration-guard·fastapi-quality-gates)와 기준선 측정 스크립트(`perf.js`)를 단계에 연결. 훅 timeout 5→15초(Windows 고부하 시 출력 유실 방지). 단위 테스트: stage-pilot 32 + perf 6, 가드 34 + 11 + 5. 독립 검수 7회 + php 판 2회, 결함 29건(main 해당분) 반영(원격 DB 를 로컬로 오판하던 경로 포함). 실전 회차 재평가는 하지 않았습니다. |
 | v0.3.2 | README 명령으로 GitHub에서 설치한 두 플러그인을 실제 세션에서 확인했습니다. 그 과정에서 트랙 키워드가 없는 기능 추가 요청을 리팩토링으로 추천하는 문제를 찾아 고쳤습니다. |
 

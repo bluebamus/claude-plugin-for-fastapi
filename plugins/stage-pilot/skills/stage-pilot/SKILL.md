@@ -16,6 +16,32 @@ description: FastAPI 프로젝트를 워크플로 단계로 이끄는 지휘자.
 | 레거시 리팩토링 | `default` (별칭 `refactor`) | 동작은 그대로, 구조를 개선 | 진입 전 · 0~11 (통합 가이드) |
 | 레거시 고도화 | `enhance` (`--work <이름>`) | 성능·안정성·운영성·버전을 끌어올림 | 0 진단 · 1 목표·기준선 · 2 설계 · 3 보호 테스트 · 4 계획 · 5 실행 · 6 측정 · 7 보안·리뷰 · 8 커밋 |
 
+## 역할 · 공통 기준 · 전문 스킬
+
+단계마다 `role`(카드의 "역할:")이 있다. 그 단계에서는 그 역할의 관점으로 판단하고 말한다(예: 7단계는 "애플리케이션 보안 엔지니어"로서 발견을 분류). 모든 단계에 다음 **공통 기준**이 적용되고, 기준마다 이 플러그인의 전문 스킬이 단계 `run` 첫머리에 배정돼 있다.
+
+| 기준 | 스킬 | 주로 쓰는 단계 |
+|---|---|---|
+| 대중적인 코드 스타일·레이어·설계 패턴, uv add·sync 로만 패키지 관리 | `stage-pilot:fastapi-conventions` | 설계·기술 선정·구현·리팩토링 |
+| 단위·API·통합 테스트 3계층, 같은 환경(conftest 픽스처), 테스트 하나에 동작 하나(흐름 테스트만 예외) | `stage-pilot:fastapi-testing` | 계획·보호 테스트·구현·검증 |
+| 보안 경계(설계) → 안전한 기본값(구현) → OWASP 대조표(검토) | `stage-pilot:fastapi-security` | 기획·설계·구현·보안 |
+| 전체 작업·하위 작업·결정의 지속 기록 | `stage-pilot:work-memory` | 준비·계획·구현·마무리 |
+
+구현 단계 보고서에는 `## 테스트 계층` 절(계층 | 파일 | 개수 | 비고 + 실행 결과)이 있어야 `check`가 통과한다. 신규 트랙은 `tests/unit`·`tests/api`·`tests/integration` 폴더, `uv.lock`, `uv run ruff check .` 통과도 확인한다.
+
+### 에이전트 사용안
+
+| 상황 | 쓰는 것 | 규칙 |
+|---|---|---|
+| 탐색·설계·리뷰처럼 관점이 다른 검토 | `run`의 `agent` 항목(code-explorer·code-architect·architecture-critic·code-reviewer·silent-failure-hunter·security-auditor 등) | 서로 독립이면 한 메시지에서 병렬 호출. 프롬프트에 역할·대상 경로·앞 단계 문서·`W-` 작업 id 를 넣는다 |
+| 서로 다른 파일을 다루는 구현 작업 2개 이상 | `superpowers:subagent-driven-development` / `dispatching-parallel-agents` | 작업마다 완료 기준(테스트)을 함께 넘기고, 결과는 메인 세션이 검증한 뒤 `task done` |
+| 상태 파일 변경(`set`·`next`·`task`·`log`) | 메인 세션만 | 하위 에이전트는 상태 파일을 바꾸지 않는다(동시 쓰기 방지) |
+| 넓은 검색·로그 훑기 | 하위 에이전트(Explore 등) | 결론만 받아 단계 보고서에 근거로 적는다 |
+
+### 작업 메모리
+
+`stage.js task add "<T-n 제목>" [--parent W-n]`, `task start|done|block <W-n> ["메모"]`, `task list`. 열린 작업과 최근 결정 3개는 세션 시작·재개·압축 후 카드에 다시 들어온다. 자세한 절차는 `stage-pilot:work-memory`.
+
 ## 시작 — 트랙 고르기
 
 상태 파일이 없는 프로젝트에서 새 프로젝트·기능 추가·리팩토링·고도화 요청이 오면, 훅이 `[stage-pilot] 프로젝트 상태 … 추천 트랙 …`을 넣는다(직접 확인: `stage.js detect`).
