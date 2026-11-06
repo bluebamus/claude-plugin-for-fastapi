@@ -35,6 +35,8 @@ description: FastAPI 프로젝트를 워크플로 단계로 이끄는 지휘자.
 
 구현 단계 보고서에는 `## 테스트 계층` 절(계층 | 파일 | 개수 | 비고 + 실행 결과)이 있어야 `check`가 통과한다. 신규 트랙은 `tests/unit`·`tests/api`·`tests/integration` 폴더, `uv.lock`, `uv run ruff check .` 통과도 확인한다.
 
+**테스트 규칙(fastapi-testing):** 단위 테스트는 함수 하나의 기능만, API·통합 테스트는 거시적 목적 하나를 끝까지 확인하며 단위 테스트 결과에 기대지 않는다. 테스트 파일은 도메인별(모호하면 서비스 CRUD 단위)·독립 모듈별로 나누고, 계층별 `conftest.py`·Factory Fixture·Faker·stub/mock·Fake Repository·SQLite 를 쓴다. 신규 구현 단계 보고서에는 `## 커버리지` 절도 있어야 하고, `check`는 `pyproject.toml` 의 `[tool.pytest.ini_options]`·`--cov`·`[tool.coverage.*]`, 단위 테스트 파일 2개 이상, **테스트 문서** `docs/test-plan/index.html` 이 최신인지(`node "${CLAUDE_PLUGIN_ROOT}/scripts/test-plan.js" check`)를 본다. 문서는 테스트 docstring(첫 줄 목적, `준비:`·`실행:`·`확인:`)과 커버리지 결과로 `test-plan.js build` 가 만든다 — 맨 위 한눈에 보기 요약, 항목을 누르면 상세로 이동.
+
 ### 에이전트 사용안
 
 | 상황 | 쓰는 것 | 규칙 |

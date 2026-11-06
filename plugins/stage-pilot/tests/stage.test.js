@@ -622,3 +622,20 @@ test('외부 설계 스킬은 조건부(when)로만 연결되고 레지스트리
   const refs = Object.values(map.profiles).flatMap((p) => p.stages.flatMap((s) => s.run)).filter((r) => /^(python|backend)-development:/.test(r.ref));
   assert.ok(refs.length && refs.every((r) => r.when));
 });
+
+test('testsSplit: 단위 테스트가 한 파일뿐이면 실패, 도메인·모듈별로 나뉘면 통과', () => {
+  const cwd = tmp();
+  put(cwd, 'tests/unit/test_all.py', 'def test_a(): pass\n');
+  const c = { testsSplit: 'tests/unit' };
+  assert.strictEqual(S.runCheck(cwd, {}, c).ok, false);
+  put(cwd, 'tests/unit/test_pagination.py', 'def test_b(): pass\n');
+  assert.strictEqual(S.runCheck(cwd, {}, c).ok, true);
+});
+
+test('{self} 는 이 플러그인 폴더로 바뀌고, 신규 구현 단계가 테스트 문서·커버리지 설정을 확인한다', () => {
+  assert.strictEqual(S.expandCmd(tmp(), 'node "{self}/scripts/test-plan.js" check', os.homedir()).cmd, `node "${path.resolve(__dirname, '..')}/scripts/test-plan.js" check`);
+  const checks = map.profiles.greenfield.stages.find((s) => s.id === '5').checks;
+  assert.ok(checks.some((c) => /test-plan\.js" check/.test(c.cmd || '')));
+  assert.ok(checks.some((c) => c.testsSplit));
+  assert.ok(checks.some((c) => c.file === 'pyproject.toml' && c.has.some((h) => /coverage/.test(h))));
+});

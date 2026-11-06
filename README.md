@@ -57,7 +57,7 @@ FastAPI 프로젝트를 Claude Code로 만들고 고칠 때 쓰는 **플러그�
   - `.claude/` 쓰기가 막혔을 때의 승인 대기 초안
 - **역할과 전문 스킬:** 단계마다 맡는 역할(요구사항 분석가·아키텍트·TDD 개발자·QA·보안 엔지니어 등)이 카드에 나오고, 이 플러그인의 전문 스킬이 단계에 배정됩니다.
   - `fastapi-conventions` 대중적인 구조·스타일·설계 패턴, uv add·sync 패키지 관리
-  - `fastapi-testing` 단위·API·통합 3계층 테스트, 같은 환경(conftest 픽스처), 테스트 하나에 동작 하나(흐름 테스트만 예외)
+  - `fastapi-testing` 단위(함수 하나)·API·통합(거시적 목적, 단위 결과에 기대지 않음) 3계층, 도메인별 테스트 파일, 계층별 conftest·Factory Fixture·Faker·stub/mock·Fake Repository·SQLite, pyproject.toml 의 pytest·커버리지 설정, `docs/test-plan/index.html` 테스트 문서(요약 → 상세 링크, `scripts/test-plan.js` 가 docstring·커버리지로 생성)
   - `fastapi-security` 설계(보안 경계)·구현(안전한 기본값)·검토(OWASP API Top 10 대조표)
   - `work-memory` 전체 작업·하위 작업·결정을 `stage.js task`·`log`로 기록하고, 세션 시작·압축 후 카드에 다시 넣음
   - `design-patterns` 설계 목적·명세 확보 → 소형·중형·대형·마이크로서비스 판정 → 그 규모에서 대중적인 패턴만 선택. 라우터는 Service 만 받고 DB 세션은 Unit of Work 가 원자적 작업 동안만 열고 닫음(느슨한 결합). Builder·Abstract Factory 는 조건을 충족할 때만, 읽기 쉬움이 최우선
