@@ -66,7 +66,8 @@ SCENARIOS = [
 ]
 
 
-def brief(sc, docs_lookup):
+def brief(sc, docs_lookup, stack="fastapi"):
+    """stack: fastapi | codeigniter — 언어·프레임워크·테스트 도구 조건만 바뀐다."""
     lv = LEVELS[sc["level"]]
     feats = "\n".join(f"- {f}" for f in sc["features"])
     nfr = "\n".join(f"- {n}" for n in lv["nfr"])
@@ -87,18 +88,24 @@ def brief(sc, docs_lookup):
 {nfr}
 
 ## 조건
-- 언어·프레임워크: Python 3.12, FastAPI
+- 언어·프레임워크: {STACKS[stack]["lang"]}
 - 인증: {lv['auth']}
 - 데이터베이스: {lv['db']}
 - 화면: {lv['ui']}
 - 외부 연동: {lv['integ']}
-- 개발 환경: 이 폴더 안의 가상환경(.venv), 로컬에서 실행·테스트. 원격 저장소는 없다.
+- 개발 환경: {STACKS[stack]["env"]}
 - 외부 문서 조회: {lookup}
 
 ## 납품물
-- 실행 가능한 코드와 자동 테스트(pytest)
+- 실행 가능한 코드와 자동 테스트({STACKS[stack]["test"]})
 - 요구사항·설계·기술 선정·작업 계획 문서
 """
+
+
+STACKS = {
+    "fastapi": dict(lang="Python 3.12, FastAPI", env="이 폴더 안의 가상환경(.venv), 로컬에서 실행·테스트. 원격 저장소는 없다.", test="pytest"),
+    "codeigniter": dict(lang="PHP 8.x, CodeIgniter 4 (composer 로 설치)", env="이 폴더에서 composer 로 의존성 설치, 로컬에서 실행·테스트(php spark serve). 원격 저장소는 없다.", test="PHPUnit"),
+}
 
 
 def pick(n):

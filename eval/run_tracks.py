@@ -37,11 +37,16 @@ EXTRA_DIRS = {"pydantic": os.path.join(TOOLS, "pydantic-skills", "plugins", "pyd
 GLOBAL = {"superpowers", "ponytail"}
 # 판정 직전 환경 점검(실전 평가가 설정): proj → 복구 기록 목록
 PRE_JUDGE = None
+# --stack codeigniter: PHP 의뢰서, php-lsp, TOOLS/php(포터블 PHP·composer) 를 PATH 에
+STACK = os.environ.get("SP_STACK", "fastapi")
+if STACK == "codeigniter":
+    OFFICIAL = OFFICIAL + ["php-lsp"]
 AVAILABLE = set(OFFICIAL) | GLOBAL | {k for k, v in EXTRA_DIRS.items() if os.path.isdir(v)} | {"stage-pilot"}
 
 CONSENT = " 보안 스캔(claude-security)이 시간과 토큰을 많이 쓴다는 것을 알고 있고, 그 비용을 승인한다."
 INTAKE = {
     "greenfield": "BRIEF.md 는 고객사 의뢰서야. 이 내용으로 새 FastAPI 프로젝트를 처음부터 시작하려고 해. 자동 승인으로 진행해줘." + CONSENT,
+    "greenfield-php": "BRIEF.md 는 고객사 의뢰서야. 이 내용으로 새 CodeIgniter 4 프로젝트를 처음부터 시작하려고 해. 자동 승인으로 진행해줘." + CONSENT,
     "feature": "이 프로젝트에 기능을 추가하려고 해: {feature}. 자동 승인으로 진행해줘." + CONSENT,
     "default": "이 프로젝트를 레거시로 보고 리팩토링하려고 해. 동작은 그대로 두고 구조를 개선해줘. 자동 승인으로 진행해줘." + CONSENT,
     "enhance": "이 프로젝트를 고도화하려고 해: {enhance}. 자동 승인으로 진행해줘." + CONSENT,
@@ -64,11 +69,11 @@ def claude(prompt, cwd, log_path, timeout):
     env = dict(os.environ, PYTHONIOENCODING="utf-8")
     # pyright-langserver 와, claude-security 스크립트가 부르는 python3(Windows 기본 python3 는 스토어 바로가기).
     # Bash 도구의 PATH 는 사용자 셸 프로필로 다시 만들어져 프로세스 환경이 전달되지 않으므로 CLAUDE_ENV_FILE 로 넣는다.
-    env["PATH"] = os.pathsep.join([os.path.join(TOOLS, "node_modules", ".bin"), os.path.join(TOOLS, "py3", "Scripts"), env["PATH"]])
+    env["PATH"] = os.pathsep.join([os.path.join(TOOLS, "node_modules", ".bin"), os.path.join(TOOLS, "py3", "Scripts"), os.path.join(TOOLS, "php"), env["PATH"]])
     env_file = os.path.join(TOOLS, "env.sh")
     with open(env_file, "w", encoding="utf-8", newline="\n") as f:
         posix = lambda q: "/" + q[0].lower() + q[2:].replace("\\", "/")
-        f.write(f'export PATH="{posix(os.path.join(TOOLS, "py3", "Scripts"))}:{posix(os.path.join(TOOLS, "node_modules", ".bin"))}:$PATH"\n')
+        f.write(f'export PATH="{posix(os.path.join(TOOLS, "py3", "Scripts"))}:{posix(os.path.join(TOOLS, "node_modules", ".bin"))}:{posix(os.path.join(TOOLS, "php"))}:$PATH"\n')
         # 개발 PC 설정에 해당하는 값(예: 테스트 MySQL 포트) — 실전 평가가 SP_ENV 에 담아 넘긴다
         for kv in filter(None, os.environ.get("SP_ENV", "").split(";")):
             f.write(f"export {kv}\n")
@@ -242,7 +247,7 @@ def run_iteration(n, out, tracks, seed=None):
         git(proj, "init", "-q", "-b", "main")
         git(proj, "config", "user.name", "eval")
         git(proj, "config", "user.email", "eval@example.invalid")
-        open(os.path.join(proj, "BRIEF.md"), "w", encoding="utf-8").write(scenarios.brief(sc, docs_lookup))
+        open(os.path.join(proj, "BRIEF.md"), "w", encoding="utf-8").write(scenarios.brief(sc, docs_lookup, STACK))
         git(proj, "add", "BRIEF.md")
         git(proj, "commit", "-q", "-m", "의뢰서")
     rep = {"iteration": n, "scenario": sc["key"], "level": sc["level"], "docs_lookup": docs_lookup, "tracks": []}
